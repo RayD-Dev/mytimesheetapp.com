@@ -118,6 +118,7 @@ Implemented in `mockup/src/assets/main.css` (`@theme` and `:root`). The file mov
 | 2026-10-12 | The mock-up lives in `mockup/`, and `mockup/src/pages/` mirrors the real app's routes (FE design §6): `/timesheet`, `/timesheet/review`, `/approvals`, `/approvals/:fortnight/:timesheet`, `/admin`, `/profile` | The owner's suggestion. The folders read like a sitemap, and the real app's routes match the mock-up's one-to-one, so screenshots compare directly. The review is a full-screen step in the real app; it has its own URL in the mock-up so it can be reviewed. |
 | 2026-10-12 | Admin approved in round R5: PDF first, then Employees, then Pay schedule (moved to the top on first run); temporary passwords shown once with Copy; a Mondays-only calendar | The order follows how often each task happens. |
 | 2026-10-12 | Status groups are told apart by tinted heading bands with icon, colour and count (round R6, variant b) | The owner found the three Approvals groups looked the same. Icons rather than emoji, so they render the same everywhere and colour is never the only signal. |
+| 2026-10-12 | Mock-up frozen after round R6. The approved screenshots in `mockup/approved/` (every page and state, phone and desktop) are the visual reference for the engineered front end | So the real build can be checked against what the owner approved, image by image. |
 
 ## Open questions
 

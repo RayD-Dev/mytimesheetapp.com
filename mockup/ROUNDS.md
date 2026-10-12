@@ -8,6 +8,11 @@ Decisions that should outlast the mock-up move into `DESIGN.md` (decision log) a
 
 ---
 
+## Frozen · 12/10/2026
+R6 is the final round. Every page and state is captured at phone and desktop width in `approved/`, the reference for the engineered front end. Any later design change needs a new round here, and the affected screenshots replaced.
+
+---
+
 ## R6 · 12/10/2026 · Telling status groups apart (Approvals and Admin)
 **Look at:**
 - `v=a`: http://localhost:5180/#/approvals?v=a and http://localhost:5180/#/admin?v=a
