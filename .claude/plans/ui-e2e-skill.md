@@ -25,29 +25,28 @@
 
 ## Coding standards (P2)
 
-When qualities conflict, the higher one wins: **Tests → Readable → Defensive → Maintainable → Short.**
+The ranking **Tests → Readable → Defensive → Maintainable → Short**, the conflict rules, the future-milestone seams and the check gates live in `.claude/skills/ui-e2e/references/standards.md`. That file is the single source.
 
-| Conflict | Winner | Rule |
-|---|---|---|
-| Readable vs short (expressions) | Readable | Name a step when a line holds more than one idea. "Short" means fewer layers and files, not denser lines. |
-| Readable vs short (types) | Readable | Write types on exported functions, component props and events, API calls, and any local whose type isn't obvious at a glance. Trivial locals stay inferred. |
-| Defensive vs short | Defensive | Check every value where it enters: API responses (P2a), form input, the URL, and values from third-party components (time input, signature pad). Extra lines are accepted. |
-| Defensive vs readable | Readable | Failure handling lives in one module per concern (for example autosave: debounce, retry, version conflict, "Not saved", leave warning) that exposes a plain status. Screens show the status; main paths stay flat with early returns. |
-| Defensive vs maintainable (duplicate rules) | Defensive | Keep FR-09 validation in the browser and on the server. Limit drift with one front-end validation module tested against the server's shared cases. The server's verdict wins. |
-| Defensive vs maintainable (API checks) | Defensive | Runtime validation of API responses, generated from the spec (P2a). |
-| Defensive vs short (strict TypeScript) | Defensive | `noUncheckedIndexedAccess` on (P2b). |
-| Maintainable vs short | Maintainable | A rule or concept that appears twice gets one shared module, even at the cost of more files. Formatters, hour calculations and validation are shared from day one. Code that only looks alike stays separate. Future seams only where free (P3). |
-| Maintainable vs readable (splitting) | Readable | Split by the parts the domain names (day row, week totals, submit review), not by line count. A page file reads top to bottom. |
-| Tests vs short and readable | Tests | Tests find elements by role and label, which doubles as an accessibility check. Logic lives in plain functions tested directly. Test behaviour from acceptance criteria, not internals. |
-| Defensive vs tests | Tests | No guards for states the types already rule out; make impossible states unrepresentable instead, so every branch can be tested. |
-| Intent vs short (comments) | Why only | Comment only why, mostly requirement links (`// FR-27: warn, never block`). Never restate what the code does. |
+## Decided 12/10/2026 ("lets just do it": recommendations adopted)
 
-## Open
+| ID | Decision |
+|---|---|
+| D3 | A spec file per screen in `docs/screens/<page>.md`, from the ui-e2e screen-spec template. `DESIGN.md` keeps only app-wide rules. |
+| P5 | `ui-e2e` covers the front end, with an API-contract step. A back-end skill comes later. |
+| A1a | Skill name `ui-e2e`; the docs command is a separate `docs-sync` skill. |
+| G1 | The mock-up was frozen and committed on `main` (342c053). Tooling is built on branch `ui-tooling`, which merges when the user approves it. |
+| U3 | *Submit timesheet* stays enabled and points to what's missing when pressed early. This changes Round 2's approved design, so the user sees it in mock-up round R7, and the affected screenshots are replaced, before it's built. |
 
-| ID | Question | Recommendation |
-|---|---|---|
-| D3 | A spec file per screen in `docs/screens/`, with `DESIGN.md` keeping only app-wide rules | Yes. |
-| P5 | Scope: front end only, with an API-spec step; back-end skill later | Yes. |
-| A1a | Skill name | `ui-e2e`. |
-| G1 | First commit: now (UI Design mid-round) or after UI Design finishes | After UI Design finishes, so the first commit is a settled state. |
-| U3 | Upstream plan D3 makes *Submit timesheet* enabled (says what's missing on press), changing Round 2's approved design | Keep the change; it goes through a mock-up round before it's built. |
+## Build status
+
+Built on `ui-tooling`, 12/10/2026:
+- The upstream-skills plan: 12 skills vendored, with manifest, patches and `sync.mjs`.
+- `ui-*` integration.
+- Four new scanner rules.
+- `ui-e2e`: SKILL.md plus standards, brief, plan, screen-spec and delegation references.
+- `docs-sync`, and the first copy of the Notion docs into `docs/`.
+
+Next, through `ui-e2e`:
+1. Round R7 for U3.
+2. Screen specs for the five pages.
+3. Slice 1's brief, which also settles the FE doc's open questions and brings the FE doc up to date with the mock-up decisions.
