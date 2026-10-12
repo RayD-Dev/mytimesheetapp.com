@@ -62,7 +62,7 @@ const { state, v } = useMock(states)
 
 **Spend tokens on what the user sees, not on code quality:**
 - Hardcode freely. Use inline logic and `v-if="state === 'rejected'"` branches. No stores, API layer, types beyond the inline ones, tests or reusable abstractions, unless they save tokens right now.
-- Fake only the interactions that change what the user sees: typing a time updates the hours preview, Submit opens the review, ticking every box enables Submit timesheet, Approve flips the status.
+- Fake only the interactions that change what the user sees: typing a time updates the hours preview, Submit opens the review, pressing Submit timesheet early points to what's still unticked, Approve flips the status.
 - Edit surgically. Change only the lines a piece of feedback touches; never regenerate a whole file.
 - Reuse `fmt.ts` and `fixtures.ts` rather than retyping data.
 
@@ -85,6 +85,11 @@ const { state, v } = useMock(states)
    - Look at the screenshots and fix what's off.
    - If a new page looks unstyled in places (for example a grid collapsing to one column) while `npx vite build` output contains the class, the dev server's Tailwind missed the new file: restart `npm run dev`.
    - Full-page screenshots show the page behind a dialog, not the dialog's hidden content. For dialogs, use a scenario with `scroll` steps and `--viewport-only`.
+   - **New page or new state: try to break it.**
+     - Add a `worst` state with realistic worst-case data, following Phases 1–4 of `../break-ui/SKILL.md` and its `CATALOG.md`: long and short names, 76h 30m totals, every status at once, empty, exactly one item.
+     - Feed the data in through `fixtures.ts`, never by editing markup, and switch it from the existing mock bar rather than a new toggle.
+     - Fix what's plainly a bug. Put the judgment calls, such as truncating or wrapping a name, to the user with the round.
+   - The guidelines review from ui-audit (pass 2) on the pages you changed. If motion changed, review it as ui-motion §6 describes.
 
    The user's attention is for taste and flow, not for catching overflow bugs.
 5. **Present** in a few lines:
@@ -107,7 +112,7 @@ The direction (Ledger), the button vocabulary and the date format are already de
 4. **Approvals:** the fortnight list, then one timesheet with Approve and Reject.
 5. **Admin:** pay schedule, employees, PDF download.
 
-All five were reviewed in rounds R1–R5 (see `mockup/ROUNDS.md`).
+All five were reviewed in rounds R1–R6 and frozen on 12/10/2026 (see `mockup/ROUNDS.md` and `mockup/approved/`). Later changes need a new round and replacement screenshots.
 
 ## Promoting an approved mock-up into the real app
 
@@ -115,8 +120,8 @@ When the user says a screen or the whole mock-up is approved:
 
 1. **Freeze.** Mark the final round in `ROUNDS.md`. Capture approved screenshots with ui-visual-check into `mockup/approved/`, one per page × state × viewport, and commit them.
 2. **Carry over the keeper layer unchanged:** `main.css` tokens, the `vite.config.ts` component theme, and fonts. Formatting rules become properly tested formatters, shared with the PDF tests (FR-11).
-3. **Write the spec the code can't carry.** For each screen, add to DESIGN.md §5 its states, exact copy, interactions and the components used, taken from the mock-up and ROUNDS.md. The mock code itself is not copied.
-4. **Engineer** the real screens with ui-craft and ui-motion (stores, API client, types, tests, per the FE design doc).
+3. **Write the spec the code can't carry.** One file per page in `docs/screens/<page>.md`, from the ui-e2e skill's screen-spec template: states, exact copy, interactions, components and requirement IDs, taken from the mock-up and ROUNDS.md. `DESIGN.md` keeps only app-wide rules, so it stays small enough to read on every design step. The mock code itself is not copied. Keep the `worst` fixtures as regression data for the real app's tests.
+4. **Engineer** the real screens through the ui-e2e skill: brief, plan, build, then checks. It uses ui-craft and ui-motion for the UI work.
 5. **Verify against the mock-up.** Run ui-visual-check on the real screens and compare them with `mockup/approved/` screenshots side by side. The routes are the same, so the same `--routes` list works for both. Run ui-audit. Differences are either bugs or deliberate changes recorded in DESIGN.md.
 6. When every screen is engineered, archive or delete `mockup/`. The approved screenshots and DESIGN.md remain.
 

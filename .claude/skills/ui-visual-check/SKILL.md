@@ -73,6 +73,15 @@ To compare with a mock-up or an earlier round, view the two screenshots one afte
   - what was checked (routes × viewports)
   - what was found and fixed
   - what's left, with screenshot paths
+  - what only a real phone can confirm, for screens with touch input. Emulation can't reproduce these (`../mobile-native/SKILL.md`, "Right in Chrome, wrong on phone"):
+    - hover stuck after a tap
+    - tap delay
+    - content under the notch or home bar
+    - the keyboard covering an input
+    - iOS zooming into an input
+    - pull-to-refresh fighting a scroll area
+
+    Name the screens to try on the user's phone. Don't claim them as checked.
 
   Don't paste the whole report.
 

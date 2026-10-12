@@ -145,6 +145,34 @@ function uiStrings(sec) {
   return out
 }
 
+// Visible copy for the punctuation rules (em-dash, middot-chain, three-dots). Same sources as uiStrings, read more strictly:
+// template text is taken after tags and {{ }} are blanked (so `=>` or spread inside a directive never looks like copy),
+// string literals inside {{ }} and bound label-like attributes count, and script literals skip uiStrings' "reads like a
+// sentence" test, because a string holding a dash, a middle dot or "..." is prose either way ('Saving...', a lone dash). Comments are
+// already blanked; console.* arguments are developer output, not UI.
+const LABEL_ATTRS = 'label|title|placeholder|description|aria-label|alt'
+function copyStrings(sec) {
+  const out = []
+  const literals = (text, base, skip) => {
+    for (const q of quoted(text)) if (!skip || !skip(q)) out.push({ index: base + q.index, value: q.value.replace(/\$\{[^}]*\}/g, blank) })
+  }
+  if (sec.kind === 'template') {
+    let plain = sec.text.replace(/\{\{[\s\S]*?\}\}/g, (m, at) => { literals(m.slice(2, -2), at + 2); return blank(m) })
+    for (const m of sec.text.matchAll(new RegExp(`\\s(?:${LABEL_ATTRS})\\s*=\\s*"([^"]*)"`, 'g'))) out.push({ index: m.index + m[0].length - m[1].length - 1, value: m[1] })
+    for (const m of sec.text.matchAll(new RegExp(`\\s(?::|v-bind:)(?:${LABEL_ATTRS})\\s*=\\s*"([^"]*)"`, 'g'))) literals(m[1], m.index + m[0].length - m[1].length - 1)
+    plain = plain.replace(TAG_RE, blank)
+    for (const m of plain.matchAll(/[^\n]+/g)) if (m[0].trim()) out.push({ index: m.index, value: m[0] })
+  } else if (sec.kind === 'script') {
+    literals(sec.text, 0, (q) => /console\.\w+\(\s*$/.test(sec.text.slice(Math.max(0, q.index - 40), q.index - 1)))
+  }
+  return out
+}
+const around = (v, i, len = 1) => `"${v.slice(Math.max(0, i - 14), i + len + 14).trim()}"`
+// `...` that is code or a path, not copy: spread (`...args`, `[...xs]`, `{ ...a }`) that slipped into a "string" through mis-paired
+// quotes or code in a message (an identifier or bracket straight after the dots, an opener, comma or operator straight before), and
+// ranges or URLs with a word on both sides (`main...feature`).
+const codeDots = (v, i) => (/[\w$([{]/.test(v[i + 3] || '') && /[([{,=:?&|]\s*$/.test(v.slice(0, i))) || (/\w/.test(v[i - 1] || '') && /\w/.test(v[i + 3] || ''))
+
 // template tags
 const VOID = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr'])
 const TAG_RE = /<(\/?)([A-Za-z][\w.:-]*)((?:\s+[^\s"'>/=]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'=<>`]+))?)*)\s*(\/?)>/g
@@ -324,6 +352,8 @@ const RULES = [
       .map((m) => ({ index: m.index, detail: `<${m[2]} @click>` })) },
   { id: 'img-alt', sev: 'major', why: 'Images without alt text are read out as file names.', fix: 'Meaningful alt, or alt="" for decoration.',
     find: (sec) => sec.kind !== 'template' ? [] : [...rx(sec.text, TAG_RE)].filter((m) => !m[1] && /^img$/i.test(m[2]) && !/(?:^|\s)(?::|v-bind:)?alt\s*=/.test(m[3])).map((m) => ({ index: m.index })) },
+  { id: 'zoom-disabled', sev: 'critical', why: 'user-scalable=no and maximum-scale=1 block pinch-zoom, which locks out people who need larger text.', fix: 'Remove it from the viewport tag; to stop iOS zooming into inputs, make them at least 16px.',
+    find: (sec) => sec.kind === 'style' ? [] : [...rx(sec.text, /user-scalable\s*=\s*(?:no|0)(?![\w.])|maximum-scale\s*=\s*1(?:\.0+)?(?![\d.])/gi)].map((m) => ({ index: m.index, detail: m[0] })) },
 
   // Copy
   { id: 'slop-copy', sev: 'minor', why: 'Apologetic, vague or marketing copy inside a tool explains nothing.', fix: 'Say what happened and what to do, in the users\' own words.',
@@ -347,6 +377,20 @@ const RULES = [
     find: (sec) => uiStrings(sec).filter((s) => /(?![©®™])\p{Extended_Pictographic}/u.test(s.value)).map((s) => ({ index: s.index, detail: s.value.trim().slice(0, 30) })) },
   { id: 'exclaim', sev: 'minor', why: 'Exclamation marks in a tool sound like marketing.', fix: 'Calm, specific statements ("Timesheet submitted").',
     find: (sec) => uiStrings(sec).filter((s) => /[A-Za-z]!\s*$/.test(s.value)).map((s) => ({ index: s.index, detail: `"${s.value.trim().slice(0, 40)}"` })) },
+  { id: 'em-dash', sev: 'major', why: 'Em and en dashes are the most recognisable AI-writing tell, and this project bans them in UI copy.', fix: 'Use a full stop, comma, colon or brackets; write ranges with "to" (06/10/2026 to 17/10/2026).',
+    find: (sec) => copyStrings(sec).flatMap((s) => [...s.value.matchAll(/[\u2013\u2014]/g)].map((m) => ({ index: s.index + m.index, detail: around(s.value, m.index) }))) },
+  { id: 'middot-chain', sev: 'minor', why: 'Metadata strips chained with middle dots are a templated look; one separator on a line is fine.', fix: 'Split into separate lines, or use words ("3 to approve, 1 approved, 1 rejected").',
+    find: (sec) => {
+      const lines = new Map() // dots counted per source line, across every piece of copy on it
+      for (const s of copyStrings(sec)) for (const m of s.value.matchAll(/\u00B7/g)) {
+        const at = s.index + m.index, line = sec.text.slice(0, at).split('\n').length
+        const e = lines.get(line) || { index: at, n: 0 }
+        e.index = Math.min(e.index, at); e.n++; lines.set(line, e)
+      }
+      return [...lines.values()].filter((e) => e.n > 1).map((e) => ({ index: e.index, detail: `${e.n} middle dots on one line` }))
+    } },
+  { id: 'three-dots', sev: 'minor', why: 'Three full stops are a typewriter stand-in for the ellipsis character.', fix: 'Use the ellipsis character: "Saving…".',
+    find: (sec) => copyStrings(sec).flatMap((s) => [...s.value.matchAll(/(?<!\.)\.\.\.(?!\.)/g)].filter((m) => !codeDots(s.value, m.index)).map((m) => ({ index: s.index + m.index, detail: around(s.value, m.index, 3) }))) },
 ]
 const RAW_COLOR = { id: 'raw-color', sev: 'minor', why: 'Raw colour values in components drift from the design system; every screen ends up slightly different.', fix: 'Reference tokens (bg-paper, var(--color-ink)); add a token if one is missing.' }
 const NO_REDUCED = { id: 'no-reduced-motion', sev: 'major', why: 'Animation without a prefers-reduced-motion alternative can cause discomfort for some users.', fix: 'Add the reduced-motion block from ui-motion recipes (§1).' }

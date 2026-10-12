@@ -5,10 +5,11 @@ description: Audit UI code and screens for generic "AI slop" tells, design-syste
 
 # UI audit
 
-Two passes, because they catch different things:
+Three passes, because they catch different things:
 
-1. **Scan.** A deterministic scanner finds the tells that live in code: default fonts, purple gradients, glassmorphism, nested cards, `transition: all`, bounce easing, raw colours instead of tokens, removed focus outlines, clickable divs, marketing copy. It's fast, repeatable and cheap to run after every change.
-2. **Critique.** Judgment on the rendered screen: hierarchy, rhythm, fit to the subject, consistency with DESIGN.md. A clean scan is not proof of good design.
+1. **Scan.** A deterministic scanner finds the tells that live in code: default fonts, purple gradients, glassmorphism, nested cards, `transition: all`, bounce easing, raw colours instead of tokens, removed focus outlines, clickable divs, marketing copy, em dashes, disabled zoom. It's fast, repeatable and cheap to run after every change.
+2. **Guidelines review.** Vercel's Web Interface Guidelines, checked file by file: accessibility, focus, forms, touch, content handling. These are the interaction rules a regex can't judge.
+3. **Critique.** Judgment on the rendered screen: hierarchy, rhythm, fit to the subject, consistency with DESIGN.md. A clean scan is not proof of good design.
 
 ## 1. Scan
 
@@ -49,11 +50,20 @@ The output is a score with a band, findings grouped by severity (`file:line rule
     ```
     `allowCopy` exempts specific words from the copy rules. `tokenFiles` lists where raw colours belong. Files named like `tokens`, `theme`, `palette` or `main.css` are treated as token files automatically.
 
-## 2. Critique
+## 2. Guidelines review
 
-Look at the rendered screen. Use ui-visual-check screenshots at phone and desktop widths if you can't see it otherwise. Go through `references/critique-rubric.md` and note at most five issues, most important first. Each one names the element, what's wrong, why it matters to *this* product's users, and the change.
+Read `../web-design-guidelines/command.md` and check the changed files against its rules, reporting in its terse `file:line` format.
+- **Skip rules this project overrides:** Title Case, layered shadows, APCA and dark mode. `../ui-craft/references/upstream.md` lists them with reasons.
+- **Translate React-specific rules** into the Vue equivalent where one exists: "URL reflects state" means Vue Router query parameters, and controlled inputs mean `v-model`. Skip hydration rules; this is a client-rendered SPA.
+- **Delegate when the change is large.** For more than a handful of files, hand this pass to a read-only sub-agent on a cheaper model. Give it `command.md`, the file list and the two notes above, and ask for findings only.
 
-## 3. Report
+## 3. Critique
+
+Look at the rendered screen. Use ui-visual-check screenshots at phone and desktop widths if you can't see it otherwise. Go through `references/critique-rubric.md`. Then go through the "Design Audit" checklist in `../redesign-existing-projects/SKILL.md`; skip its "Upgrade Techniques", and any item `../ui-craft/references/upstream.md` overrides. For copy, use §4.9 "COPY SELF-AUDIT" in `../design-taste-frontend/SKILL.md`.
+
+Note at most five issues, most important first. Each one names the element, what's wrong, why it matters to *this* product's users, and the change.
+
+## 4. Report
 
 When you report back, use this shape. It's short enough to read, and specific enough to act on.
 
@@ -61,6 +71,7 @@ When you report back, use this shape. It's short enough to read, and specific en
 UI audit — <scope>
 Scan: 62 → 91 (Intentional). Fixed: ai-gradient ×1, raw-color ×7, transition-all ×2.
 Kept on purpose: generic-cta ×1 ("Submit" is the PRD's term).
+Guidelines: 3 found, 3 fixed (icon button without aria-label, toast without aria-live, "..." in loading text).
 Critique:
 1. Fortnight total doesn't stand out from the week totals — make it the screen's one confident element (DESIGN.md §3 signature).
 2. …

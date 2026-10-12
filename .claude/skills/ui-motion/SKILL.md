@@ -7,7 +7,19 @@ description: Purposeful motion and micro-interactions — deciding whether somet
 
 Motion is information about change: where something came from, what just happened, what changed. Default generated motion (fade-up on everything, bouncy springs, hover lifts) carries no information and makes repeated work slower. In a tool people use every fortnight to record what they're owed, motion should make the interface feel *certain* and *quick*, never playful.
 
-The rules here draw on Emil Kowalski's interface animation practice (the `emil-design-eng` skill and animations.dev).
+The rules here apply Emil Kowalski's interface animation practice to this app. His skills are installed alongside. Read the named file at the step that needs it rather than invoking the skill, which replies only with a "ready" message when invoked without a question:
+
+| Need | Read |
+|---|---|
+| Building any new motion | `../animate/SKILL.md` "The Build Sequence", then the matching recipe in `../animate/RECIPES.md`, adapted to the tokens in §2 and the Vue recipes in `references/recipes-vue.md` |
+| Reviewing motion | §6 below, with values from `../review-animations/STANDARDS.md` |
+| Something drops frames | `../animation-performance/SKILL.md`, symptom table first |
+| "What could animate here?" | `../find-animation-opportunities/SKILL.md`. Expect to reject most candidates: this is a precise, frequently used tool |
+| Auditing all the motion in the app | `../improve-animations/SKILL.md`, with plans written to `.claude/plans/animation/` |
+| Naming an effect someone describes | `../animation-vocabulary/SKILL.md` |
+| Phone-specific touch behaviour | `../mobile-native/SKILL.md` |
+
+Where Emil's general advice and this skill differ, this skill wins: no stagger on entrances (his reviews flag "everything at once", which is right here), no springs or bounce, and numbers never tween.
 
 ## 1. Decide whether to animate at all
 
@@ -77,10 +89,14 @@ Rules of thumb:
 
 ## 6. Reviewing motion
 
-When asked to review or polish motion, report a table:
+When asked to review or polish motion, use the method in `../review-animations/SKILL.md`, measured against this skill first and its `STANDARDS.md` second:
 
-| Element | Now | Problem | Change |
-|---|---|---|---|
-| Save status | Spinner on each keystroke, 300ms fade | Flickers on fast saves; draws the eye while typing | Delay "Saving…" by 400ms; no spinner; "Saved" settles to quiet text |
+1. **Findings table**, one row per issue, with `file:line`:
+
+   | Before | After | Why |
+   |---|---|---|
+   | `SaveStatus.vue:12` spinner on each keystroke, 300ms fade | No spinner; "Saving…" only after 400ms; "Saved" settles to quiet text | Flickers on fast saves and draws the eye while typing |
+
+2. **Verdict** grouped by impact (feel-breaking, should be removed, performance, interruptibility, origin and cohesion, accessibility). End with **Block** or **Approve**. Prefer deleting or reducing an animation over tuning it.
 
 To inspect timing, slow animations down (DevTools Animations panel, or multiply durations by 5 temporarily). Check touch interactions on a real phone, where hover states and 300ms+ transitions are most noticeable.

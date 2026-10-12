@@ -63,6 +63,7 @@ An entry is a smell, not a law. If one is right for this product, keep it and re
 | `outline: none` with no focus-visible replacement | `outline-none` | Keyboard users lose their place | A `:focus-visible` ring using the focus token |
 | Clickable `div`s and `span`s | `div-button` | Not focusable or announced as a control | `<button>` or `<a>`, or the library component |
 | Images without `alt` | `img-alt` | Screen readers read the filename | Meaningful `alt`, or `alt=""` for decoration |
+| `user-scalable=no` or `maximum-scale=1` in the viewport tag | `zoom-disabled` | Blocks pinch-zoom, which locks out people who need larger text | Remove it; stop iOS zooming into inputs by making them at least 16px |
 | Inputs under 16px on phones | (ui-visual-check) | iOS zooms the whole page on focus | `text-base` on inputs |
 | Tap targets under 24px (44px recommended) | (ui-visual-check) | Missed taps, wrong rows | Bigger hit areas; padding, not bigger icons |
 | Sideways scrolling at 375px | (ui-visual-check) | Breaks the PRD's phone promise | Stack, wrap or restructure at narrow widths |
@@ -76,4 +77,7 @@ An entry is a smell, not a law. If one is right for this product, keep it and re
 | "Lorem ipsum" or placeholder names | `slop-copy` | Unfinished, and hides layout problems real data would reveal | Realistic data, including long names and big totals (76h 30m) |
 | Generic "Submit" or "Click here" | `generic-cta` | Doesn't say what happens | Name the outcome. This project has agreed exceptions in `.slopscan.json` (e.g. Submit, which is the PRD's term) |
 | Emoji in UI text; exclamation marks | `emoji-ui`, `exclaim` | Forced cheer | Calm, specific statements |
+| Em dashes or en dashes in UI copy | `em-dash` | The most recognisable AI-writing tell; the project bans them | A full stop, comma, colon or brackets. Ranges use "to" (06/10/2026 to 17/10/2026) |
+| Metadata strips chained with middle dots (`a · b · c`) | `middot-chain` | A templated look. One separator on a line is fine | Separate lines, or words ("3 to approve, 1 approved, 1 rejected") |
+| `...` (three full stops) in UI text | `three-dots` | A typewriter stand-in for the ellipsis character. Spread syntax in code is not flagged | The ellipsis character: "Saving…" |
 | The same action with different names on different screens | judgment | Users wonder whether they're different actions | DESIGN.md's vocabulary |
