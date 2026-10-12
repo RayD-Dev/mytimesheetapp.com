@@ -1,0 +1,11 @@
+{
+  "_about": "Notion pages copied into docs/notion/ by the docs-sync skill. Notion is the master; never edit the copies.",
+  "syncedAt": "2026-10-12",
+  "pages": [
+    { "title": "Product Requirements (PRD)", "file": "prd.md", "url": "https://app.notion.com/p/3f5771bd4d438156a93ec42b3548821d", "lastEdited": "2026-10-11T01:40:34.115Z" },
+    { "title": "HL Design Doc", "file": "hl-design.md", "url": "https://app.notion.com/p/3f4771bd4d4380e28d76d2038edbfac4", "lastEdited": "2026-10-11T05:50:04.036Z" },
+    { "title": "System Design", "file": "system-design.md", "url": "https://app.notion.com/p/3f6771bd4d4381fbadd6f819e59e08fd", "lastEdited": "2026-10-11T02:59:16.510Z" },
+    { "title": "Detailed Design Doc — FE", "file": "fe-design.md", "url": "https://app.notion.com/p/3f5771bd4d43819981e0f96e66fae263", "lastEdited": "2026-10-11T01:40:09.837Z" },
+    { "title": "Detailed Design Doc — BE", "file": "be-design.md", "url": "https://app.notion.com/p/3f5771bd4d43813e90c8e11492d92e2b", "lastEdited": "2026-10-11T05:25:37.602Z" }
+  ]
+}
