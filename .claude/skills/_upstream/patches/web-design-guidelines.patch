@@ -1,0 +1,35 @@
+--- a/SKILL.md
++++ b/SKILL.md
+@@ -13,27 +13,21 @@
+ 
+ ## How It Works
+ 
+-1. Fetch the latest guidelines from the source URL below
++1. Read the pinned guidelines in `command.md` next to this file
+ 2. Read the specified files (or prompt user for files/pattern)
+-3. Check against all rules in the fetched guidelines
++3. Check against all rules in the guidelines
+ 4. Output findings in the terse `file:line` format
+ 
+ ## Guidelines Source
+ 
+-Fetch fresh guidelines before each review:
+-
+-```
+-https://raw.githubusercontent.com/vercel-labs/web-interface-guidelines/main/command.md
+-```
+-
+-Use WebFetch to retrieve the latest rules. The fetched content contains all the rules and output format instructions.
++Use the pinned copy in `command.md` next to this file; don't fetch the rules from the web. This project pins its upstream skills and updates them through `.claude/skills/_upstream/` after the diff has been reviewed. `build-rules.md` next to it holds the same guidelines written as build rules (MUST/SHOULD/NEVER).
+ 
+ ## Usage
+ 
+ When a user provides a file or pattern argument:
+-1. Fetch guidelines from the source URL above
++1. Read the guidelines in `command.md`
+ 2. Read the specified files
+-3. Apply all rules from the fetched guidelines
++3. Apply all rules from the guidelines
+ 4. Output findings using the format specified in the guidelines
+ 
+ If no files specified, ask the user which files to review.

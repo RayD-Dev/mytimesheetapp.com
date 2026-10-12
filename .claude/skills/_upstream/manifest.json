@@ -1,0 +1,135 @@
+{
+  "_about": "Upstream skills vendored into .claude/skills/. Each skill is pinned to the commit its files were copied from. Local changes live in patches/ and are re-applied on every pull. Managed by sync.mjs; see README.md.",
+  "sources": {
+    "taste-skill": {
+      "repo": "https://github.com/Leonxlnx/taste-skill.git",
+      "license": "MIT"
+    },
+    "emil-skill": {
+      "repo": "https://github.com/emilkowalski/skill.git",
+      "license": "MIT"
+    },
+    "vercel-web-interface-guidelines": {
+      "repo": "https://github.com/vercel-labs/web-interface-guidelines.git",
+      "license": "MIT"
+    },
+    "vercel-agent-skills": {
+      "repo": "https://github.com/vercel-labs/agent-skills.git",
+      "license": "MIT"
+    }
+  },
+  "skills": {
+    "design-taste-frontend": {
+      "pins": { "taste-skill": "d237dd399d57524945c0c81327da5da19f7a468d" },
+      "upstreamDir": { "source": "taste-skill", "path": "skills/taste-skill" },
+      "files": [
+        { "to": "SKILL.md", "source": "taste-skill", "path": "skills/taste-skill/SKILL.md" },
+        { "to": "LICENSE", "source": "taste-skill", "path": "LICENSE" }
+      ],
+      "patch": "patches/design-taste-frontend.patch",
+      "localChanges": "Manual-only (disable-model-invocation): a marketing-page skill that would otherwise trigger on product UI work. Our ui-* skills read named sections of it."
+    },
+    "redesign-existing-projects": {
+      "pins": { "taste-skill": "d237dd399d57524945c0c81327da5da19f7a468d" },
+      "upstreamDir": { "source": "taste-skill", "path": "skills/redesign-skill" },
+      "files": [
+        { "to": "SKILL.md", "source": "taste-skill", "path": "skills/redesign-skill/SKILL.md" },
+        { "to": "LICENSE", "source": "taste-skill", "path": "LICENSE" }
+      ],
+      "patch": "patches/redesign-existing-projects.patch",
+      "localChanges": "Manual-only (disable-model-invocation): its upgrade techniques (grain, stagger, springs) contradict ui-motion and DESIGN.md. ui-audit reads its audit checklist."
+    },
+    "emil-design-eng": {
+      "pins": { "emil-skill": "2d228630ba1446365f614a108cb8252f1feda202" },
+      "upstreamDir": { "source": "emil-skill", "path": "skills/emil-design-eng" },
+      "files": [
+        { "to": "SKILL.md", "source": "emil-skill", "path": "skills/emil-design-eng/SKILL.md" },
+        { "to": "LICENSE", "source": "emil-skill", "path": "LICENSE" }
+      ]
+    },
+    "animate": {
+      "pins": { "emil-skill": "2d228630ba1446365f614a108cb8252f1feda202" },
+      "upstreamDir": { "source": "emil-skill", "path": "skills/animate" },
+      "files": [
+        { "to": "SKILL.md", "source": "emil-skill", "path": "skills/animate/SKILL.md" },
+        { "to": "RECIPES.md", "source": "emil-skill", "path": "skills/animate/RECIPES.md" },
+        { "to": "LICENSE", "source": "emil-skill", "path": "LICENSE" }
+      ]
+    },
+    "review-animations": {
+      "pins": { "emil-skill": "2d228630ba1446365f614a108cb8252f1feda202" },
+      "upstreamDir": { "source": "emil-skill", "path": "skills/review-animations" },
+      "files": [
+        { "to": "SKILL.md", "source": "emil-skill", "path": "skills/review-animations/SKILL.md" },
+        { "to": "STANDARDS.md", "source": "emil-skill", "path": "skills/review-animations/STANDARDS.md" },
+        { "to": "LICENSE", "source": "emil-skill", "path": "LICENSE" }
+      ]
+    },
+    "improve-animations": {
+      "pins": { "emil-skill": "2d228630ba1446365f614a108cb8252f1feda202" },
+      "upstreamDir": { "source": "emil-skill", "path": "skills/improve-animations" },
+      "files": [
+        { "to": "SKILL.md", "source": "emil-skill", "path": "skills/improve-animations/SKILL.md" },
+        { "to": "AUDIT.md", "source": "emil-skill", "path": "skills/improve-animations/AUDIT.md" },
+        { "to": "PLAN-TEMPLATE.md", "source": "emil-skill", "path": "skills/improve-animations/PLAN-TEMPLATE.md" },
+        { "to": "LICENSE", "source": "emil-skill", "path": "LICENSE" }
+      ]
+    },
+    "find-animation-opportunities": {
+      "pins": { "emil-skill": "2d228630ba1446365f614a108cb8252f1feda202" },
+      "upstreamDir": { "source": "emil-skill", "path": "skills/find-animation-opportunities" },
+      "files": [
+        { "to": "SKILL.md", "source": "emil-skill", "path": "skills/find-animation-opportunities/SKILL.md" },
+        { "to": "LICENSE", "source": "emil-skill", "path": "LICENSE" }
+      ]
+    },
+    "animation-performance": {
+      "pins": { "emil-skill": "2d228630ba1446365f614a108cb8252f1feda202" },
+      "upstreamDir": { "source": "emil-skill", "path": "skills/animation-performance" },
+      "files": [
+        { "to": "SKILL.md", "source": "emil-skill", "path": "skills/animation-performance/SKILL.md" },
+        { "to": "LICENSE", "source": "emil-skill", "path": "LICENSE" }
+      ]
+    },
+    "animation-vocabulary": {
+      "pins": { "emil-skill": "2d228630ba1446365f614a108cb8252f1feda202" },
+      "upstreamDir": { "source": "emil-skill", "path": "skills/animation-vocabulary" },
+      "files": [
+        { "to": "SKILL.md", "source": "emil-skill", "path": "skills/animation-vocabulary/SKILL.md" },
+        { "to": "LICENSE", "source": "emil-skill", "path": "LICENSE" }
+      ]
+    },
+    "mobile-native": {
+      "pins": { "emil-skill": "2d228630ba1446365f614a108cb8252f1feda202" },
+      "upstreamDir": { "source": "emil-skill", "path": "skills/mobile-native" },
+      "files": [
+        { "to": "SKILL.md", "source": "emil-skill", "path": "skills/mobile-native/SKILL.md" },
+        { "to": "LICENSE", "source": "emil-skill", "path": "LICENSE" }
+      ]
+    },
+    "break-ui": {
+      "pins": { "emil-skill": "2d228630ba1446365f614a108cb8252f1feda202" },
+      "upstreamDir": { "source": "emil-skill", "path": "skills/break-ui" },
+      "files": [
+        { "to": "SKILL.md", "source": "emil-skill", "path": "skills/break-ui/SKILL.md" },
+        { "to": "CATALOG.md", "source": "emil-skill", "path": "skills/break-ui/CATALOG.md" },
+        { "to": "LICENSE", "source": "emil-skill", "path": "LICENSE" }
+      ]
+    },
+    "web-design-guidelines": {
+      "pins": {
+        "vercel-agent-skills": "063bee94c3f4df8453406c830b0a7df0f2860278",
+        "vercel-web-interface-guidelines": "434b7f91364665f2f733b310ec54809bf8f37937"
+      },
+      "upstreamDir": { "source": "vercel-agent-skills", "path": "skills/web-design-guidelines" },
+      "files": [
+        { "to": "SKILL.md", "source": "vercel-agent-skills", "path": "skills/web-design-guidelines/SKILL.md" },
+        { "to": "command.md", "source": "vercel-web-interface-guidelines", "path": "command.md" },
+        { "to": "build-rules.md", "source": "vercel-web-interface-guidelines", "path": "AGENTS.md" },
+        { "to": "LICENSE", "source": "vercel-web-interface-guidelines", "path": "LICENSE" }
+      ],
+      "patch": "patches/web-design-guidelines.patch",
+      "localChanges": "Reads the pinned command.md instead of fetching the rules from the web on every review. AGENTS.md is stored as build-rules.md so Claude Code doesn't auto-load it whenever a file in this folder is read."
+    }
+  }
+}
