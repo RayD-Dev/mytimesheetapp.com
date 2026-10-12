@@ -1,0 +1,7 @@
+{
+  "_about": "Config for .claude/skills/ui-audit/scripts/slop-scan.mjs. allowCopy: domain terms the PRD mandates (FR-14 names the button Submit).",
+  "ignoreRules": [],
+  "ignoreFiles": ["mockup/src/App.vue", "mockup/src/Board.vue"],
+  "allowCopy": ["Submit"],
+  "tokenFiles": ["mockup/src/assets/main.css"]
+}

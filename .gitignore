@@ -1,0 +1,21 @@
+# Dependencies and build output
+node_modules/
+dist/
+coverage/
+
+# Test and screenshot output (approved mock-up screenshots in mockup/approved/ are kept)
+.ui-snapshots/
+playwright-report/
+test-results/
+
+# Local settings and secrets
+.env
+.env.*
+!.env.example
+.claude/settings.local.json
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+*.log
