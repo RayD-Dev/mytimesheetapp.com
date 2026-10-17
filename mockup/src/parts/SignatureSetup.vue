@@ -5,11 +5,13 @@ import { nextTick, ref, watch } from 'vue'
 import SignatureText from '@/parts/SignatureText.vue'
 import { signatureStyles, type Signature, type StyleKey } from '@/signature'
 
-const props = defineProps<{ name: string; actionLabel?: string; cancellable?: boolean; initialStyle?: StyleKey }>()
-const emit = defineEmits<{ done: [sig: Signature]; cancel: [] }>()
+const props = defineProps<{ name: string; actionLabel?: string; cancellable?: boolean; initialStyle?: StyleKey; showError?: boolean }>()
+const emit = defineEmits<{ done: [sig: Signature]; cancel: []; invalid: [] }>()
 
 const mode = ref<'type' | 'draw'>('type')
-const text = ref(props.name)
+const text = ref(props.showError ? '' : props.name)
+const typeErr = ref(props.showError ? 'Type your name as you sign it.' : '')
+const drawErr = ref('')
 const style = ref<StyleKey>(props.initialStyle ?? signatureStyles[0].key)
 const canvas = ref<HTMLCanvasElement>()
 const drawn = ref(false)
@@ -29,10 +31,17 @@ watch(mode, async (m) => {
 })
 const at = (e: PointerEvent) => { const r = canvas.value!.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top] as const }
 function down(e: PointerEvent) { drawing = true; canvas.value!.setPointerCapture(e.pointerId); ctx!.beginPath(); ctx!.moveTo(...at(e)) }
-function move(e: PointerEvent) { if (!drawing) return; ctx!.lineTo(...at(e)); ctx!.stroke(); drawn.value = true }
+function move(e: PointerEvent) { if (!drawing) return; ctx!.lineTo(...at(e)); ctx!.stroke(); drawn.value = true; drawErr.value = '' }
 function clear() { ctx!.clearRect(0, 0, canvas.value!.width, canvas.value!.height); drawn.value = false }
 
 function use() {
+  typeErr.value = mode.value === 'type' && !text.value.trim() ? 'Type your name as you sign it.' : ''
+  drawErr.value = mode.value === 'draw' && !drawn.value ? 'Draw your signature in the box.' : ''
+  if (typeErr.value || drawErr.value) {
+    emit('invalid')
+    nextTick(() => document.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus())
+    return
+  }
   if (mode.value === 'type') emit('done', { kind: 'typed', text: text.value.trim(), style: style.value })
   else emit('done', { kind: 'drawn', url: canvas.value!.toDataURL('image/png') })
 }
@@ -46,8 +55,8 @@ function use() {
     </UFieldGroup>
 
     <div v-if="mode === 'type'" class="mt-4">
-      <UFormField label="Your name as you sign it">
-        <UInput v-model="text" size="xl" class="w-full max-w-sm" :ui="{ base: 'h-11 md:h-9' }" />
+      <UFormField label="Your name as you sign it" :error="typeErr">
+        <UInput v-model="text" @update:model-value="typeErr = ''" size="xl" class="w-full max-w-sm" :ui="{ base: 'h-11 md:h-9' }" />
       </UFormField>
       <fieldset class="mt-5 max-w-sm min-w-0">
         <legend class="text-sm font-medium">Choose a style</legend>
@@ -69,17 +78,20 @@ function use() {
       <div class="relative mt-2">
         <canvas
           ref="canvas"
-          class="block h-40 w-full touch-none border border-control-border bg-sheet text-ink"
+          :class="['block h-40 w-full touch-none border bg-sheet text-ink', drawErr ? 'border-danger' : 'border-control-border']"
           aria-label="Signature drawing area"
+          :aria-invalid="drawErr ? 'true' : undefined"
+          tabindex="-1"
           @pointerdown="down" @pointermove="move" @pointerup="drawing = false" @pointerleave="drawing = false"
         />
         <span class="pointer-events-none absolute right-3 bottom-8 left-3 border-b border-rule" />
       </div>
+      <p v-if="drawErr" class="mt-1 flex items-start gap-2 text-sm text-danger"><UIcon name="i-lucide-circle-alert" class="mt-0.5 size-4 shrink-0" /> {{ drawErr }}</p>
       <UButton color="neutral" variant="link" class="-ml-2.5 h-11" :disabled="!drawn" @click="clear">Clear drawing</UButton>
     </div>
 
     <div class="mt-4 flex flex-wrap gap-3">
-      <UButton color="neutral" variant="outline" size="xl" class="h-11 justify-center md:h-9" :disabled="mode === 'type' ? !text.trim() : !drawn" @click="use">{{ actionLabel ?? 'Use this signature' }}</UButton>
+      <UButton color="neutral" variant="outline" size="xl" class="h-11 justify-center md:h-9" @click="use">{{ actionLabel ?? 'Use this signature' }}</UButton>
       <UButton v-if="cancellable" color="neutral" variant="ghost" size="xl" class="h-11 justify-center md:h-9" @click="emit('cancel')">Cancel</UButton>
     </div>
   </div>

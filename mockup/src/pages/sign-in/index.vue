@@ -11,27 +11,65 @@ export const states = {
   deactivated: 'R7-5: account deactivated by the manager (FR-25)',
   'first-sign-in': 'Temporary password: choose your own (FR-01)',
   'change-password': 'From Profile: Change password, with Cancel',
+  'password-error': "Choose a new password: doesn't meet the rule",
   forgot: 'Forgot password: ask for a reset link',
+  'forgot-error': 'Reset: email missing or not an email',
   'reset-sent': 'Reset link sent',
   'link-expired': 'Reset link has expired',
   'no-business-name': 'R7-8: first run, before the manager sets the business name',
+  logo: 'R8: with a logo, beside the name',
   worst: 'Very long business name and email address, with an error',
 }
 </script>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useMock } from '@/mock'
-import { business } from '@/fixtures'
+import { business, logos } from '@/fixtures'
 
 const { state } = useMock(states)
 const s = computed(() => String(state.value))
-const email = computed(() =>
-  s.value === 'worst' ? 'alexandra.featherstonehaugh-montgomery@cleaning-services-example.com.au'
-  : ['wrong-password', 'reset-sent'].includes(s.value) ? 'priya.rk@example.com' : '')
+const email = ref('')
+const password = ref('')
+const newPw = ref('')
+const newPw2 = ref('')
+// Field errors: a message, or true for "red, no message" (the alert box says it)
+const errs = ref<Record<string, string | boolean>>({})
+function firstInvalid() { nextTick(() => document.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()) }
+watch(s, (v) => {
+  email.value = v === 'worst' ? 'alexandra.featherstonehaugh-montgomery@cleaning-services-example.com.au'
+    : ['wrong-password', 'reset-sent'].includes(v) ? 'priya.rk@example.com' : ''
+  password.value = ''
+  newPw.value = v === 'password-error' ? 'abc' : ''
+  newPw2.value = v === 'password-error' ? 'abd' : ''
+  errs.value = v === 'wrong-password' || v === 'worst' ? { email: true, password: true }
+    : v === 'password-error' ? { newPw: 'Use at least 8 characters, with letters and numbers.', newPw2: "The two passwords don't match." }
+    : v === 'forgot-error' ? { email: 'Enter your email address, like name@example.com.' }
+    : {}
+}, { immediate: true })
+const emailOk = (e: string) => /^\S+@\S+\.\S+$/.test(e)
+function signIn() {
+  errs.value = {
+    ...(!email.value ? { email: 'Enter your email address.' } : !emailOk(email.value) ? { email: 'Enter an email address, like name@example.com.' } : {}),
+    ...(!password.value ? { password: 'Enter your password.' } : {}),
+  }
+  firstInvalid()
+}
+function savePassword() {
+  errs.value = {
+    ...(!/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(newPw.value) ? { newPw: 'Use at least 8 characters, with letters and numbers.' } : {}),
+    ...(newPw2.value !== newPw.value ? { newPw2: "The two passwords don't match." } : {}),
+  }
+  firstInvalid()
+}
+function sendReset() {
+  errs.value = emailOk(email.value) ? {} : { email: 'Enter your email address, like name@example.com.' }
+  firstInvalid()
+}
 const show = ref(false)
+const logo = computed(() => (s.value === 'worst' ? logos.wide : s.value === 'logo' ? logos.badge : ''))
 const businessName = computed(() => (s.value === 'no-business-name' ? '' : s.value === 'worst' ? business.long : business.name))
-const choosing = computed(() => s.value === 'first-sign-in' || s.value === 'change-password')
+const choosing = computed(() => ['first-sign-in', 'change-password', 'password-error'].includes(s.value))
 const field = { base: 'h-11 md:h-9' }
 </script>
 
@@ -39,14 +77,18 @@ const field = { base: 'h-11 md:h-9' }
   <div class="min-h-screen bg-paper px-4 py-8 text-ink md:py-16">
     <main class="mx-auto max-w-sm">
       <!-- The business's name (set on Admin, R7-8) sits above the sheet, like the heading on the paper timesheet -->
-      <div class="border-b-4 border-double border-ink pb-1">
-        <p v-if="businessName" class="text-xl font-semibold text-balance">{{ businessName }}</p>
-        <p :class="businessName ? 'text-sm text-ink-muted' : 'text-xl font-semibold'">Timesheets</p>
+      <div class="flex flex-wrap items-center gap-x-3 gap-y-2 border-b-4 border-double border-ink pb-1">
+        <!-- R8: optional logo beside the name (decided), kept to 48px high and 240px wide; the name wraps underneath when a wide logo leaves it less than 160px -->
+        <img v-if="logo" :src="logo" alt="" class="h-12 max-w-60 shrink-0 object-contain object-left" />
+        <div class="min-w-40 flex-1">
+          <p v-if="businessName" class="text-xl font-semibold text-balance">{{ businessName }}</p>
+          <p :class="businessName ? 'text-sm text-ink-muted' : 'text-xl font-semibold'">Timesheets</p>
+        </div>
       </div>
 
       <article class="mt-6 border border-rule bg-sheet px-4 pt-6 pb-8 md:px-8">
         <!-- Sign in and its variants -->
-        <template v-if="['sign-in', 'wrong-password', 'signed-out', 'deactivated', 'no-business-name', 'worst'].includes(s)">
+        <template v-if="['sign-in', 'wrong-password', 'signed-out', 'deactivated', 'no-business-name', 'logo', 'worst'].includes(s)">
           <h1 class="text-2xl font-semibold">Sign in</h1>
 
           <p v-if="s === 'signed-out'" class="mt-4 flex items-center gap-2" role="status">
@@ -60,12 +102,12 @@ const field = { base: 'h-11 md:h-9' }
             <p class="mt-1 text-sm">You can't sign in any more. If you think that's a mistake, ask your manager.</p>
           </section>
 
-          <form class="mt-6 space-y-4" @submit.prevent>
-            <UFormField label="Email">
-              <UInput :model-value="email" type="email" autocomplete="username" size="xl" class="w-full" :ui="field" />
+          <form class="mt-6 space-y-4" novalidate @submit.prevent="signIn">
+            <UFormField label="Email" :error="errs.email">
+              <UInput v-model="email" type="email" autocomplete="username" size="xl" class="w-full" :ui="field" />
             </UFormField>
-            <UFormField label="Password">
-              <UInput :type="show ? 'text' : 'password'" autocomplete="current-password" size="xl" class="w-full" :ui="{ ...field, trailing: 'pe-1' }">
+            <UFormField label="Password" :error="errs.password">
+              <UInput v-model="password" :type="show ? 'text' : 'password'" autocomplete="current-password" size="xl" class="w-full" :ui="{ ...field, trailing: 'pe-1' }">
                 <template #trailing>
                   <UButton color="neutral" variant="link" size="xl" :icon="show ? 'i-lucide-eye-off' : 'i-lucide-eye'" :aria-label="show ? 'Hide password' : 'Show password'" class="size-11 justify-center md:size-9" @click="show = !show" />
                 </template>
@@ -80,14 +122,14 @@ const field = { base: 'h-11 md:h-9' }
         <template v-else-if="choosing">
           <h1 class="text-2xl font-semibold">Choose a new password</h1>
           <p class="mt-2 text-ink-muted">
-            {{ s === 'first-sign-in' ? 'You signed in with a temporary password. Choose your own to carry on.' : "You'll go back to your profile afterwards." }}
+            {{ s !== 'change-password' ? 'You signed in with a temporary password. Choose your own to carry on.' : "You'll go back to your profile afterwards." }}
           </p>
-          <form class="mt-6 space-y-4" @submit.prevent>
-            <UFormField label="New password" help="At least 8 characters, with letters and numbers.">
-              <UInput type="password" autocomplete="new-password" size="xl" class="w-full" :ui="field" />
+          <form class="mt-6 space-y-4" novalidate @submit.prevent="savePassword">
+            <UFormField label="New password" :error="errs.newPw" :help="errs.newPw ? undefined : 'At least 8 characters, with letters and numbers.'">
+              <UInput v-model="newPw" type="password" autocomplete="new-password" size="xl" class="w-full" :ui="field" />
             </UFormField>
-            <UFormField label="Type it again">
-              <UInput type="password" autocomplete="new-password" size="xl" class="w-full" :ui="field" />
+            <UFormField label="Type it again" :error="errs.newPw2">
+              <UInput v-model="newPw2" type="password" autocomplete="new-password" size="xl" class="w-full" :ui="field" />
             </UFormField>
             <div class="flex flex-col-reverse gap-3 pt-2 md:flex-row md:justify-end">
               <UButton v-if="s === 'change-password'" color="neutral" variant="outline" size="xl" class="h-11 justify-center md:h-9" to="/profile">Cancel</UButton>
@@ -97,12 +139,12 @@ const field = { base: 'h-11 md:h-9' }
         </template>
 
         <!-- Password reset by email (FR-01, Keycloak's own emails) -->
-        <template v-else-if="s === 'forgot'">
+        <template v-else-if="s === 'forgot' || s === 'forgot-error'">
           <h1 class="text-2xl font-semibold">Reset your password</h1>
           <p class="mt-2 text-ink-muted">Enter your email and we'll send you a link to choose a new password.</p>
-          <form class="mt-6 space-y-4" @submit.prevent>
-            <UFormField label="Email">
-              <UInput type="email" autocomplete="username" size="xl" class="w-full" :ui="field" />
+          <form class="mt-6 space-y-4" novalidate @submit.prevent="sendReset">
+            <UFormField label="Email" :error="errs.email">
+              <UInput v-model="email" type="email" autocomplete="username" size="xl" class="w-full" :ui="field" />
             </UFormField>
             <UButton type="submit" size="xl" block class="h-11 md:h-9">Email me a reset link</UButton>
           </form>

@@ -4,22 +4,26 @@ export const order = 6
 export const states = {
   'pdf-some': 'PDF: 1 approved, 4 not approved yet',
   'pdf-all': 'PDF: every timesheet approved',
+  'pdf-failed': "PDF couldn't be made",
   setup: 'First run: pay schedule not set (FR-04, FR-06)',
   'add-employee': 'Add employee form open',
+  'add-employee-error': 'Add employee: name missing, email already used',
   'employee-added': 'Employee added: temporary password shown once',
   deactivate: 'Deactivate confirmation open (FR-25)',
   'reset-password': 'Password reset: new temporary password shown once',
   'business-name': 'R7-8: changing the business name',
+  logo: 'R8: a logo uploaded',
+  'logo-too-big': "R8: the chosen file is too big, so it isn't used",
   loading: 'R7-7: loading, slower than 300 ms',
   'load-failed': "R7-7: couldn't load",
 }
 </script>
 
 <script setup lang="ts">
-import { computed, ref, shallowRef, watch } from 'vue'
+import { computed, nextTick, ref, shallowRef, watch } from 'vue'
 import type { CalendarDate, DateValue } from '@internationalized/date'
 import { useMock } from '@/mock'
-import { team, employees, fortnights, paySchedule, tempPassword, business } from '@/fixtures'
+import { team, employees, fortnights, paySchedule, tempPassword, business, logos } from '@/fixtures'
 import TopBar from '@/parts/TopBar.vue'
 import LoadState from '@/parts/LoadState.vue'
 import StatusHeading from '@/parts/StatusHeading.vue'
@@ -54,11 +58,32 @@ const newEmail = ref('')
 const target = ref(employees.find((e) => e.id === 'lee')!)
 const deactivating = ref(false)
 const resetting = ref<'confirm' | 'done' | null>(null)
+const nameErr = ref('')
+const emailErr = ref('')
+const pdfFailed = ref(false)
+function firstInvalid() { nextTick(() => document.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()) }
+function addEmployee() {
+  nameErr.value = newName.value.trim() ? '' : 'Enter their full name.'
+  const mail = newEmail.value.trim().toLowerCase()
+  emailErr.value = !/.+@.+[.].+/.test(mail) ? 'Enter an email address, like name@example.com.'
+    : mail === 'lee.wong@example.com' ? 'Lee Wong already uses this email.' : ''
+  if (nameErr.value || emailErr.value) {
+    toast.add({ title: 'Employee not added', description: 'Fix the highlighted fields.', icon: 'i-lucide-circle-alert', color: 'error' })
+    firstInvalid()
+    return
+  }
+  added.value = true
+}
 watch(s, (st) => {
-  adding.value = st === 'add-employee' || st === 'employee-added'
+  adding.value = st === 'add-employee' || st === 'employee-added' || st === 'add-employee-error'
   added.value = st === 'employee-added'
   newName.value = st === 'employee-added' ? 'Morgan Blake' : ''
-  newEmail.value = st === 'employee-added' ? 'morgan.b@example.com' : ''
+  newEmail.value = st === 'employee-added' ? 'morgan.b@example.com' : st === 'add-employee-error' ? 'lee.wong@example.com' : ''
+  nameErr.value = st === 'add-employee-error' ? 'Enter their full name.' : ''
+  emailErr.value = st === 'add-employee-error' ? 'Lee Wong already uses this email.' : ''
+  if (st === 'add-employee-error') toast.add({ title: 'Employee not added', description: 'Fix the highlighted fields.', icon: 'i-lucide-circle-alert', color: 'error' })
+  pdfFailed.value = st === 'pdf-failed'
+  if (st === 'pdf-failed') toast.add({ title: 'PDF not downloaded', description: "The PDF couldn't be made. Try again in a moment.", icon: 'i-lucide-circle-alert', color: 'error' })
   deactivating.value = st === 'deactivate'
   resetting.value = st === 'reset-password' ? 'done' : null
 }, { immediate: true })
@@ -68,12 +93,38 @@ const firstName = (n: string) => n.split(' ')[0]
 const businessName = ref('')
 const nameDraft = ref('')
 const editingName = ref(false)
+// Logo (R8): optional; PNG or JPG up to 1 MB (SVG left out, since it can carry scripts)
+const logo = ref('')
+const logoError = ref('')
+const nameError = ref('')
+const tooBig = (msg: string) => {
+  logoError.value = msg
+  toast.add({ title: 'Logo not saved', description: msg, icon: 'i-lucide-circle-alert', color: 'error' })
+}
+const logoInput = ref<HTMLInputElement>()
+function pickLogo(e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (!file) return
+  if (file.size > 1024 * 1024) { tooBig(`That file is ${(file.size / 1024 / 1024).toFixed(1)} MB. Logos can be up to 1 MB.`); return }
+  logoError.value = ''
+  logo.value = URL.createObjectURL(file)
+  toast.add({ title: 'Logo saved', icon: 'i-lucide-circle-check', color: 'success' })
+}
 watch(s, (st) => {
+  logo.value = st === 'logo' ? logos.badge : ''
+  logoError.value = ''
+  if (st === 'logo-too-big') tooBig('That file is 3.2 MB. Logos can be up to 1 MB.')
   businessName.value = st === 'setup' ? '' : business.name
   editingName.value = st === 'business-name'
   nameDraft.value = businessName.value
 }, { immediate: true })
 function saveName() {
+  nameError.value = nameDraft.value.trim() ? '' : 'Enter the business name.'
+  if (nameError.value) {
+    toast.add({ title: 'Business name not saved', description: 'Fix the highlighted field.', icon: 'i-lucide-circle-alert', color: 'error' })
+    firstInvalid()
+    return
+  }
   businessName.value = nameDraft.value.trim()
   editingName.value = false
   toast.add({ title: 'Business name saved', icon: 'i-lucide-circle-check', color: 'success' })
@@ -133,6 +184,9 @@ const actions = (e: (typeof employees)[number]) => [[
               <UButton size="xl" icon="i-lucide-download" class="h-11 justify-center" :disabled="!approvedCount">Download PDF</UButton>
               <span class="text-ink-muted">{{ approvedCount }} approved timesheet{{ approvedCount === 1 ? '' : 's' }}</span>
             </div>
+            <section v-if="pdfFailed" class="mt-3 max-w-xl rounded-sm border border-danger/40 bg-danger/5 p-3" role="alert">
+              <p class="flex items-start gap-2 text-sm"><UIcon name="i-lucide-circle-alert" class="mt-0.5 size-4 shrink-0 text-danger" /> The PDF couldn't be made. Try again in a moment.</p>
+            </section>
           </template>
         </section>
 
@@ -190,17 +244,18 @@ const actions = (e: (typeof employees)[number]) => [[
           </template>
         </section>
 
-        <!-- Business name (R7-8): set once, shown on the sign-in page -->
+        <!-- Business name (R7-8) and optional logo (R8): set once, shown on the sign-in page -->
         <section class="order-5 mt-12 border-t border-ink pt-4">
-          <h2 class="text-xl font-semibold">Business name</h2>
+          <h2 class="text-xl font-semibold">Business name and logo</h2>
           <p class="mt-1 max-w-prose text-ink-muted">Shown above the sign-in box, so staff know they're in the right place.</p>
+          <h3 class="mt-6 font-semibold">Name</h3>
           <form v-if="editingName || !businessName" class="mt-4 flex max-w-xl flex-col gap-3 md:flex-row md:items-end" @submit.prevent="saveName">
-            <UFormField label="Business name" class="flex-1">
+            <UFormField label="Business name" class="flex-1" :error="nameError">
               <UInput v-model="nameDraft" size="xl" class="w-full" maxlength="80" :ui="{ base: 'h-11 md:h-9' }" />
             </UFormField>
             <div class="flex flex-col-reverse gap-3 md:flex-row">
               <UButton v-if="businessName" color="neutral" variant="outline" size="xl" class="h-11 justify-center md:h-9" @click="editingName = false">Cancel</UButton>
-              <UButton type="submit" size="xl" class="h-11 justify-center md:h-9" :disabled="!nameDraft.trim()">Save business name</UButton>
+              <UButton type="submit" size="xl" class="h-11 justify-center md:h-9" >Save business name</UButton>
             </div>
           </form>
           <template v-else>
@@ -208,6 +263,22 @@ const actions = (e: (typeof employees)[number]) => [[
             <UButton color="neutral" variant="outline" size="xl" class="mt-4 h-11 justify-center md:h-9" @click="nameDraft = businessName; editingName = true">Change business name</UButton>
           </template>
           <p v-if="!businessName && !editingName" class="mt-2 text-sm text-ink-muted">Until you set it, the sign-in page just says "Timesheets".</p>
+
+          <h3 class="mt-8 font-semibold">Logo <span class="font-normal text-ink-muted">(optional)</span></h3>
+          <input ref="logoInput" type="file" accept="image/png,image/jpeg" class="sr-only" tabindex="-1" aria-hidden="true" @change="pickLogo" />
+          <template v-if="logo">
+            <img :src="logo" alt="Your logo" class="mt-3 h-16 max-w-60 border border-rule bg-sheet object-contain object-left p-1" />
+            <div class="mt-4 flex flex-col gap-3 md:flex-row">
+              <UButton color="neutral" variant="outline" size="xl" icon="i-lucide-upload" class="h-11 justify-center md:h-9" @click="logoInput?.click()">Replace logo</UButton>
+              <UButton color="neutral" variant="ghost" size="xl" class="h-11 justify-center md:h-9" @click="logo = ''">Remove logo</UButton>
+            </div>
+          </template>
+          <template v-else>
+            <p class="mt-1 max-w-prose text-ink-muted">Without one, the sign-in page shows the name on its own.</p>
+            <UButton variant="outline" size="xl" icon="i-lucide-upload" class="mt-4 h-11 justify-center md:h-9" :color="logoError ? 'error' : 'neutral'" :highlight="!!logoError" :aria-invalid="logoError ? 'true' : undefined" @click="logoInput?.click()">Upload logo</UButton>
+          </template>
+          <p class="mt-2 text-sm text-ink-muted">PNG or JPG, up to 1 MB. A logo on a white or clear background works best.</p>
+          <p v-if="logoError" class="mt-2 flex items-start gap-2 text-sm text-danger" role="alert"><UIcon name="i-lucide-circle-alert" class="mt-0.5 size-4 shrink-0" /> {{ logoError }}</p>
         </section>
       </article>
     </main>
@@ -217,10 +288,10 @@ const actions = (e: (typeof employees)[number]) => [[
       <template #body>
         <template v-if="!added">
           <div class="space-y-4">
-            <UFormField label="Full name" required>
+            <UFormField label="Full name" required :error="nameErr">
               <UInput v-model="newName" size="xl" class="w-full" autocomplete="off" :ui="{ base: 'h-11 md:h-9' }" />
             </UFormField>
-            <UFormField label="Email" description="For password reset emails." required>
+            <UFormField label="Email" description="For password reset emails." required :error="emailErr">
               <UInput v-model="newEmail" type="email" size="xl" class="w-full" autocomplete="off" :ui="{ base: 'h-11 md:h-9' }" />
             </UFormField>
           </div>
@@ -239,7 +310,7 @@ const actions = (e: (typeof employees)[number]) => [[
         <div class="flex w-full flex-col-reverse gap-3 sm:flex-row sm:justify-end">
           <template v-if="!added">
             <UButton color="neutral" variant="outline" size="xl" class="h-11 justify-center" @click="adding = false">Cancel</UButton>
-            <UButton size="xl" class="h-11 justify-center" :disabled="!newName.trim() || !newEmail.includes('@')" @click="added = true">Add employee</UButton>
+            <UButton size="xl" class="h-11 justify-center" @click="addEmployee">Add employee</UButton>
           </template>
           <UButton v-else size="xl" class="h-11 justify-center" @click="adding = false">Done</UButton>
         </div>

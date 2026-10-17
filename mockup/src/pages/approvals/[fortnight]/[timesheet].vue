@@ -6,6 +6,8 @@ export const states = {
   submitted: "Priya's timesheet, one warning day",
   approving: 'Approve confirmation open',
   rejecting: 'Reject dialog open, reason required',
+  'reject-error': 'Reject pressed without a reason',
+  'approve-failed': "Approve didn't go through",
   approved: 'Just approved: both signatures, next in the queue',
   'first-approval': 'Manager has no signature yet (FR-20)',
   own: "Manager's own timesheet, will be Self-approved (FR-19)",
@@ -16,7 +18,7 @@ export const states = {
 </script>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useMock } from '@/mock'
 import { daysFor, warning, team, manager, period, rejection, approval, type Day } from '@/fixtures'
@@ -43,12 +45,19 @@ const approved = ref(false)
 const confirmApprove = ref(false)
 const rejecting = ref(false)
 const reason = ref('')
+const reasonErr = ref('')
+const approveFailed = ref(false)
+const failText = "Couldn't approve. Check your connection and try again. Nothing has changed."
 watch(s, (st) => {
   mySig.value = st === 'first-approval' ? null : { kind: 'typed', text: manager.name, style: manager.signatureStyle }
   approved.value = st === 'approved'
-  confirmApprove.value = st === 'approving'
-  rejecting.value = st === 'rejecting'
+  confirmApprove.value = st === 'approving' || st === 'approve-failed'
+  rejecting.value = st === 'rejecting' || st === 'reject-error'
   reason.value = ''
+  reasonErr.value = ''
+  if (st === 'reject-error') nextTick(reject)
+  approveFailed.value = st === 'approve-failed'
+  if (st === 'approve-failed') toast.add({ title: 'Not approved', description: failText, icon: 'i-lucide-circle-alert', color: 'error' })
 }, { immediate: true })
 
 const status = computed(() =>
@@ -64,6 +73,12 @@ function approve() {
   toast.add({ title: person.value.own ? 'Timesheet self-approved' : 'Timesheet approved', icon: 'i-lucide-circle-check', color: 'success' })
 }
 function reject() {
+  if (!reason.value.trim()) {
+    reasonErr.value = `Give a reason, so ${firstName.value} knows what to fix.`
+    toast.add({ title: 'Not rejected', description: 'Add a reason first.', icon: 'i-lucide-circle-alert', color: 'error' })
+    nextTick(() => document.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus())
+    return
+  }
   router.push({ path: '/approvals', query: { state: 'after-reject' } })
 }
 </script>
@@ -134,7 +149,7 @@ function reject() {
               </template>
               <template v-else>
                 <p class="mt-2 text-sm">You need a signature before your first approval. It's saved to your profile.</p>
-                <SignatureSetup :name="manager.name" class="mt-4" @done="(sig) => (mySig = sig)" />
+                <SignatureSetup :name="manager.name" class="mt-4" @done="(sig) => (mySig = sig)" @invalid="toast.add({ title: 'Signature not saved', description: 'Fix the highlighted field.', icon: 'i-lucide-circle-alert', color: 'error' })" />
               </template>
             </div>
           </div>
@@ -164,23 +179,28 @@ function reject() {
         <p v-if="person.own" class="mt-3 text-ink-muted">It's marked Self-approved on screen and in the PDF.</p>
       </template>
       <template #footer>
-        <div class="flex w-full flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-          <UButton color="neutral" variant="outline" size="xl" class="h-11 justify-center" @click="confirmApprove = false">Cancel</UButton>
-          <UButton color="success" size="xl" class="h-11 justify-center" @click="approve">Approve</UButton>
+        <div class="w-full">
+          <section v-if="approveFailed" class="mb-3 rounded-sm border border-danger/40 bg-danger/5 p-3" role="alert">
+            <p class="flex items-start gap-2 text-sm"><UIcon name="i-lucide-circle-alert" class="mt-0.5 size-4 shrink-0 text-danger" /> {{ failText }}</p>
+          </section>
+          <div class="flex w-full flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <UButton color="neutral" variant="outline" size="xl" class="h-11 justify-center" @click="confirmApprove = false">Cancel</UButton>
+            <UButton color="success" size="xl" class="h-11 justify-center" @click="approve">Approve</UButton>
+          </div>
         </div>
       </template>
     </UModal>
 
     <UModal v-model:open="rejecting" :title="`Reject ${firstName}'s timesheet?`">
       <template #body>
-        <UFormField label="Reason" :description="`${firstName} sees this at the top of the timesheet, so say what to fix.`" required>
+        <UFormField label="Reason" :description="`${firstName} sees this at the top of the timesheet, so say what to fix.`" required :error="reasonErr">
           <UTextarea v-model="reason" :rows="4" autoresize class="w-full" />
         </UFormField>
       </template>
       <template #footer>
         <div class="flex w-full flex-col-reverse gap-3 sm:flex-row sm:justify-end">
           <UButton color="neutral" variant="outline" size="xl" class="h-11 justify-center" @click="rejecting = false">Cancel</UButton>
-          <UButton color="error" size="xl" class="h-11 justify-center" :disabled="!reason.trim()" @click="reject">Reject timesheet</UButton>
+          <UButton color="error" size="xl" class="h-11 justify-center" @click="reject">Reject timesheet</UButton>
         </div>
       </template>
     </UModal>

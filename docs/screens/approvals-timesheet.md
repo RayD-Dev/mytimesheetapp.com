@@ -2,7 +2,7 @@
 
 **Who:** Manager
 **Requirements:** FR-15, FR-16, FR-17, FR-18, FR-19, FR-20, FR-27
-**Approved:** round R4 on 12/10/2026, with R6 on 12/10/2026 for the status bands (these affect the Approvals list only; this page has no status groups), and R7 on 18/10/2026 for the loading and load-failed states
+**Approved:** round R4 on 12/10/2026, with R6 on 12/10/2026 for the status bands (these affect the Approvals list only; this page has no status groups), R7 on 18/10/2026 for the loading and load-failed states, and R8 on 18/10/2026 for the error states
 **Screenshots:** `mockup/approved/approvals-2026-10-05-*`, `mockup/approved/approve--*` (each at `@375x812` and `@1280x800`)
 **Mock-up page:** `mockup/src/pages/approvals/[fortnight]/[timesheet].vue`
 
@@ -14,7 +14,9 @@ Read one person's submitted timesheet, then approve and sign it, or reject it wi
 |---|---|---|---|
 | Submitted | Mock `submitted`: Priya's timesheet, one warning day | Header with Submitted status, warning summary, read-only sheet, Signatures (employee signed, approver line empty), Approve and Reject | `approvals-2026-10-05-priya-state-submitted` |
 | Approve confirmation | Mock `approving`: Approve pressed | Modal "Approve Priya's timesheet?" with the manager's signature, Approve and Cancel, over the dimmed page | `approve--confirm` |
-| Reject dialog | Mock `rejecting`: Reject pressed | Modal "Reject Priya's timesheet?" with required Reason textarea, Cancel and Reject timesheet (disabled until a reason is typed). Screenshot shows a typed reason | `approve--reject-reason` |
+| Reject dialog | Mock `rejecting`: Reject pressed | Modal "Reject Priya's timesheet?" with required Reason textarea, Cancel and Reject timesheet (enabled; it checks on press). Screenshot shows a typed reason | `approve--reject-reason` |
+| Reject error (R8-4) | Mock `reject-error`: *Reject timesheet* pressed with no reason | The dialog stays open; Reason is red with "Give a reason, so Priya knows what to fix."; focus on the textarea; a toast "Not rejected" behind the dialog | `approve--reject-error` |
+| Approve failed (R8-4) | Mock `approve-failed`: *Approve* pressed in the confirmation and the server or connection failed | The confirmation modal stays open; above its buttons a red inline message "Couldn't approve. Check your connection and try again. Nothing has changed." and a toast "Not approved" with the same text; *Approve* stays enabled to try again | `approve--approve-failed` |
 | Approved | Mock `approved`: just approved | Status Approved (green); warning summary and Approve and Reject gone; Approver signature, name and "Approved" time filled; "Approved timesheets can't be changed." and Next to approve button | `approvals-2026-10-05-priya-state-approved` |
 | Approved, signatures in view | Same as Approved, scrolled to the bottom | Both signatures filled, then the Next to approve footer | `approve--approved-signatures` |
 | First approval | Mock `first-approval`: manager has no signature (FR-20) | Approver column holds the signature set-up (Type it / Draw it, name, three styles, Use this signature); Approve disabled with "Set up your signature to approve." | `approvals-2026-10-05-priya-state-first-approval` |
@@ -67,6 +69,8 @@ Source only, no screenshot: after approving the manager's own timesheet the stat
 | Approved footer | `Approved timesheets can't be changed.`, `Next to approve: Tom Ng` |
 | Rejected panel | `You rejected this timesheet`, `19/10/2026 at 8:40 AM`, reason, `It comes back here when Lee submits it again.` |
 | Toasts | `Timesheet approved`, `Timesheet self-approved`; on the list: `Timesheet rejected` |
+| Reject error (R8-4) | Field message `Give a reason, so {first name} knows what to fix.`; toast title `Not rejected`, description `Add a reason first.` |
+| Approve failed (R8-4) | Inline message `Couldn't approve. Check your connection and try again. Nothing has changed.`; toast title `Not approved`, description the same sentence |
 | Signature set-up (inline) | Reuses the Profile page's component: `Type it`, `Draw it`, `Your name as you sign it`, `Choose a style`, `Use this signature` |
 | Loading (R7-7) | Title "Timesheet"; screen-reader text "Loading this timesheet…" |
 | Load failed (R7-7) | Heading "Couldn't load this timesheet"; "Check your internet connection, then try again."; button "Try again" |
@@ -80,7 +84,10 @@ Source only, no screenshot: after approving the manager's own timesheet the stat
 | Approve in modal | Closes modal; page becomes Approved: both signatures, "Approved" time, Next to approve; toast | FR-16 |
 | Cancel or close in modal | Closes; nothing changes | FR-16 |
 | Reject | Opens reason dialog | FR-17 |
-| Reject timesheet (needs a non-blank reason) | Goes to `/approvals` with the "Timesheet rejected" toast; the row moves to Rejected | FR-17 |
+| Reject timesheet with a non-blank reason | Goes to `/approvals` with the "Timesheet rejected" toast; the row moves to Rejected | FR-17 |
+| Reject timesheet with the reason empty or only spaces | Dialog stays open; Reason turns red with its message, focus moves to it, toast "Not rejected". The button stays enabled and checks on press | FR-17, R8-4 |
+| Approve in modal fails | Modal stays open with the inline message above its buttons and the toast "Not approved"; nothing is approved; pressing *Approve* again retries | FR-16, R8-4 |
+| Errors (app-wide rule, R8-4) | Form errors on button press: the field turns red with a message under it, focus moves to the first bad field, and a toast says what didn't happen. Failed actions: an inline message by the button plus a toast, never a toast alone. Live typing errors: red field and message, no toast. Keycloak pages: red field plus the alert box, no toasts | R8-4 |
 | Use this signature (first approval) | Approver line fills; Approve becomes enabled; signature saved to profile | FR-20 |
 | Next to approve: {name} | Opens the next Submitted timesheet in the list (the manager's own one opens the `own` state) | FR-15 |
 | Edit any entry | Not possible; sheet is read-only | FR-18 |
@@ -99,6 +106,8 @@ Source only, no screenshot: after approving the manager's own timesheet the stat
 | Approve | `UButton` colour `success` | Approved green; white text 6.0:1 |
 | Reject | `UButton` outline, colour `error` | Primary action on the dialog's button is solid red |
 | Dialogs | `UModal` | 44px buttons; stacked Approve over Cancel on phones |
+| Reason field error | `UFormField` with `error` on the `UTextarea` | Focus goes to the first `aria-invalid` field |
+| Approve failed message | `section` with `role="alert"`, `danger` tinted border and background, circle-alert icon | In the modal footer, above the buttons |
 | Next to approve | `UButton` accent, trailing arrow | Only after approval and only if someone else is still Submitted |
 | Loading / failed | `LoadState` part (shared by every page), `title` "Timesheet", `what` "this timesheet" | `USkeleton` placeholders; failed uses a cloud-off icon in `danger` and `UButton` with rotate-cw icon. See `timesheet.md` for the full description |
 
@@ -121,6 +130,7 @@ All API field names are proposed (no OpenAPI spec yet).
 | Rejection | Rejection time and reason (proposed) | Time in mono; reason as a quote |
 | Next in queue | Next Submitted timesheet for the fortnight (proposed) | Name in button |
 | Manager's signature | Profile signature (proposed) | Image |
+| Approve failure | A failed or timed-out approve call; nothing changes on the server (proposed: the call is safe to repeat) | Inline message plus toast |
 
 ## Edge cases
 
@@ -139,6 +149,7 @@ All API field names are proposed (no OpenAPI spec yet).
 - Dialogs trap focus and return it to the Approve or Reject button on close (to confirm in the build).
 - The drawn-signature image has alt text `Your signature`; the typed signature has no alt text in the mock-up (to settle).
 - The Approve button is disabled with a visible hint explaining why.
+- Errors (R8-4): the Reason field has `aria-invalid="true"` and its message attached when empty, and focus moves to it on a press. The approve-failed message is `role="alert"`, so it is announced; the error toasts are announced too. Each uses an icon and words, not colour alone.
 - Targets are 44px or more on phones.
 - Loading view: `aria-busy="true"` on the sheet, `role="status"` with screen-reader-only text "Loading this timesheet…"; the placeholders are decorative. Load-failed view: `role="alert"`, so the failure is announced. The `h1` stays in both.
 
