@@ -8,8 +8,64 @@ Decisions that should outlast the mock-up move into `DESIGN.md` (decision log) a
 
 ---
 
+## Frozen again · 18/10/2026
+R7 approved: "I like the sign in and admin pages". Its screens are added to `approved/`, and Admin's three full-page screenshots were replaced to show the Business name section.
+
+---
+
+## R7 · 13/10/2026 · The M1 screens and states not drawn yet
+Adds to the frozen R1–R6 screens; nothing approved was changed. Brief: `.claude/plans/work/001-m1-screen-specs-and-r7/brief.md`.
+
+**Look at:**
+- Sign-in pages: http://localhost:5180/#/board?screen=sign-in
+- My timesheet's new states (scroll past the approved ones): http://localhost:5180/#/board?screen=timesheet
+- Not found and no access: http://localhost:5180/#/board?screen=not-found
+- Loading and failed on the other pages: `?state=loading` and `?state=load-failed` on `#/approvals`, `#/approvals/2026-10-05/priya`, `#/admin` and `#/profile`
+- Business name: http://localhost:5180/#/admin?state=business-name (and `setup` for first run); on sign-in, compare `sign-in`, `no-business-name` and `worst`
+
+**Questions:** anything else on R7, or approve it. (Earlier questions on the conflict notice, the name above sign-in, the password rule and two-factor were answered; see Feedback.)
+
+**Changes**
+- R7-1 Sign-in pages in Ledger, as a Keycloak theme (conversation 13/10/2026: "the idea is for a consistent & coherent ui"):
+  - The app name above a ruled sheet, with the paper timesheet's double rule under it.
+  - Sign in (Email, Password with show/hide, *Forgot your password?*), wrong password, and "You've signed out".
+  - "Choose a new password", on first sign-in with a temporary password (FR-01) and from Profile's *Change password*, which also has Cancel.
+  - Reset: "Email me a reset link", "Check your email", and "This link has expired".
+  - `worst`: a 70-character email address with an error.
+- R7-2 Session ended: a dialog over the page, "You've been signed out… Your saved hours are safe", with *Sign in again*. It can't be dismissed, because nothing behind it would work.
+- R7-3 Page not found: keeps the top bar, with *Go to My timesheet*.
+- R7-4 No access: an employee opening a manager's page sees "This page is for managers", with their name and *Go to My timesheet*.
+- R7-5 Deactivated (FR-25): on the sign-in page, "This account has been deactivated. You can't sign in any more. If you think that's a mistake, ask your manager."
+- R7-6 My timesheet:
+  - Not saved (FE §7.1): the header status turns red, "Not saved", and a box explains that changes are kept on screen and retried, with *Try now*.
+  - Changed on another device: a dismissible notice at the top, "This timesheet was changed on another device. We loaded the latest version. Check your last change is still there."
+- R7-7 Loading and failed, shared by every page:
+  - Loading shows the page title and ruled placeholder lines, and only appears if loading takes more than about 300 ms.
+  - Failed shows "Couldn't load {what}. Check your internet connection, then try again." with *Try again*.
+- R7-8 Business name (follow-up, same round):
+  - Admin gets a last section, **Business name**: "Shown above the sign-in box, so staff know they're in the right place." It has *Change business name*, and on first run an empty field with *Save business name*.
+  - The sign-in pages show the business name, with "Timesheets" underneath it. Until the name is set, they show "Timesheets" alone.
+  - `worst`: a 63-character business name wraps onto two lines.
+- Fixed before review: the top bar no longer underlines a page you aren't on (not found, no access).
+
+**Feedback**
+- R7-6: "Happy for this" (the inline notice)
+- R7-1 name: "Maybe admin can configure this?" → R7-8
+- R7-1 password rule: "for now lets just say 8 Character Minimum with a mixture of letters and numbers"
+- R7-1 two-factor in M1: "No" (the code step was removed)
+- "I like the sign in and admin pages" (R7 approved)
+
+**Decided → DESIGN.md**
+- Sign-in pages use the Ledger look (a Keycloak theme), headed by the business name.
+- Version conflict: an inline notice at the top of the timesheet, not a toast.
+- Password rule for M1: at least 8 characters, with letters and numbers (Keycloak policy; can change later).
+- No two-factor sign-in in M1.
+- The manager sets the business name on Admin (new; needs a PRD requirement).
+
+---
+
 ## Frozen · 12/10/2026
-R6 is the final round. Every page and state is captured at phone and desktop width in `approved/`, the reference for the engineered front end. Any later design change needs a new round here, and the affected screenshots replaced.
+R6 was the final round of the first freeze. Every page and state is captured at phone and desktop width in `approved/`, the reference for the engineered front end. Any later design change needs a new round here, and the affected screenshots replaced.
 
 ---
 

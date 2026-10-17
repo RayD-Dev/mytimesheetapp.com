@@ -1,6 +1,6 @@
 # Design
 
-**Status:** Draft · **Last updated:** 2026-10-11 · Requirements live in Notion: [PRD](https://app.notion.com/p/3f5771bd4d438156a93ec42b3548821d), [HL design](https://app.notion.com/p/3f4771bd4d4380e28d76d2038edbfac4), [FE detailed design](https://app.notion.com/p/3f5771bd4d43819981e0f96e66fae263). This file records only what shapes the interface. If it disagrees with the PRD, the PRD wins: fix this file.
+**Status:** Draft · **Last updated:** 2026-10-18 · Requirements live in Notion: [PRD](https://app.notion.com/p/3f5771bd4d438156a93ec42b3548821d), [HL design](https://app.notion.com/p/3f4771bd4d4380e28d76d2038edbfac4), [FE detailed design](https://app.notion.com/p/3f5771bd4d43819981e0f96e66fae263). This file records only what shapes the interface. If it disagrees with the PRD, the PRD wins: fix this file.
 
 Read by the `ui-craft`, `ui-motion`, `ui-audit` and `ui-visual-check` skills in `.claude/skills/`.
 
@@ -15,6 +15,7 @@ Read by the `ui-craft`, `ui-motion`, `ui-audit` and `ui-visual-check` skills in 
   - *Approvals:* review the fortnight's submitted timesheets and approve or reject each one.
   - *Admin:* pay schedule, employees, PDF download.
   - *Profile:* signature and password.
+  - *Sign-in pages:* Keycloak's sign in, new password and reset pages, themed to match.
 - **What users must feel:** the numbers are right, nothing I typed is lost, and approval is final.
 - **Register:** product UI. Restraint, density where it helps, one confident element per screen.
 
@@ -82,6 +83,12 @@ Implemented in `mockup/src/assets/main.css` (`@theme` and `:root`). The file mov
 - **Warnings:** a row-level caution tint plus icon and text, e.g. "This shift is 1h 00m. Is AM/PM correct?"
 - **Destructive actions** (Clear, Reject) ask for confirmation in a dialog that names the consequence.
 - **Empty and blocked states** use the PRD's exact wording, e.g. FR-06: "Your manager hasn't set up the pay schedule yet".
+- **Sign-in pages** (a Keycloak login theme): the business name above a ruled sheet with the double rule under it, "Timesheets" beneath the name (alone until the name is set). One sheet per step: Sign in, Choose a new password, Reset your password, Check your email, This link has expired. Errors sit in a tinted box above the fields. M1 password rule: at least 8 characters, with letters and numbers.
+- **Loading and failed to load** are the same on every page: the page title, then ruled placeholder lines (shown only after about 300 ms); or "Couldn't load {what}. Check your internet connection, then try again." with *Try again*.
+- **Not saved:** the save status turns red ("Not saved", with a cloud-off icon), and a box above the weeks explains that changes are kept on screen and retried, with *Try now*.
+- **Changed on another device:** a dismissible notice at the top of the timesheet, never a toast, because the person needs to check their last change.
+- **Session ended:** a dialog that can't be dismissed, "You've been signed out… Your saved hours are safe", with *Sign in again*.
+- **Not found and no access** keep the top bar with nothing underlined, and offer *Go to My timesheet*.
 
 ## 6. Vocabulary
 
@@ -96,6 +103,7 @@ Implemented in `mockup/src/assets/main.css` (`@theme` and `:root`). The file mov
 - **Fortnights:** "Current fortnight" and "Previous fortnight"; in pickers and lists, the dates followed by "(current)" or "(previous)".
 - **Declaration:** "I confirm these hours are correct".
 - **Save status:** "Saving…", "Saved", "Not saved".
+- **Retry:** *Try again* after a failed load; *Try now* for a failed save that is already retrying on its own.
 
 ## 7. Decision log
 
@@ -119,6 +127,12 @@ Implemented in `mockup/src/assets/main.css` (`@theme` and `:root`). The file mov
 | 2026-10-12 | Admin approved in round R5: PDF first, then Employees, then Pay schedule (moved to the top on first run); temporary passwords shown once with Copy; a Mondays-only calendar | The order follows how often each task happens. |
 | 2026-10-12 | Status groups are told apart by tinted heading bands with icon, colour and count (round R6, variant b) | The owner found the three Approvals groups looked the same. Icons rather than emoji, so they render the same everywhere and colour is never the only signal. |
 | 2026-10-12 | Mock-up frozen after round R6. The approved screenshots in `mockup/approved/` (every page and state, phone and desktop) are the visual reference for the engineered front end | So the real build can be checked against what the owner approved, image by image. |
+| 2026-10-18 | Round R7 approved: sign-in pages, session ended, not found, no access, deactivated, Not saved, changed on another device, and loading and failed states. Added to `mockup/approved/` | Covers the M1 screens and states the first freeze didn't draw. |
+| 2026-10-18 | The sign-in pages get the Ledger look as a Keycloak theme | The owner: "the idea is for a consistent & coherent ui". |
+| 2026-10-18 | The manager sets the business name on Admin; the sign-in pages show it above "Timesheets" | The owner's suggestion. New, so the PRD needs a matching requirement. |
+| 2026-10-18 | M1 password rule: at least 8 characters, with letters and numbers | The owner's choice for now; it's a Keycloak setting and can change later. |
+| 2026-10-18 | No two-factor sign-in in M1 | The owner's call. The system design's SD-03 needs updating to match. |
+| 2026-10-18 | A version conflict shows as an inline notice, not a toast | The owner's choice: a toast is easy to miss. |
 
 ## Open questions
 

@@ -9,6 +9,11 @@ export const states = {
   approved: 'Approved (read-only)',
   full: 'Every day filled, 76h 30m',
   'no-schedule': 'Pay schedule not set up yet (FR-06)',
+  'not-saved': 'R7-6: autosave failing (no signal), retrying',
+  conflict: 'R7-6: changed on another device, reloaded',
+  'session-ended': 'R7-2: signed out while the page was open',
+  loading: 'R7-7: loading, slower than 300 ms',
+  'load-failed': "R7-7: couldn't load",
 }
 </script>
 
@@ -20,6 +25,7 @@ import { fortnight, worked, warning, me, period, rejection, submitted, approval,
 import { hours, hm, time } from '@/fmt'
 import TimeField from '@/parts/TimeField.vue'
 import TopBar from '@/parts/TopBar.vue'
+import LoadState from '@/parts/LoadState.vue'
 
 const { state } = useMock(states)
 const route = useRoute()
@@ -28,15 +34,18 @@ const justSubmitted = computed(() => 'toast' in route.query && state.value === '
 onMounted(() => {
   if (justSubmitted.value) toast.add({ title: 'Timesheet submitted', description: 'Your manager will review it.', icon: 'i-lucide-circle-check', color: 'success' })
 })
+const conflictNotice = ref(true)
+const sessionEnded = ref(false)
 const days = ref<Day[]>([])
 const opened = ref(new Set<number>()) // phone: empty days the user chose to fill in
 const which = ref<'previous' | 'current'>('current')
 const saving = ref(false)
 const confirmClear = ref(false)
-watch(state, () => { days.value = fortnight(String(state.value)); opened.value = new Set() }, { immediate: true })
+watch(state, () => { days.value = fortnight(String(state.value)); opened.value = new Set(); conflictNotice.value = true; sessionEnded.value = state.value === 'session-ended' }, { immediate: true })
 
 const s = computed(() => String(state.value))
-const editable = computed(() => ['draft', 'empty', 'rejected', 'full'].includes(s.value))
+const editable = computed(() => ['draft', 'empty', 'rejected', 'full', 'not-saved', 'conflict', 'session-ended'].includes(s.value))
+const notSaved = computed(() => s.value === 'not-saved')
 const weeks = computed(() => [days.value.slice(0, 5), days.value.slice(5)])
 const has = (d: Day) => d.start != null || d.finish != null || d.brk != null
 const valid = (d: Day) => d.start != null && d.finish != null && d.finish > d.start && (d.brk ?? 0) < d.finish - d.start
@@ -51,8 +60,9 @@ const problem = (d: Day) =>
   : null
 const shiftText = (d: Day) => `${time(d.start!)} to ${time(d.finish!)}, ${d.brk ?? 0} min break`
 const periodLabel = computed(() => (which.value === 'current' ? period.label : '21/09/2026 to 02/10/2026'))
+const draft = { label: 'Draft', text: 'text-ink', icon: 'i-lucide-pencil-line' } as const
 const status = computed(() => ({
-  draft: { label: 'Draft', text: 'text-ink', icon: 'i-lucide-pencil-line' },
+  draft, 'not-saved': draft, conflict: draft, 'session-ended': draft,
   full: { label: 'Draft', text: 'text-ink', icon: 'i-lucide-pencil-line' },
   rejected: { label: 'Rejected', text: 'text-danger', icon: 'i-lucide-undo-2' },
   submitted: { label: 'Submitted', text: 'text-info', icon: 'i-lucide-clock' },
@@ -73,14 +83,17 @@ function clearAll() {
   <div class="min-h-screen bg-paper text-ink">
     <TopBar current="timesheet" />
 
-    <main class="mx-auto max-w-5xl md:px-4 md:py-8">
+    <LoadState v-if="s === 'loading' || s === 'load-failed'" :kind="s === 'loading' ? 'loading' : 'failed'" :title="`${me.name} Timesheet`" what="your timesheet" />
+
+    <main v-else class="mx-auto max-w-5xl md:px-4 md:py-8">
       <article class="bg-sheet px-4 pt-6 pb-10 md:border md:border-rule md:px-8">
         <!-- Document header, as on the paper sheet -->
         <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
           <h1 class="text-2xl font-semibold">{{ me.name }} Timesheet</h1>
           <div class="flex items-center gap-3">
             <p v-if="editable && anything" class="flex items-center gap-1 text-sm text-ink-muted" role="status">
-              <template v-if="saving">Saving…</template>
+              <template v-if="notSaved"><span class="flex items-center gap-1 font-semibold text-danger"><UIcon name="i-lucide-cloud-off" class="size-4" /> Not saved</span></template>
+              <template v-else-if="saving">Saving…</template>
               <template v-else><UIcon name="i-lucide-check" class="size-4" /> Saved</template>
             </p>
             <p v-if="status && (s !== 'draft' || anything)" :class="['flex items-center gap-1.5 font-semibold', status.text, justSubmitted && 'status-settle']"><UIcon :name="status.icon" class="size-5" /> {{ status.label }}</p>
@@ -111,6 +124,25 @@ function clearAll() {
             Kept until <span class="font-mono tabular-nums">{{ period.expires }}</span> if not submitted
           </p>
         </div>
+
+        <!-- R7-6: autosave failing. Changes stay in memory and keep retrying (FE design §7.1) -->
+        <section v-if="notSaved" class="mt-6 rounded-sm border border-danger/40 bg-danger/5 p-4" role="alert">
+          <h2 class="flex items-center gap-2 font-semibold text-danger">
+            <UIcon name="i-lucide-cloud-off" class="size-5 shrink-0" /> Your latest changes aren't saved yet
+          </h2>
+          <p class="mt-1 max-w-prose text-sm">We can't reach the server, so they're kept on this screen and we'll keep trying. Leave this page open until it says Saved.</p>
+          <UButton color="neutral" variant="outline" size="xl" icon="i-lucide-rotate-cw" class="mt-3 h-11 justify-center md:h-9">Try now</UButton>
+        </section>
+
+        <!-- R7-6: version conflict. The timesheet was reloaded with the other device's changes -->
+        <section v-if="s === 'conflict' && conflictNotice" class="mt-6 flex items-start gap-3 rounded-sm border border-info/40 bg-info/5 p-4" role="status">
+          <UIcon name="i-lucide-refresh-cw" class="mt-0.5 size-5 shrink-0 text-info" />
+          <div class="min-w-0 flex-1">
+            <h2 class="font-semibold">This timesheet was changed on another device</h2>
+            <p class="mt-1 max-w-prose text-sm">We loaded the latest version. Check your last change is still there.</p>
+          </div>
+          <UButton color="neutral" variant="ghost" icon="i-lucide-x" size="xl" class="-m-2 size-11 justify-center" aria-label="Dismiss" @click="conflictNotice = false" />
+        </section>
 
         <!-- Rejected: the manager's reason comes first -->
         <section v-if="s === 'rejected'" class="mt-6 rounded-sm border border-danger/40 bg-danger/5 p-4">
@@ -252,6 +284,17 @@ function clearAll() {
         </template>
       </article>
     </main>
+
+    <!-- R7-2: the session ended while the page was open. Saved hours are safe; signing in brings you back here -->
+    <UModal v-model:open="sessionEnded" title="You've been signed out" :dismissible="false" :close="false">
+      <template #body>
+        <p>For your security, you're signed out after a while without using the app. Your saved hours are safe.</p>
+        <p class="mt-2 text-ink-muted">Sign in again to carry on where you left off.</p>
+      </template>
+      <template #footer>
+        <UButton size="xl" class="h-11 w-full justify-center sm:ml-auto sm:w-auto sm:px-8" to="/sign-in">Sign in again</UButton>
+      </template>
+    </UModal>
 
     <UModal v-model:open="confirmClear" title="Clear this timesheet?">
       <template #body>

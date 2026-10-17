@@ -9,6 +9,9 @@ export const states = {
   'employee-added': 'Employee added: temporary password shown once',
   deactivate: 'Deactivate confirmation open (FR-25)',
   'reset-password': 'Password reset: new temporary password shown once',
+  'business-name': 'R7-8: changing the business name',
+  loading: 'R7-7: loading, slower than 300 ms',
+  'load-failed': "R7-7: couldn't load",
 }
 </script>
 
@@ -16,8 +19,9 @@ export const states = {
 import { computed, ref, shallowRef, watch } from 'vue'
 import type { CalendarDate, DateValue } from '@internationalized/date'
 import { useMock } from '@/mock'
-import { team, employees, fortnights, paySchedule, tempPassword } from '@/fixtures'
+import { team, employees, fortnights, paySchedule, tempPassword, business } from '@/fixtures'
 import TopBar from '@/parts/TopBar.vue'
+import LoadState from '@/parts/LoadState.vue'
 import StatusHeading from '@/parts/StatusHeading.vue'
 
 const { state } = useMock(states)
@@ -59,6 +63,21 @@ watch(s, (st) => {
   resetting.value = st === 'reset-password' ? 'done' : null
 }, { immediate: true })
 const firstName = (n: string) => n.split(' ')[0]
+
+// Business name (R7-8): shown on the sign-in page; not set on first run
+const businessName = ref('')
+const nameDraft = ref('')
+const editingName = ref(false)
+watch(s, (st) => {
+  businessName.value = st === 'setup' ? '' : business.name
+  editingName.value = st === 'business-name'
+  nameDraft.value = businessName.value
+}, { immediate: true })
+function saveName() {
+  businessName.value = nameDraft.value.trim()
+  editingName.value = false
+  toast.add({ title: 'Business name saved', icon: 'i-lucide-circle-check', color: 'success' })
+}
 const copy = async (text: string) => { await navigator.clipboard?.writeText(text); toast.add({ title: 'Copied', icon: 'i-lucide-copy-check', color: 'neutral' }) }
 const actions = (e: (typeof employees)[number]) => [[
   { label: 'Reset password', icon: 'i-lucide-key-round', onSelect: () => { target.value = e; resetting.value = 'confirm' } },
@@ -70,7 +89,9 @@ const actions = (e: (typeof employees)[number]) => [[
   <div class="min-h-screen bg-paper text-ink">
     <TopBar current="admin" manager />
 
-    <main class="mx-auto max-w-5xl md:px-4 md:py-8">
+    <LoadState v-if="s === 'loading' || s === 'load-failed'" :kind="s === 'loading' ? 'loading' : 'failed'" title="Admin" what="the admin page" />
+
+    <main v-else class="mx-auto max-w-5xl md:px-4 md:py-8">
       <article class="flex flex-col bg-sheet px-4 pt-6 pb-10 md:border md:border-rule md:px-8">
         <h1 class="text-2xl font-semibold">Admin</h1>
 
@@ -167,6 +188,26 @@ const actions = (e: (typeof employees)[number]) => [[
             </UFormField>
             <UButton size="xl" class="mt-4 h-11 justify-center" :disabled="!start">Save pay schedule</UButton>
           </template>
+        </section>
+
+        <!-- Business name (R7-8): set once, shown on the sign-in page -->
+        <section class="order-5 mt-12 border-t border-ink pt-4">
+          <h2 class="text-xl font-semibold">Business name</h2>
+          <p class="mt-1 max-w-prose text-ink-muted">Shown above the sign-in box, so staff know they're in the right place.</p>
+          <form v-if="editingName || !businessName" class="mt-4 flex max-w-xl flex-col gap-3 md:flex-row md:items-end" @submit.prevent="saveName">
+            <UFormField label="Business name" class="flex-1">
+              <UInput v-model="nameDraft" size="xl" class="w-full" maxlength="80" :ui="{ base: 'h-11 md:h-9' }" />
+            </UFormField>
+            <div class="flex flex-col-reverse gap-3 md:flex-row">
+              <UButton v-if="businessName" color="neutral" variant="outline" size="xl" class="h-11 justify-center md:h-9" @click="editingName = false">Cancel</UButton>
+              <UButton type="submit" size="xl" class="h-11 justify-center md:h-9" :disabled="!nameDraft.trim()">Save business name</UButton>
+            </div>
+          </form>
+          <template v-else>
+            <p class="mt-4 text-lg font-semibold">{{ businessName }}</p>
+            <UButton color="neutral" variant="outline" size="xl" class="mt-4 h-11 justify-center md:h-9" @click="nameDraft = businessName; editingName = true">Change business name</UButton>
+          </template>
+          <p v-if="!businessName && !editingName" class="mt-2 text-sm text-ink-muted">Until you set it, the sign-in page just says "Timesheets".</p>
         </section>
       </article>
     </main>
