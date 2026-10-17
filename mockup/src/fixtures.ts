@@ -67,4 +67,6 @@ export const employees: { id: string; name: string; email: string; active: boole
   { id: 'tom', name: 'Tom Ng', email: 'tom.ng@example.com', active: true },
   { id: 'jordan', name: 'Jordan Ellis', email: 'jordan.e@example.com', active: false, deactivatedOn: '01/09/2026' },
 ]
+// R7-8: set by the manager on Admin, shown on the sign-in page. Unset on first run, when "Timesheets" shows alone.
+export const business = { name: 'Harbour Street Bakery', long: 'The Original Harbour Street Bakery & Wholesale Catering Company' }
 export const tempPassword = 'maple-river-4271' // mock only: shown once, changed at first sign-in

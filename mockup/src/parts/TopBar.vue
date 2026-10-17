@@ -4,7 +4,7 @@
 import { computed } from 'vue'
 
 type Key = 'timesheet' | 'profile' | 'approvals' | 'admin'
-const props = defineProps<{ current: Key; manager?: boolean }>()
+const props = defineProps<{ current?: Key; manager?: boolean }>() // no current on not-found and no-access (R7-3, R7-4)
 const links = [
   { key: 'timesheet', label: 'My timesheet', to: '/timesheet' },
   { key: 'approvals', label: 'Approvals', to: '/approvals', manager: true },

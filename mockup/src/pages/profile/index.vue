@@ -7,6 +7,8 @@ export const states = {
   'no-signature': 'No signature yet',
   replacing: 'Replacing the signature',
   'password-changed': 'Back from the sign-in page after changing password',
+  loading: 'R7-7: loading, slower than 300 ms',
+  'load-failed': "R7-7: couldn't load",
 }
 </script>
 
@@ -15,6 +17,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useMock } from '@/mock'
 import { me } from '@/fixtures'
 import TopBar from '@/parts/TopBar.vue'
+import LoadState from '@/parts/LoadState.vue'
 import SignatureSetup from '@/parts/SignatureSetup.vue'
 import SignatureText from '@/parts/SignatureText.vue'
 import { familyOf, type Signature } from '@/signature'
@@ -51,7 +54,9 @@ onMounted(() => {
   <div class="min-h-screen bg-paper text-ink">
     <TopBar current="profile" />
 
-    <main class="mx-auto max-w-3xl md:px-4 md:py-8">
+    <LoadState v-if="s === 'loading' || s === 'load-failed'" :kind="s === 'loading' ? 'loading' : 'failed'" title="Profile" what="your profile" width="max-w-3xl" />
+
+    <main v-else class="mx-auto max-w-3xl md:px-4 md:py-8">
       <article class="bg-sheet px-4 pt-6 pb-10 md:border md:border-rule md:px-8">
         <h1 class="text-2xl font-semibold">Profile</h1>
         <dl class="mt-4 grid grid-cols-[auto_1fr] gap-x-6 gap-y-1">

@@ -10,6 +10,8 @@ export const states = {
   'first-approval': 'Manager has no signature yet (FR-20)',
   own: "Manager's own timesheet, will be Self-approved (FR-19)",
   rejected: 'Rejected, waiting for the employee (read-only)',
+  loading: 'R7-7: loading, slower than 300 ms',
+  'load-failed': "R7-7: couldn't load",
 }
 </script>
 
@@ -20,6 +22,7 @@ import { useMock } from '@/mock'
 import { daysFor, warning, team, manager, period, rejection, approval, type Day } from '@/fixtures'
 import { familyOf, type Signature } from '@/signature'
 import TopBar from '@/parts/TopBar.vue'
+import LoadState from '@/parts/LoadState.vue'
 import ReadOnlySheet from '@/parts/ReadOnlySheet.vue'
 import SignatureText from '@/parts/SignatureText.vue'
 import SignatureSetup from '@/parts/SignatureSetup.vue'
@@ -69,7 +72,9 @@ function reject() {
   <div class="min-h-screen bg-paper text-ink">
     <TopBar current="approvals" manager />
 
-    <main class="mx-auto max-w-5xl md:px-4 md:py-6">
+    <LoadState v-if="s === 'loading' || s === 'load-failed'" :kind="s === 'loading' ? 'loading' : 'failed'" title="Timesheet" what="this timesheet" />
+
+    <main v-else class="mx-auto max-w-5xl md:px-4 md:py-6">
       <a href="#/approvals" class="mx-4 flex h-11 items-center gap-1 text-accent md:mx-0">
         <UIcon name="i-lucide-arrow-left" class="size-4" /> Approvals
       </a>
