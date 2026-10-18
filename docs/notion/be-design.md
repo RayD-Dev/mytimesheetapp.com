@@ -1,9 +1,9 @@
 <!-- Read-only copy of Detailed Design Doc — BE: https://app.notion.com/p/3f5771bd4d43813e90c8e11492d92e2b
      Notion is the master; comment and edit there, then run docs-sync.
-     Notion last edited: 2026-10-11T05:25:37.602Z · Synced: 12/10/2026 -->
+     Notion last edited: 2026-10-17T14:50:57.177Z · Synced: 18/10/2026 -->
 <content>
 <callout icon="🛠️" color="gray_bg">
-	**Status:** Draft · **Last updated:** <mention-date start="2026-10-11"/> · **Type:** Detailed design — system logic and implementation decisions. Companion to <mention-page url="https://app.notion.com/p/3f4771bd4d4380e28d76d2038edbfac4"/>, which owns the architecture, and the <mention-page url="https://app.notion.com/p/3f6771bd4d4381fbadd6f819e59e08fd"/>, which owns how the system runs and why. Requirements live in the <mention-page url="https://app.notion.com/p/3f5771bd4d438156a93ec42b3548821d"/>.
+	**Status:** Draft · **Last updated:** <mention-date start="2026-10-18"/> · **Type:** Detailed design — system logic and implementation decisions. Companion to <mention-page url="https://app.notion.com/p/3f4771bd4d4380e28d76d2038edbfac4"/>, which owns the architecture, and the <mention-page url="https://app.notion.com/p/3f6771bd4d4381fbadd6f819e59e08fd"/>, which owns how the system runs and why. Requirements live in the <mention-page url="https://app.notion.com/p/3f5771bd4d438156a93ec42b3548821d"/>.
 </callout>
 <table_of_contents/>
 ---
@@ -17,13 +17,13 @@
 </tr>
 <tr>
 <td>**Business** (the tenant)</td>
-<td>Name, time zone, pay schedule start date</td>
-<td>One row in M1; every other record carries its ID (AD-03). A manager sets the start date, which must be a Monday (FR-04), from configuration until the admin page exists (slice 3). Locked once any timesheet exists, including an unsubmitted draft; a deleted draft stops counting (FR-05).</td>
+<td>Name, optional logo (PNG or JPG image), time zone, pay schedule start date</td>
+<td>One row in M1; every other record carries its ID (AD-03). A manager sets the business name and an optional logo on the admin page, and the sign-in pages show them (FR-28). A manager sets the start date, which must be a Monday (FR-04), from configuration until the admin page exists (slice 3). Locked once any timesheet exists, including an unsubmitted draft; a deleted draft stops counting (FR-05).</td>
 </tr>
 <tr>
 <td>**Person**</td>
 <td>Keycloak user ID, display name, active flag</td>
-<td>The name comes from the login and isn't editable in the app. Created on first sign-in or from the admin page. Deactivated, never deleted (FR-25). Roles live in Keycloak (§5).</td>
+<td>The name comes from the login and isn't editable in the app. Created on first sign-in or from the admin page. Deactivated, never deleted (FR-25). Roles live in Keycloak (section 5).</td>
 </tr>
 <tr>
 <td>**Timesheet**</td>
@@ -61,8 +61,8 @@
 ---
 ## 2. Business rules
 ### 2.1 Timesheet lifecycle & approvals
-States and transitions are defined in the PRD (§6); this section covers the rules behind them.
-- **Draft → Submitted** — by the owner only, once at least one day has hours (also before the fortnight ends), every filled-in day is valid (§2.2), the employee has ticked the declaration and each day with a warning, and they have a signature (FR-14, FR-20). The server works out the warning days again at submit and refuses a tick list that doesn't match them. Warnings don't block, but each needs its tick (FR-27). Writes a Submission with a copy of the signature (FR-21). The submitted hours and the declaration are logged (FR-26), and the timesheet becomes read-only to the employee (FR-14).
+States and transitions are defined in the PRD (section 6); this section covers the rules behind them.
+- **Draft → Submitted** — by the owner only, once at least one day has hours (also before the fortnight ends), every filled-in day is valid (section 2.2), the employee has ticked the declaration and each day with a warning, and they have a signature (FR-14, FR-20). The server works out the warning days again at submit and refuses a tick list that doesn't match them. Warnings don't block, but each needs its tick (FR-27). Writes a Submission with a copy of the signature (FR-21). The submitted hours and the declaration are logged (FR-26), and the timesheet becomes read-only to the employee (FR-14).
 - **Draft → deleted** — if it was never submitted: on Clear, or 15 days after the last change (FR-12, FR-13). If it was rejected: only after it has been cleared, 3 months after clearing unless hours are entered again, and that deletion is logged (FR-13, FR-17).
 - **Submitted → Approved** — by the manager (M1 has one), once they have a signature (FR-20; prompted at their first approval if not). Writes an Approval with a copy of the signature image (FR-21), marked Self-approved when the approver owns the timesheet (FR-19). Final in M1 (FR-16).
 - **Submitted → Draft (reject)** — by the manager; a non-blank reason is required and shown to the employee until they submit again (FR-17).
@@ -88,13 +88,13 @@ Proposed approach (to confirm):
 - Drafts may hold incomplete days while the employee types: each autosave returns per-day errors, and Submit is refused until every filled-in day is valid.
 - Times travel through the API as 24-hour `HH:mm`, to the minute, and hours as integer minutes. The 12-hour display, the `{hours}h {minutes}m` form and the decimal hours (FR-11) are formatting in the web app and the PDF template only.
 ### 2.3 Time & time zone handling
-M1 resolves most of these: all times are in the business's single time zone (PRD §2), and shifts start and finish on the same day (FR-09). Each day stores a local date and local start and finish times; system timestamps (log, submissions, approvals) are UTC instants.
+M1 resolves most of these: all times are in the business's single time zone (PRD section 2), and shifts start and finish on the same day (FR-09). Each day stores a local date and local start and finish times; system timestamps (log, submissions, approvals) are UTC instants.
 Known edge cases:
 - **Daylight saving transitions** — durations are computed from absolute instants (local times resolved in the business's time zone), not wall-clock times. A 01:00–03:00 entry is 1 h on spring-forward night and 3 h on fall-back night.
 - **Non-existent and ambiguous local times** — e.g. 02:30 doesn't exist on spring-forward night and 01:30 happens twice on fall-back night. ~~The API accepts timestamps with an explicit UTC offset so there's no ambiguity.~~ M1 stores local times, so *proposed:* a non-existent time is rejected and an ambiguous one takes the earlier offset (`java.time`'s default). Rare for daytime casual shifts.
 - **Entries crossing midnight** — does the entry belong to its start day, or is it split across days? **Out of M1:** no overnight shifts. Revisit in M2.
 - **Entries crossing a period boundary** — e.g. a night shift spanning the last day of a weekly period. **Can't happen in M1** (same-day shifts, fortnights only). Revisit with overnight shifts in M2 and configurable periods in M3.
-- **Whose time zone defines a period** — the org's or the employee's, for distributed teams. **Resolved:** the business's (PRD §2).
+- **Whose time zone defines a period** — the org's or the employee's, for distributed teams. **Resolved:** the business's (PRD section 2).
 - **Travelling employees** — ~~each entry stores the time zone it was recorded in, so history always displays correctly.~~ **Not in M1:** every time is in the business's time zone. Per-entry zones only if a later milestone needs them.
 - **"Future" is relative** — an employee in UTC+12 must not be wrongly blocked or allowed. **Resolved:** "after today" uses today's date in the business's time zone, from the server's clock.
 - **Time zone rule changes** — governments change DST rules; rely on the runtime's time zone database and keep it patched.
@@ -186,7 +186,7 @@ Each slice delivers its endpoints with its screens (AD-16), so these firm up sli
 </tr>
 <tr>
 <td>**3. Admin page**</td>
-<td>`GET` and `PUT /api/v1/pay-schedule` (start date must be a Monday) · `GET` and `POST /api/v1/employees` · `POST /api/v1/employees/{id}/deactivate` · `POST /api/v1/employees/{id}/reset-password`</td>
+<td>`GET` and `PUT /api/v1/pay-schedule` (start date must be a Monday) · `GET` and `PUT /api/v1/business` (business name, FR-28) · `PUT` and `DELETE /api/v1/business/logo` (PNG or JPG, up to 1 MB; the server checks the type from the file's content, not its name, and refuses anything else, including SVG, which can carry scripts) · `GET` and `POST /api/v1/employees` · `POST /api/v1/employees/{id}/deactivate` · `POST /api/v1/employees/{id}/reset-password`</td>
 </tr>
 <tr>
 <td>**4. PDF**</td>
@@ -197,18 +197,18 @@ Before slice 3, the pay schedule start date comes from configuration and people 
 ---
 ## 5. Security
 *TBD — authentication flow, secrets.*
-M1 roles and accounts (PRD §3, FR-01 – FR-03, FR-24, FR-25):
+M1 roles and accounts (PRD section 3, FR-01 – FR-03, FR-24, FR-25):
 - Two Keycloak realm roles, `employee` and `manager`. M1 has exactly one manager, who is also an employee and the admin. Authorisation checks the `manager` role, never a count, so M2 can add more managers without rework.
-- The manager role is set in Keycloak, not from the admin page (FR-24). If the only manager is away, whoever runs the server gives a second person the role in the Keycloak admin console (PRD §12), following the runbook (System Design §11.5).
-- Accounts are created with a temporary password and Keycloak's *Update Password* required action (FR-01). Password reset uses Keycloak's own emails, so the install needs an email (SMTP) account (PRD §7).
+- The manager role is set in Keycloak, not from the admin page (FR-24). If the only manager is away, whoever runs the server gives a second person the role in the Keycloak admin console (PRD section 12), following the runbook (System Design section 11.5).
+- Accounts are created with a temporary password and Keycloak's *Update Password* required action (FR-01). Keycloak's password policy requires at least 8 characters, with letters and numbers (FR-01). No two-factor sign-in in M1. Password reset uses Keycloak's own emails, so the install needs an email (SMTP) account (PRD section 7).
 - *Change password* on the Profile page sends the user to Keycloak's own password page (an application-initiated action, `kc_action=UPDATE_PASSWORD`) and back, so the app never handles passwords.
-- The admin page (slice 3) manages employee accounts (add, deactivate, reset password) through the Keycloak Admin API, using a service account limited to user management. It can't grant the manager role. Deactivate disables the Keycloak user (FR-25). Each change is also written to the app's log (FR-26).
+- The admin page (slice 3) manages employee accounts (add, deactivate, reset password) through the Keycloak Admin API, using a service account limited to user management (the business name and logo may need more; see the open question in section 11). It can't grant the manager role. Deactivate disables the Keycloak user (FR-25). Each change is also written to the app's log (FR-26).
 - Account changes made directly in Keycloak (at install, before slice 3, or in an emergency) are recorded by Keycloak's admin events, turned on with no expiry and covered by the Keycloak database backup (FR-26).
-- **Token validation:** the API checks each token's issuer against Keycloak's public URL but fetches the signing keys from Keycloak's internal address, so the issuer and the keys URL are configured separately rather than found by discovery (System Design §2.5). Keycloak runs under `/auth`, trusts forwarded headers from Caddy only, has its Account Console turned off, and requires two-factor sign-in for the manager account (System Design SD-02, SD-03).
+- **Token validation:** the API checks each token's issuer against Keycloak's public URL but fetches the signing keys from Keycloak's internal address, so the issuer and the keys URL are configured separately rather than found by discovery (System Design section 2.5). Keycloak runs under `/auth`, trusts forwarded headers from Caddy only, and has its Account Console turned off (System Design SD-02).
 ---
 ## 6. Multi-tenancy
 *TBD before M3 — isolation strategy (current lean: shared schema + PostgreSQL row-level security), tenant resolution.*
-M1 constraint: one business per install, but every tenant-owned table has a business ID from the first migration, so M3 adds businesses without changing M1 data (PRD §2, AD-03).
+M1 constraint: one business per install, but every tenant-owned table has a business ID from the first migration, so M3 adds businesses without changing M1 data (PRD section 2, AD-03).
 ---
 ## 7. Data & persistence
 *TBD — schema, audit trail storage, migrations, soft deletes, concurrency.*
@@ -217,7 +217,7 @@ M1 schema rules, following from the PRD and the HL design:
 - Timesheets record when they last changed and whether they were ever submitted, for the 15-day expiry of never-submitted drafts (FR-12). Each submit writes a Submission with the employee's signature copy, for the PDF (FR-14, FR-21, FR-22).
 - Day times are stored as a local `date` and `time` in the business's time zone; system timestamps as `timestamptz`.
 - Never-submitted drafts are deleted on Clear or expiry and aren't business records. A cleared rejected timesheet is deleted 3 months after clearing, and that deletion is logged (FR-13). Other submitted and approved timesheets, people and the log are never deleted.
-- Signature images are stored in PostgreSQL, so a database backup covers them; each submission and approval keeps its own copy (FR-21).
+- Signature images are stored in PostgreSQL, so a database backup covers them; each submission and approval keeps its own copy (FR-21). The business logo is stored the same way (FR-28).
 - The log table is append-only: the app's database user can't update or delete its rows.
 - Optimistic locking (`version`) on timesheets, for autosave from two devices and for approve / reject races.
 ---
@@ -225,26 +225,27 @@ M1 schema rules, following from the PRD and the HL design:
 *TBD*
 ---
 ## 9. Environments & deployment
-Environments, install prerequisites, and backup and restore moved to the <mention-page url="https://app.notion.com/p/3f6771bd4d4381fbadd6f819e59e08fd"/> (§6, §11.1 and §9). Backend-specific build and runtime detail (the API image, JVM settings, Spring configuration) goes here. *TBD*
+Environments, install prerequisites, and backup and restore moved to the <mention-page url="https://app.notion.com/p/3f6771bd4d4381fbadd6f819e59e08fd"/> (sections 6, 11.1 and 9). Backend-specific build and runtime detail (the API image, JVM settings, Spring configuration) goes here. *TBD*
 ---
 ## 10. Testing strategy
 *TBD — tools, coverage thresholds, test environments.*
 ---
 ## 11. Open questions
 - [x] Should approvers see soft warnings (e.g. more than 12 h in a day)? — **Resolved:** FR-27 warns on days with 1 hour or less, or more than 12 hours, of worked time; the manager sees them on Approvals (FR-15). More warnings are M2
-- [x] Which time zone defines a timesheet period — org or employee? — **Resolved:** the business's single time zone (PRD §2)
+- [x] Which time zone defines a timesheet period — org or employee? — **Resolved:** the business's single time zone (PRD section 2)
 - [x] Entries crossing midnight or a period boundary — assign to start day or split? — **Out of M1:** no overnight shifts (FR-09); revisit in M2
 - [ ] Tenant isolation strategy: shared schema + RLS vs schema-per-tenant — *needed by M3*
-- [x] PDF library: OpenPDF, Apache PDFBox or OpenHTMLtoPDF — **Decided:** OpenHTMLtoPDF, community fork (§3.3)
+- [x] PDF library: OpenPDF, Apache PDFBox or OpenHTMLtoPDF — **Decided:** OpenHTMLtoPDF, community fork (section 3.3)
 - [x] Exports: generated on request, or as background jobs for large reports? — **M1:** on request (one fortnight for one small business); revisit with M2's reports
 - [x] Export contents and layout (per employee, per project, approval status, totals) — **Defined by FR-22:** one A4 portrait page per approved timesheet, copying the business's current paper timesheet (PRD Q3, resolved)
-- [x] Draft expiry — **Resolved (FR-12):** 15 days after the last change for drafts that were never submitted, shown on the timesheet; a daily job (§1)
+- [x] Draft expiry — **Resolved (FR-12):** 15 days after the last change for drafts that were never submitted, shown on the timesheet; a daily job (section 1)
 - [x] Does draft expiry apply to a rejected timesheet the employee hasn't touched? — **Resolved:** no, rejected timesheets with hours never expire; cleared ones are deleted 3 months after clearing (FR-12, FR-13, FR-17)
 - [x] Does a draft count as a timesheet for the FR-05 start-date lock? — **Resolved (FR-05):** yes, and a deleted draft stops counting
-- [x] Backup tooling and retention period — **Moved** to the System Design (§9.3, §14); proposed: nightly `pg_dump` + restic
+- [x] Backup tooling and retention period — **Moved** to the System Design (sections 9.3 and 14); proposed: nightly `pg_dump` + restic
 - [x] Decimal hours, e.g. 8h 10m (8.17) — **Resolved (FR-11):** both forms on every hours figure, on screen and in the PDF, with decimals from exact totals rounded to 2 places for display
-- [x] Rounding mode for decimal hours — **Resolved (FR-11):** half-up to 2 places, for display only; with whole minutes a tie can't occur (§3.3)
-- [ ] Confirm OpenHTMLtoPDF (community fork) on Java 25 with a spike that renders the sample sheet (§3.3)
+- [x] Rounding mode for decimal hours — **Resolved (FR-11):** half-up to 2 places, for display only; with whole minutes a tie can't occur (section 3.3)
+- [ ] Confirm OpenHTMLtoPDF (community fork) on Java 25 with a spike that renders the sample sheet (section 3.3)
+- [ ] How the sign-in pages get the business name and logo (FR-28): the API sets them as Keycloak's realm display name (the logo only fits as an image in the realm's HTML display name, and the admin page's service account would then need to manage realm settings, not just users), or the sign-in theme reads both from a public app endpoint that returns only the name and logo. The logo leans towards the public endpoint. Decide before slice 3
 - [x] Form of the employee's confirmation on submit — **Resolved (FR-14):** one declaration plus a tick for each day with a warning
 - [x] FR-27: does "shift" mean the worked hours or finish − start? — **Resolved:** worked time after the break
 ---
@@ -256,11 +257,11 @@ Environments, install prerequisites, and backup and restore moved to the <mentio
 </tr>
 <tr>
 <td><mention-date start="2026-10-10"/></td>
-<td>Time entries use start and end times, time-zone aware; duration is derived</td>
+<td>~~Time entries use start and end times, time-zone aware; duration is derived~~ — superseded <mention-date start="2026-10-11"/>: start and finish times in the business's single time zone; duration is still derived</td>
 </tr>
 <tr>
 <td><mention-date start="2026-10-10"/></td>
-<td>Future-dated entries allowed only for leave (leave is Later)</td>
+<td>~~Future-dated entries allowed only for leave (leave is Later)~~ — superseded <mention-date start="2026-10-11"/>: no leave in M1, so all future-dated entries are rejected</td>
 </tr>
 <tr>
 <td><mention-date start="2026-10-10"/></td>
@@ -280,7 +281,7 @@ Environments, install prerequisites, and backup and restore moved to the <mentio
 </tr>
 <tr>
 <td><mention-date start="2026-10-11"/></td>
-<td>All times are in the business's single time zone: days store a local date and start and finish times; system timestamps are UTC (PRD §2)</td>
+<td>All times are in the business's single time zone: days store a local date and start and finish times; system timestamps are UTC (PRD section 2)</td>
 </tr>
 <tr>
 <td><mention-date start="2026-10-11"/></td>
@@ -300,15 +301,15 @@ Environments, install prerequisites, and backup and restore moved to the <mentio
 </tr>
 <tr>
 <td><mention-date start="2026-10-11"/></td>
-<td>PDF generated on request in M1, no background jobs; HTML-to-PDF (OpenHTMLtoPDF) is the lean</td>
+<td>PDF generated on request in M1, no background jobs; HTML-to-PDF (OpenHTMLtoPDF) ~~is the lean~~ — decided <mention-date start="2026-10-11"/> (section 3.3)</td>
 </tr>
 <tr>
 <td><mention-date start="2026-10-11"/></td>
-<td>A documented, tested backup and restore is part of M1 (PRD §7)</td>
+<td>A documented, tested backup and restore is part of M1 (PRD section 7)</td>
 </tr>
 <tr>
 <td><mention-date start="2026-10-11"/></td>
-<td>One manager in M1, set in Keycloak; authorisation checks the manager role, not a count (PRD §3)</td>
+<td>One manager in M1, set in Keycloak; authorisation checks the manager role, not a count (PRD section 3)</td>
 </tr>
 <tr>
 <td><mention-date start="2026-10-11"/></td>
@@ -372,7 +373,19 @@ Environments, install prerequisites, and backup and restore moved to the <mentio
 </tr>
 <tr>
 <td><mention-date start="2026-10-11"/></td>
-<td>Tokens are checked against Keycloak's public issuer URL, with signing keys fetched from Keycloak's internal address (System Design §2.5)</td>
+<td>Tokens are checked against Keycloak's public issuer URL, with signing keys fetched from Keycloak's internal address (System Design section 2.5)</td>
+</tr>
+<tr>
+<td><mention-date start="2026-10-18"/></td>
+<td>M1 password policy: at least 8 characters, with letters and numbers; no two-factor sign-in in M1 (FR-01)</td>
+</tr>
+<tr>
+<td><mention-date start="2026-10-18"/></td>
+<td>The business name is stored on the Business record and set from the admin page (FR-28)</td>
+</tr>
+<tr>
+<td><mention-date start="2026-10-18"/></td>
+<td>An optional business logo (PNG or JPG, up to 1 MB, no SVG) is stored on the Business record in PostgreSQL and set from the admin page (FR-28)</td>
 </tr>
 </table>
 ---
@@ -408,7 +421,19 @@ Environments, install prerequisites, and backup and restore moved to the <mentio
 </tr>
 <tr>
 <td><mention-date start="2026-10-11"/></td>
-<td>Moved environments, install prerequisites, and backup and restore (§9) to the new System Design; backup tooling question moved with them. Added token validation and Keycloak hosting notes to §5; the runbook now lives in the System Design.</td>
+<td>Moved environments, install prerequisites, and backup and restore (section 9) to the new System Design; backup tooling question moved with them. Added token validation and Keycloak hosting notes to section 5; the runbook now lives in the System Design.</td>
+</tr>
+<tr>
+<td><mention-date start="2026-10-18"/></td>
+<td>Followed mock-up round R7: business name on the Business record with a slice 3 endpoint, and an open question on how the sign-in pages get it (FR-28); M1 password policy and no two-factor sign-in (FR-01). Marked the old future-dated entries decision as superseded. Section references are now written as words.</td>
+</tr>
+<tr>
+<td><mention-date start="2026-10-18"/></td>
+<td>Followed mock-up round R8: an optional business logo on the Business record, with slice 3 endpoints to upload and remove it (PNG or JPG, up to 1 MB, no SVG); the open question on how the sign-in pages get the name now covers the logo too (FR-28).</td>
+</tr>
+<tr>
+<td><mention-date start="2026-10-18"/></td>
+<td>Consistency fixes from the docs index: section 5 points to the open question on the service account's rights for the business name and logo; two old decision-log rows marked superseded (time-zone aware entries) and decided (OpenHTMLtoPDF).</td>
 </tr>
 </table>
 </content>
