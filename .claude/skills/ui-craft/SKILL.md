@@ -86,7 +86,7 @@ Use the component library for behaviour and accessibility (dialogs, popovers, da
 
 1. Run **ui-audit**'s scanner on the files you changed and fix what's real.
 2. Run **ui-visual-check** at phone and desktop widths and look at the screenshots. Fix overflow, clipping, misalignment and anything that doesn't match DESIGN.md.
-3. Read `references/anti-patterns.md` once against the rendered screen — static checks can't see hierarchy or rhythm. For forms, buttons and copy, also cross-check §4.5, §4.6 and §4.9 ("COPY SELF-AUDIT") of `../design-taste-frontend/SKILL.md`. Read only those sections; most of that skill is for marketing pages.
+3. Read `references/anti-patterns.md` once against the rendered screen — static checks can't see hierarchy or rhythm. For forms, buttons and copy, also cross-check sections 4.5, 4.6 and 4.9 ("COPY SELF-AUDIT") of `../design-taste-frontend/SKILL.md`. Read only those sections; most of that skill is for marketing pages.
 4. In your reply, state the key choices in two or three lines (e.g. "Totals use the figures font, double-ruled like a ledger; warnings use the caution role with an icon") so the user can push back on decisions rather than discover them.
 
 A quality floor applies to everything, regardless of direction: responsive down to 375px, visible keyboard focus, accessible contrast, and no layout shift when data loads.

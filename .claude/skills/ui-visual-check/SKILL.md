@@ -17,7 +17,7 @@ Writing UI code without looking at it is how overlapping labels, sideways scroll
 
 The script resolves Playwright from the current folder's `node_modules`, so run it from the app's folder.
 
-- Check with `npx playwright --version`. Playwright is in this project's planned stack (FE design §4), so it's expected as a dev dependency.
+- Check with `npx playwright --version`. Playwright is in this project's planned stack (FE design section 4), so it's expected as a dev dependency.
 - If it's missing from `package.json`, ask before adding it. Then run `npm i -D @playwright/test` and `npx playwright install chromium`.
 
 ## 3. Capture and check
@@ -91,4 +91,4 @@ If the session has a built-in browser tool, for example the desktop app's browse
 
 ## Turning checks into tests
 
-This loop is fast feedback, not the test suite. When a check matters on every build, such as no sideways scroll on My timesheet at 375px, add it as a real Playwright test in the app's e2e suite (FE design §10).
+This loop is fast feedback, not the test suite. When a check matters on every build, such as no sideways scroll on My timesheet at 375px, add it as a real Playwright test in the app's e2e suite (FE design section 10).

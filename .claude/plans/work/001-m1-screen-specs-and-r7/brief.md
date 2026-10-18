@@ -18,10 +18,10 @@ The mock-up is frozen after R6 with 73 screenshots (`mockup/approved/`). Enginee
 | C-5 | The manager sets the business name on Admin; the sign-in pages show it | Conversation 18/10/2026: "Maybe admin can configure this?" |
 | C-6 | M1 password rule: at least 8 characters, with letters and numbers | Conversation 18/10/2026: "8 Character Minimum with a mixture of letters and numbers" |
 | C-7 | No two-factor sign-in in M1 | Conversation 18/10/2026: "No" |
-| FR-01 | Sign in, first-sign-in password change, password reset (Keycloak's pages) | fe-design.md §6 route table |
-| FR-25 | Deactivated people can't sign in | prd.md §6 Admin page |
-| FR-06 | Pay schedule not set message | prd.md §6 |
-| FE-7.1 | Not saved / retry; version conflict reloads and tells the user | fe-design.md §7.1 |
+| FR-01 | Sign in, first-sign-in password change, password reset (Keycloak's pages) | fe-design.md section 6 route table |
+| FR-25 | Deactivated people can't sign in | prd.md section 6 Admin page |
+| FR-06 | Pay schedule not set message | prd.md section 6 |
+| FE-7.1 | Not saved / retry; version conflict reloads and tells the user | fe-design.md section 7.1 |
 
 ## What the user sees
 
@@ -33,7 +33,7 @@ The mock-up is frozen after R6 with 73 screenshots (`mockup/approved/`). Enginee
 3. Not found (bad URL or a fortnight outside current/previous).
 4. No access: an employee opening Approvals or Admin.
 5. Deactivated person trying to sign in.
-6. Not saved on My timesheet (the autosave failure state, FE §7.1) and the version-conflict "timesheet changed on another device" notice.
+6. Not saved on My timesheet (the autosave failure state, FE section 7.1) and the version-conflict "timesheet changed on another device" notice.
 7. Loading and failed-to-load states for each page.
 
 ## Acceptance criteria

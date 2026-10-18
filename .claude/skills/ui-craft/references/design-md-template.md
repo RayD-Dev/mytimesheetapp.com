@@ -12,7 +12,7 @@ Status · last updated · links to requirements (PRD, design docs)
 - **Who uses it, where, how often:** roles, devices, conditions (on a phone at the end of a shift; at a desk once a fortnight).
 - **The job of each main screen:** one line each.
 - **What users must feel:** e.g. "the numbers are right and nothing I typed is lost".
-- **Register:** product UI or brand UI (see ui-craft §2).
+- **Register:** product UI or brand UI (see ui-craft section 2).
 
 ## 2. Hard constraints
 Things the design may not break: viewport promises, formats, labels that must match a paper form, accessibility targets, browsers, languages, the component library.

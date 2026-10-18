@@ -2,9 +2,9 @@
 
 The user agreed these on 12/10/2026. Plans cite them, and reviews check against them.
 
-## Stack (FE design doc §4)
+## Stack (FE design doc section 4)
 
-Vue 3 with TypeScript, Vite, Vue Router, Pinia, and Nuxt UI v4 through its Vite plugin, without the Nuxt framework. Tests use Vitest with Vue Test Utils, and Playwright for end to end. Still undecided in the FE doc, and settled in a plan before the code that needs them: project structure (§5), API client (§7), state (§8), testing set-up (§10), build (§11), browser sign-in (§3), and npm or pnpm.
+Vue 3 with TypeScript, Vite, Vue Router, Pinia, and Nuxt UI v4 through its Vite plugin, without the Nuxt framework. Tests use Vitest with Vue Test Utils, and Playwright for end to end. Still undecided in the FE doc, and settled in a plan before the code that needs them: project structure (section 5), API client (section 7), state (section 8), testing set-up (section 10), build (section 11), browser sign-in (section 3), and npm or pnpm.
 
 TypeScript runs with `strict` and `noUncheckedIndexedAccess`.
 

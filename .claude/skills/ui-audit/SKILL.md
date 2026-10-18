@@ -38,7 +38,7 @@ The output is a score with a band, findings grouped by severity (`file:line rule
 - **Fix real findings at the source.** Swap a raw colour for a token, `transition: all` for named properties, a clickable `div` for a `<button>`.
 - **Don't game the score.** Renaming a purple variable or splitting a gradient across lines to dodge a regex leaves the look and hides the problem. If the look is wrong, change the look.
 - **Keep justified exceptions, and say why.** Some findings are right in context. The *Submit* label is the PRD's own term, and a stamp metaphor may need uppercase. Suppress them where they occur:
-  - On the line or the line above: `<!-- slop-ignore generic-cta -- PRD FR-14 term -->` or `/* slop-ignore eyebrow-caps -- stamp metaphor, DESIGN.md §3 */`. Several rules can be listed with commas. A reason after `--` is expected.
+  - On the line or the line above: `<!-- slop-ignore generic-cta -- PRD FR-14 term -->` or `/* slop-ignore eyebrow-caps -- stamp metaphor, DESIGN.md section 3 */`. Several rules can be listed with commas. A reason after `--` is expected.
   - Project-wide, in `.slopscan.json`:
     ```json
     {
@@ -59,7 +59,7 @@ Read `../web-design-guidelines/command.md` and check the changed files against i
 
 ## 3. Critique
 
-Look at the rendered screen. Use ui-visual-check screenshots at phone and desktop widths if you can't see it otherwise. Go through `references/critique-rubric.md`. Then go through the "Design Audit" checklist in `../redesign-existing-projects/SKILL.md`; skip its "Upgrade Techniques", and any item `../ui-craft/references/upstream.md` overrides. For copy, use §4.9 "COPY SELF-AUDIT" in `../design-taste-frontend/SKILL.md`.
+Look at the rendered screen. Use ui-visual-check screenshots at phone and desktop widths if you can't see it otherwise. Go through `references/critique-rubric.md`. Then go through the "Design Audit" checklist in `../redesign-existing-projects/SKILL.md`; skip its "Upgrade Techniques", and any item `../ui-craft/references/upstream.md` overrides. For copy, use section 4.9 "COPY SELF-AUDIT" in `../design-taste-frontend/SKILL.md`.
 
 Note at most five issues, most important first. Each one names the element, what's wrong, why it matters to *this* product's users, and the change.
 
@@ -73,7 +73,7 @@ Scan: 62 → 91 (Intentional). Fixed: ai-gradient ×1, raw-color ×7, transition
 Kept on purpose: generic-cta ×1 ("Submit" is the PRD's term).
 Guidelines: 3 found, 3 fixed (icon button without aria-label, toast without aria-live, "..." in loading text).
 Critique:
-1. Fortnight total doesn't stand out from the week totals — make it the screen's one confident element (DESIGN.md §3 signature).
+1. Fortnight total doesn't stand out from the week totals — make it the screen's one confident element (DESIGN.md section 3 signature).
 2. …
 ```
 
