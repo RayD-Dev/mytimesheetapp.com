@@ -61,9 +61,9 @@ All four are MIT licensed. A scan found no instructions to fetch, run or install
 
 | Our skill | Change |
 |---|---|
-| `ui-craft` | Add the order of authority. Use Vercel `AGENTS.md` as the quality floor while building; `mobile-native`'s baseline (viewport meta, tap highlight, 16px inputs, safe areas, hover gating) for phone screens; taste-skill §4.5–4.6 (button and form rules) and §9 (giveaways) as a cross-check. Add a list of known conflicts and their resolutions (below). |
+| `ui-craft` | Add the order of authority. Use Vercel `AGENTS.md` as the quality floor while building; `mobile-native`'s baseline (viewport meta, tap highlight, 16px inputs, safe areas, hover gating) for phone screens; taste-skill sections 4.5–4.6 (button and form rules) and section 9 (giveaways) as a cross-check. Add a list of known conflicts and their resolutions (below). |
 | `ui-motion` | Credit `emil-design-eng` as the source. New motion follows `animate`'s build sequence using our tokens; reviews use `review-animations` and its `STANDARDS.md`; jank goes to `animation-performance`; "what could animate?" goes to `find-animation-opportunities`, expecting mostly rejections; `animation-vocabulary` helps name motion in feedback. Our no-stagger rule and no-overshoot rule win. |
-| `ui-audit` | Add a third pass, a Vercel review with `file:line` output from `command.md` on changed files. Add taste-skill §4.9 (copy self-check) and the `redesign-existing-projects` checklist to the critique. Add the Vercel findings to the report shape. |
+| `ui-audit` | Add a third pass, a Vercel review with `file:line` output from `command.md` on changed files. Add taste-skill section 4.9 (copy self-check) and the `redesign-existing-projects` checklist to the critique. Add the Vercel findings to the report shape. |
 | `ui-audit` scanner | New rules for D4 (em dash, more than one middle dot per line), `...` in UI strings (use `…`), and viewport zoom disabled (`user-scalable=no`, `maximum-scale=1`). Test on a planted file and on `mockup/src/pages`. |
 | `ui-mockup` | In "Check before the user sees it": run `break-ui` on new screens through a `worst` state in the existing mock bar rather than a new toggle; run the Vercel pass; run `review-animations` if motion changed. In "Promoting": keep the worst-case fixtures as regression data. |
 | `ui-visual-check` | The report lists `mobile-native`'s checks that only a real phone can confirm (sticky hover, tap delay, safe areas, keyboard). |
@@ -73,7 +73,7 @@ Conflicts and their resolutions, to record in `ui-craft`:
 | Upstream says | We do | Because |
 |---|---|---|
 | Title Case for headings and buttons (Vercel) | Sentence case | DESIGN.md vocabulary; Vercel house style |
-| Layered shadows (Vercel), tinted shadows and grain (taste-skill) | Hairline rules; shadows only on dialogs and menus | DESIGN.md §4 elevation |
+| Layered shadows (Vercel), tinted shadows and grain (taste-skill) | Hairline rules; shadows only on dialogs and menus | DESIGN.md section 4 elevation |
 | APCA contrast (Vercel) | WCAG 2.2 AA | DESIGN.md accessibility target |
 | Dark mode by default (taste-skill) | Light only | DESIGN.md has no dark theme |
 | Stagger group entrances, 200–300ms on all controls (Emil, taste-skill) | No stagger; instant feedback on frequent actions | `ui-motion` frequency table |

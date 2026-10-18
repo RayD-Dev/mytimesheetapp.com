@@ -2,13 +2,13 @@
 
 **Who:** Employees and managers submitting their own timesheet
 **Requirements:** FR-11, FR-14, FR-20, FR-27
-**Approved:** round R2 on 11/10/2026
+**Approved:** round R2 on 11/10/2026, with R8 on 18/10/2026 for the submit-failed state and the corrected no-warnings state
 **Screenshots:** `mockup/approved/timesheet-review--*`
 **Mock-up page:** `mockup/src/pages/timesheet/review.vue`
 
 Check every day with hours, confirm any warning days, see or set up the signature, tick the declaration, then Submit timesheet.
 
-In the real app this is a full-screen step on phones and a dialog on desktop, opened from Submit on My timesheet (DESIGN.md §5, §7). It has its own route in the mock-up so it can be reviewed; the mock-up renders it over a dimmed copy of My timesheet.
+In the real app this is a full-screen step on phones and a dialog on desktop, opened from Submit on My timesheet (DESIGN.md sections 5 and 7). It has its own route in the mock-up so it can be reviewed; the mock-up renders it over a dimmed copy of My timesheet.
 
 ## States
 
@@ -19,9 +19,10 @@ Screenshot names omit the `@375x812` / `@1280x800` suffix; every name exists at 
 | Ready, top | Opened from Submit; one warning day (Thu 08/10/2026, 1h 00m), nothing ticked | Title, pay period, intro, Week 1 with the tinted warning day and its unticked "Yes…" tick, week totals, start of Fortnight total | `timesheet-review--ready-top` |
 | Ready, bottom | Same, scrolled to the end | Week 2, Fortnight total and note, "Your signature" with the saved typed signature, unticked declaration, disabled Submit timesheet, hint "To submit, confirm Thu 08/10/2026 and tick the declaration." | `timesheet-review--ready-bottom` |
 | Ticked | Warning day and declaration both ticked | Declaration ticked, Submit timesheet enabled, no hint | `timesheet-review--ticked-bottom` |
-| No warnings | No day has a warning; only the declaration is needed | Week 1 with no tinted days and no day ticks (see Open questions: the screenshot still shows one warning) | `timesheet-review--no-warnings-top` |
+| Submit failed (R8-4) | Mock `submit-failed`: everything ticked, *Submit timesheet* pressed, and the server or connection failed | As Ticked, plus a red inline message above the button: "Your timesheet wasn't submitted. Check your connection and try again. Your hours are saved." and a toast "Timesheet not submitted"; *Submit timesheet* stays enabled, so pressing it again retries | `timesheet-review--submit-failed` |
+| No warnings | No day has a warning; only the declaration is needed | Week 1 with no tinted days and no day ticks. Thursday is 7:30 AM to 4:30 PM with a 30 min break (8h 30m), so nothing warns (fixed in R8-3; the screenshot was replaced) | `timesheet-review--no-warnings-top` |
 | No signature, type | First submit; no saved signature; "Type it" selected | "Set up your signature" with Type it / Draw it, name field, three style options, "Use this signature"; Submit timesheet disabled, hint lists the signature first | `timesheet-review--no-signature-type` |
-| No signature, draw | Same, "Draw it" selected | Drawing area on a signature line, "Clear drawing", "Use this signature" (disabled until something is drawn) | `timesheet-review--no-signature-draw` |
+| No signature, draw | Same, "Draw it" selected | Drawing area on a signature line, "Clear drawing" (disabled until something is drawn), "Use this signature" (enabled; it checks on press) | `timesheet-review--no-signature-draw` |
 | Week with no hours | A week has no day with hours | Under the week heading: "No hours this week" (mock-up source only; not screenshotted) | none |
 
 ## Layout
@@ -60,6 +61,8 @@ Screenshot names omit the `@375x812` / `@1280x800` suffix; every name exists at 
 | Drawn signature alt text | "Your signature" |
 | Declaration | "I confirm these hours are correct" |
 | Primary action | "Submit timesheet" |
+| Signature errors (R8-4) | Type mode, name blank: "Type your name as you sign it."; draw mode, nothing drawn: "Draw your signature in the box." |
+| Submit failed (R8-4) | Inline: "Your timesheet wasn't submitted. Check your connection and try again. Your hours are saved."; toast title "Timesheet not submitted", description "Check your connection and try again." |
 | Hint | "To submit, {list}." where list items are "set up your signature", "confirm Thu 08/10/2026" (one per unticked warning day), "tick the declaration", joined with ", " and a final " and ". Examples: "To submit, confirm Thu 08/10/2026 and tick the declaration."; "To submit, set up your signature, confirm Thu 08/10/2026 and tick the declaration." |
 | Secondary action | "Back to timesheet" |
 
@@ -74,12 +77,15 @@ Hours format: `8h 30m (8.50)`. Times: `7:30 AM`. Dates: `05/10/2026`.
 | Tick "I confirm these hours are correct" | Removes "tick the declaration" from the hint | FR-14 |
 | All items done (signature present, every warning day ticked, declaration ticked) | Submit timesheet enabled and the hint disappears | FR-14 |
 | Press "Submit timesheet" | Returns to My timesheet, now Submitted and read-only, with the toast "Timesheet submitted" / "Your manager will review it." | FR-14 |
+| Press "Submit timesheet" and it fails | Stays on the review with the inline message above the button and the toast "Timesheet not submitted"; ticks are kept; nothing is submitted. The submit review keeps its approved disabled button and hint for what is still missing; it does not use the check-on-press pattern | FR-14, R8-4 |
+| Errors (app-wide rule, R8-4) | Form errors on button press: the field turns red with a message under it, focus moves to the first bad field, and a toast says what didn't happen. Failed actions: an inline message by the button plus a toast, never a toast alone. Live typing errors: red field and message, no toast. Keycloak pages: red field plus the alert box, no toasts | R8-4 |
 | Press "Back to timesheet", close (X) or dismiss the dialog | Returns to My timesheet as an editable draft; ticks are not kept | FR-14 |
 | Switch "Type it" / "Draw it" | Shows that set-up mode | FR-20 |
-| Edit the name field | All three style previews update; the button is disabled when the name is blank | FR-20 |
+| Edit the name field | All three style previews update; the error message goes as soon as the field is edited | FR-20 |
+| "Use this signature" with a blank name, or nothing drawn | Nothing is saved; the field shows its message and has `aria-invalid`, and focus moves to it. The button stays enabled and checks on press. The component also emits `invalid`; this screen does not use it, so there is no toast here (see Open questions) | FR-20, R8-4 |
 | Pick a style | Selected option gets a dark border and a paper fill | FR-20 |
-| Draw on the canvas (finger or mouse) | Enables "Clear drawing" and "Use this signature" | FR-20 |
-| "Clear drawing" | Wipes the canvas; both buttons disabled again | FR-20 |
+| Draw on the canvas (finger or mouse) | Enables "Clear drawing" and removes any "Draw your signature in the box." message | FR-20 |
+| "Clear drawing" | Wipes the canvas; "Clear drawing" is disabled again | FR-20 |
 | "Use this signature" | Replaces the set-up with "Your signature" showing the result; "set up your signature" leaves the hint | FR-20 |
 
 ## Components
@@ -94,6 +100,7 @@ Hours format: `8h 30m (8.50)`. Times: `7:30 AM`. Dates: `05/10/2026`.
 | Drawn signature | Image, max 320px wide, 80px tall, rule beneath | |
 | Signature set-up | `SignatureSetup` part | `UFieldGroup` toggle, `UInput`, radio list of three styles (24px radios), canvas 160px tall |
 | Submit timesheet | `UButton` size xl, 44px | Full width on phone |
+| Submit failed message | `section` with `role="alert"`, `danger` tinted border and background, circle-alert icon | Above *Submit timesheet*, in the same column |
 | Back to timesheet | `UButton` ghost, neutral | |
 
 ## Data
@@ -117,7 +124,7 @@ All API field names are proposed; the OpenAPI spec doesn't exist yet.
 - **Several warning days:** each has its own tick; the hint lists each as "confirm {weekday} {date}".
 - **Everything missing:** hint reads "To submit, set up your signature, confirm … and tick the declaration."
 - **No hours in a week:** "No hours this week" (source only).
-- **Long shift:** a day over 12 hours also shows the warning (see the no-warnings screenshot).
+- **Long shift:** a day over 12 hours also shows the warning (for example 7:30 AM to 8:30 PM, 13h 00m).
 - **Large totals:** week and fortnight totals such as `76h 30m (76.50)` use the same formatter as My timesheet. The review has no worst-case screenshot.
 
 ## Accessibility
@@ -126,6 +133,7 @@ All API field names are proposed; the OpenAPI spec doesn't exist yet.
 - Day and totals headings are `h3`s, so the modal title is the top-level heading; the signature section also uses an `h3`.
 - Each warning-day tick has its own full-sentence label, so it can't be mistaken for another day's.
 - The hint says what is left but has no live-region markup in the mock-up source.
+- Errors (R8-4): the submit-failed message is `role="alert"`, so it is announced; the error toast is announced too. In signature set-up an invalid field has `aria-invalid="true"` and its message attached, and focus moves to it on a press. Each uses an icon and words, not colour alone.
 - Style radios have accessible names "Style 1" to "Style 3"; the drawing canvas is labelled "Signature drawing area". Drawing needs a pointer; the typed alternative is the keyboard route.
 - Quality floor: 24px checkboxes and radios, 44px buttons.
 - Focus on open, focus return on close and trapping are Nuxt UI modal defaults and aren't shown in the screenshots.
@@ -141,12 +149,12 @@ None on this screen beyond the modal's built-in open and close. The status settl
 
 ## Open questions
 
-1. **"No warnings" screenshot still has a warning.** The mock-up sets Thu's finish to `1230` (8:30 PM), giving 13h 00m, which is over 12 hours, so the day is still tinted with "This shift is 13h 00m. Is AM/PM correct?" and its tick (fortnight total 37h 45m (37.75)). The state's intent ("No warning days, so only the declaration") isn't what the approved image shows. Which should the build follow?
-2. **Warning for long shifts.** The text "Is AM/PM correct?" is shown for a 13h 00m shift; FR-27 only gives the 1-hour example.
-3. **What happens to ticks when going back.** The mock-up returns to a draft and the ticks reset on re-opening; confirm this is intended.
-4. **Drawn signature size.** The mock-up stores a data URL; the real format and size are undecided (FE design says the real app renders an image of fixed width).
-5. **Submit failure and loading.** No design exists for a failed submit (for example the timesheet changed on another device or was rejected by the server), a slow submit, or a double-press.
-6. **Empty week.** "No hours this week" exists in the source but isn't screenshotted; Submit can be reached with all hours in one week.
-7. **Close button and Escape.** The mock-up treats closing the dialog like "Back to timesheet"; there's no confirmation when ticks are lost.
-8. **Real route.** DESIGN.md says the review is a full-screen step in the real app that has its own URL only in the mock-up, but this spec's route is `/timesheet/review`; confirm whether the real app uses a route or in-page state.
-9. **Hint announcement.** Should the hint be a live region so screen-reader users hear what's left as they tick?
+1. **Warning for long shifts.** The text "Is AM/PM correct?" is shown for a 13h 00m shift; FR-27 only gives the 1-hour example.
+2. **What happens to ticks when going back.** The mock-up returns to a draft and the ticks reset on re-opening; confirm this is intended.
+3. **Drawn signature size.** The mock-up stores a data URL; the real format and size are undecided (FE design says the real app renders an image of fixed width).
+4. **Other submit problems.** A failed submit is designed (R8-4). Not designed: the timesheet changed on another device or was rejected by the server, a slow submit, and a double-press.
+5. **Empty week.** "No hours this week" exists in the source but isn't screenshotted; Submit can be reached with all hours in one week.
+6. **Close button and Escape.** The mock-up treats closing the dialog like "Back to timesheet"; there's no confirmation when ticks are lost.
+7. **Real route.** DESIGN.md says the review is a full-screen step in the real app that has its own URL only in the mock-up, but this spec's route is `/timesheet/review`; confirm whether the real app uses a route or in-page state.
+8. **Hint announcement.** Should the hint be a live region so screen-reader users hear what's left as they tick?
+9. ~~Signature errors and the toast.~~ Resolved: the submit review and the first-approval set-up also show the "Signature not saved" toast when `SignatureSetup` emits `invalid`, matching the app-wide rule.

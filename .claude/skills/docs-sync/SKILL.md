@@ -33,7 +33,7 @@ Never edit `docs/notion/` by hand. To change a doc, change it in Notion, then ru
      - FE decisions and BE decisions
      - roadmap items by milestone
      - open questions and TBD sections by doc
-   - Columns: **ID** (or a short name if there's no ID), **summary** in at most about 20 words using the doc's own terms, and **where** (`<file> §<section>`).
+   - Columns: **ID** (or a short name if there's no ID), **summary** in at most about 20 words using the doc's own terms, and **where** (`<file> section <section>`).
    - Nothing interpreted or added; if something is ambiguous, quote it.
    - A final "Conflicts" table for points where two docs disagree, or one doc contradicts itself. Quote both sides with their locations. Never resolve them in the index; they go to the user.
 6. **Report** which pages changed, and the `git diff --stat docs/`. If the index gained or lost requirements or decisions, name them. Plans in progress may need to know.

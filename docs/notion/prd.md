@@ -1,9 +1,9 @@
 <!-- Read-only copy of Product Requirements (PRD): https://app.notion.com/p/3f5771bd4d438156a93ec42b3548821d
      Notion is the master; comment and edit there, then run docs-sync.
-     Notion last edited: 2026-10-11T01:40:34.115Z · Synced: 12/10/2026 -->
+     Notion last edited: 2026-10-17T14:11:57.318Z · Synced: 18/10/2026 -->
 <content>
 <callout icon="🎯" color="gray_bg">
-	**Status:** Draft · **Last updated:** <mention-date start="2026-10-11"/> · **Type:** Product requirements — *what* we're building and *why*. How it's built lives in the <mention-page url="https://app.notion.com/p/3f4771bd4d4380e28d76d2038edbfac4"/>.
+	**Status:** Draft · **Last updated:** <mention-date start="2026-10-18"/> · **Type:** Product requirements — *what* we're building and *why*. How it's built lives in the <mention-page url="https://app.notion.com/p/3f4771bd4d4380e28d76d2038edbfac4"/>.
 </callout>
 <table_of_contents/>
 ---
@@ -49,7 +49,7 @@ Each person has their own login. The name on a timesheet comes from the login an
 		- Profile page with a stored signature for everyone
 		- Approve (with signature) or reject (with reason)
 		- Self-approval, marked as such
-		- Admin page: pay schedule and employees
+		- Admin page: pay schedule, employees, business name and logo
 		- One PDF per fortnight of approved timesheets, for the accountant
 		- Log of workflow and admin actions
 		- Responsive web app for desktop and phone
@@ -60,6 +60,7 @@ Each person has their own login. The name on a timesheet comes from the login an
 		- Weekend and overnight shifts → M2
 		- More than one manager, reporting lines and approver overrides → M2
 		- Notifications → M2
+		- Two-factor sign-in → M2
 		- Excel export → M2; CSV → Later
 		- Audit history screen and reports → M2
 		- Cloud hosting and multiple businesses → M3
@@ -80,7 +81,7 @@ Each person has their own login. The name on a timesheet comes from the login an
 <tr>
 <td>**Sign in**</td>
 <td>Everyone</td>
-<td>Personal login; password change at first sign-in; password reset by email</td>
+<td>Personal login, under the business's name and logo; password change at first sign-in; password reset by email</td>
 </tr>
 <tr>
 <td>**My timesheet**</td>
@@ -95,7 +96,7 @@ Each person has their own login. The name on a timesheet comes from the login an
 <tr>
 <td>**Admin**</td>
 <td>Managers</td>
-<td>Pay schedule, employees, PDF download</td>
+<td>Pay schedule, employees, PDF download, business name and logo</td>
 </tr>
 <tr>
 <td>**Profile**</td>
@@ -119,7 +120,7 @@ Each person has their own login. The name on a timesheet comes from the login an
 </tr>
 <tr>
 <td>FR-01</td>
-<td>Each person signs in with their own account. A manager creates accounts with a temporary password, which must be changed at first sign-in. Forgotten passwords are reset by email (Keycloak's own emails only).</td>
+<td>Each person signs in with their own account. A manager creates accounts with a temporary password, which must be changed at first sign-in. Forgotten passwords are reset by email (Keycloak's own emails only). In M1 a password must be at least 8 characters and include both letters and numbers. There's no two-factor sign-in in M1; it arrives in M2.</td>
 </tr>
 <tr>
 <td>FR-02</td>
@@ -257,11 +258,15 @@ Each person has their own login. The name on a timesheet comes from the login an
 </tr>
 <tr>
 <td>FR-24</td>
-<td>Managers have an admin page, separate from Approvals, to set the pay schedule (FR-04) and manage employees: add, deactivate and reset password.</td>
+<td>Managers have an admin page, separate from Approvals, to set the pay schedule (FR-04), set the business name and logo (FR-28) and manage employees: add, deactivate and reset password.</td>
 </tr>
 <tr>
 <td>FR-25</td>
 <td>Deactivated people can't sign in. Their timesheets are kept.</td>
+</tr>
+<tr>
+<td>FR-28</td>
+<td>A manager sets the business's name and, optionally, a logo (PNG or JPG, up to 1 MB) on the admin page. The sign-in pages show them, so staff know they're in the right place. Until a name is set, the sign-in pages just say "Timesheets".</td>
 </tr>
 </table>
 ### Log
@@ -272,7 +277,7 @@ Each person has their own login. The name on a timesheet comes from the login an
 </tr>
 <tr>
 <td>FR-26</td>
-<td>These actions are logged with who, when and what: submit (with the submitted hours and the employee's confirmation), reject (with the reason), approve, deletion of a cleared rejected timesheet (FR-13), PDF download, signature change, pay schedule set, and every account change. Draft autosaves and Clear aren't logged. Account changes made directly in Keycloak (at install, before the admin page exists, or in an emergency) are recorded by Keycloak's admin events, kept indefinitely. There is no screen for either log in M1.</td>
+<td>These actions are logged with who, when and what: submit (with the submitted hours and the employee's confirmation), reject (with the reason), approve, deletion of a cleared rejected timesheet (FR-13), PDF download, signature change, pay schedule set, business name or logo change, and every account change. Draft autosaves and Clear aren't logged. Account changes made directly in Keycloak (at install, before the admin page exists, or in an emergency) are recorded by Keycloak's admin events, kept indefinitely. There is no screen for either log in M1.</td>
 </tr>
 </table>
 ### Timesheet lifecycle
@@ -319,7 +324,7 @@ Product promises to the business and its staff. Qualities that shape the archite
 </table>
 ---
 ## 8. Success measures *(proposed)*
-- The M1 "done when" in §2 is met.
+- The M1 "done when" in section 2 is met.
 - After go-live: days from the end of a fortnight to the PDF download, and rejected timesheets per fortnight.
 ---
 ## 9. Roadmap
@@ -332,12 +337,12 @@ Product promises to the business and its staff. Qualities that shape the archite
 <tr>
 <td>**M1 — MVP**</td>
 <td>One self-hosted business</td>
-<td>Everything in §4</td>
+<td>Everything in section 4</td>
 </tr>
 <tr>
 <td>**M2**</td>
 <td>Usability & control</td>
-<td>Recall; amendments to approved timesheets; weekend and overnight shifts; multiple managers, reporting lines and approver overrides; email notifications and reminders; Excel export; audit history screen; basic reports; more soft warnings (e.g. unusually long weeks); review of leavers' drafts; accessibility (WCAG 2.2 AA)</td>
+<td>Recall; amendments to approved timesheets; weekend and overnight shifts; multiple managers, reporting lines and approver overrides; email notifications and reminders; Excel export; audit history screen; basic reports; more soft warnings (e.g. unusually long weeks); review of leavers' drafts; accessibility (WCAG 2.2 AA); two-factor sign-in</td>
 </tr>
 <tr>
 <td>**M3**</td>
@@ -498,6 +503,21 @@ Product promises to the business and its staff. Qualities that shape the archite
 <td>A never-submitted draft and a cleared rejected timesheet both show the date they'll be deleted</td>
 <td>Nobody's hours disappear without warning</td>
 </tr>
+<tr>
+<td><mention-date start="2026-10-18"/></td>
+<td>The manager sets the business name and an optional logo on the admin page; the sign-in pages show them (FR-28)</td>
+<td>Owner's request during the mock-up review. The sign-in pages match the app's look, and the business's own name and logo tell staff they're in the right place</td>
+</tr>
+<tr>
+<td><mention-date start="2026-10-18"/></td>
+<td>M1 password rule: at least 8 characters, with letters and numbers (FR-01)</td>
+<td>A simple rule staff can follow on a phone; it can be tightened later</td>
+</tr>
+<tr>
+<td><mention-date start="2026-10-18"/></td>
+<td>No two-factor sign-in in M1; it moves to M2 (FR-01)</td>
+<td>Owner's decision during the mock-up review: keeps sign-in simple while the app replaces paper. Until then the manager account relies on its password and Keycloak's protection against password guessing</td>
+</tr>
 </table>
 ---
 ## 11. Open questions
@@ -519,7 +539,7 @@ None. Q1–Q11 are resolved; their outcomes are in the FRs and the decision log.
 </tr>
 <tr>
 <td>Data loss on a self-hosted server</td>
-<td>Documented, tested backup and restore (§7)</td>
+<td>Documented, tested backup and restore (section 7)</td>
 </tr>
 <tr>
 <td>The only manager is away, so nobody can approve and pay is late</td>
@@ -560,6 +580,14 @@ None. Q1–Q11 are resolved; their outcomes are in the FRs and the decision log.
 <tr>
 <td><mention-date start="2026-10-11"/></td>
 <td>Consistency fixes: FR-26 now lists the logged deletion of a cleared rejected timesheet; the decision-log and risk rows on rejected timesheets mention FR-13's exception for cleared ones. FR-13: the timesheet shows the date it will be deleted, as drafts already do.</td>
+</tr>
+<tr>
+<td><mention-date start="2026-10-18"/></td>
+<td>Added FR-28: business name and optional logo, set on the admin page and shown on the sign-in pages. FR-26 now logs changes to them; the screens table and M1 scope mention them.</td>
+</tr>
+<tr>
+<td><mention-date start="2026-10-18"/></td>
+<td>FR-01: the M1 password rule, and no two-factor sign-in in M1, which is added to the M2 roadmap and to Not in M1. FR-24 mentions the business name and logo. Section references are now written as words.</td>
 </tr>
 </table>
 </content>

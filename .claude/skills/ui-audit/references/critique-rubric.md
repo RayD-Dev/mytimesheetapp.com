@@ -33,7 +33,7 @@ Use this on the rendered screen, not the code. Score each area pass, weak or fai
 - Does anything rely on hover?
 
 ## 7. Copy
-- Is it the users' language, with consistent names for actions and statuses (DESIGN.md §6)?
+- Is it the users' language, with consistent names for actions and statuses (DESIGN.md section 6)?
 - Do errors explain what to do?
 - Is there any marketing voice, apology, exclamation mark or emoji?
 

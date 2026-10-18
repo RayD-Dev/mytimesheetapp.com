@@ -10,6 +10,7 @@ export const states = {
   full: 'Every day filled, 76h 30m',
   'no-schedule': 'Pay schedule not set up yet (FR-06)',
   'not-saved': 'R7-6: autosave failing (no signal), retrying',
+  'day-error': 'Days with problems (FR-09)',
   conflict: 'R7-6: changed on another device, reloaded',
   'session-ended': 'R7-2: signed out while the page was open',
   loading: 'R7-7: loading, slower than 300 ms',
@@ -32,6 +33,7 @@ const route = useRoute()
 const toast = useToast()
 const justSubmitted = computed(() => 'toast' in route.query && state.value === 'submitted')
 onMounted(() => {
+  if (state.value === 'not-saved') toast.add({ title: 'Changes not saved', description: "We'll keep trying. Leave this page open.", icon: 'i-lucide-circle-alert', color: 'error' })
   if (justSubmitted.value) toast.add({ title: 'Timesheet submitted', description: 'Your manager will review it.', icon: 'i-lucide-circle-check', color: 'success' })
 })
 const conflictNotice = ref(true)
@@ -41,10 +43,13 @@ const opened = ref(new Set<number>()) // phone: empty days the user chose to fil
 const which = ref<'previous' | 'current'>('current')
 const saving = ref(false)
 const confirmClear = ref(false)
-watch(state, () => { days.value = fortnight(String(state.value)); opened.value = new Set(); conflictNotice.value = true; sessionEnded.value = state.value === 'session-ended' }, { immediate: true })
+watch(state, () => {
+  days.value = fortnight(state.value === 'day-error' ? 'draft' : String(state.value))
+  if (state.value === 'day-error') days.value = days.value.map((d, i) => i === 2 ? { ...d, start: 540 } : i === 6 ? { ...d, start: 1020, finish: 540 } : d) // Wed: no finish. Tue: finish before start
+  opened.value = new Set(); conflictNotice.value = true; sessionEnded.value = state.value === 'session-ended' }, { immediate: true })
 
 const s = computed(() => String(state.value))
-const editable = computed(() => ['draft', 'empty', 'rejected', 'full', 'not-saved', 'conflict', 'session-ended'].includes(s.value))
+const editable = computed(() => ['draft', 'empty', 'rejected', 'full', 'not-saved', 'day-error', 'conflict', 'session-ended'].includes(s.value))
 const notSaved = computed(() => s.value === 'not-saved')
 const weeks = computed(() => [days.value.slice(0, 5), days.value.slice(5)])
 const has = (d: Day) => d.start != null || d.finish != null || d.brk != null
@@ -58,11 +63,15 @@ const problem = (d: Day) =>
   : d.start != null && d.finish != null && d.finish <= d.start ? 'Finish time must be after start time'
   : d.start != null && d.finish != null && !valid(d) ? 'Rest break must be shorter than the shift'
   : null
+const bad = (d: Day, f: 'start' | 'finish' | 'brk') => {
+  const m = problem(d)
+  return m === 'Add a start time' ? f === 'start' : m === 'Add a finish time' || m === 'Finish time must be after start time' ? f === 'finish' : m ? f === 'brk' : false
+}
 const shiftText = (d: Day) => `${time(d.start!)} to ${time(d.finish!)}, ${d.brk ?? 0} min break`
 const periodLabel = computed(() => (which.value === 'current' ? period.label : '21/09/2026 to 02/10/2026'))
 const draft = { label: 'Draft', text: 'text-ink', icon: 'i-lucide-pencil-line' } as const
 const status = computed(() => ({
-  draft, 'not-saved': draft, conflict: draft, 'session-ended': draft,
+  draft, 'not-saved': draft, 'day-error': draft, conflict: draft, 'session-ended': draft,
   full: { label: 'Draft', text: 'text-ink', icon: 'i-lucide-pencil-line' },
   rejected: { label: 'Rejected', text: 'text-danger', icon: 'i-lucide-undo-2' },
   submitted: { label: 'Submitted', text: 'text-info', icon: 'i-lucide-clock' },
@@ -192,15 +201,15 @@ function clearAll() {
                       <td colspan="4" class="py-2 text-sm text-ink-muted">Hours can't be added for future days</td>
                     </template>
                     <template v-else-if="editable">
-                      <td class="py-2"><TimeField :model-value="d.start" :label="`${d.weekday} ${d.date} start time`" @update:model-value="(m) => set(d, 'start', m)" /></td>
+                      <td class="py-2"><TimeField :model-value="d.start" :label="`${d.weekday} ${d.date} start time`" :invalid="bad(d, 'start')" @update:model-value="(m) => set(d, 'start', m)" /></td>
                       <td class="py-2">
                         <UInput
                           :model-value="d.brk ?? ''" type="number" inputmode="numeric" min="0" size="xl" class="w-20"
-                          :aria-label="`${d.weekday} ${d.date} rest break in minutes`" :ui="{ base: 'h-11 text-right font-mono tabular-nums md:h-9' }"
+                          :aria-label="`${d.weekday} ${d.date} rest break in minutes`" :color="bad(d, 'brk') ? 'error' : undefined" :highlight="bad(d, 'brk')" :aria-invalid="bad(d, 'brk') ? 'true' : undefined" :ui="{ base: 'h-11 text-right font-mono tabular-nums md:h-9' }"
                           @update:model-value="(x) => set(d, 'brk', x === '' ? undefined : Number(x))"
                         />
                       </td>
-                      <td class="py-2"><TimeField :model-value="d.finish" default-pm :label="`${d.weekday} ${d.date} finish time`" @update:model-value="(m) => set(d, 'finish', m)" /></td>
+                      <td class="py-2"><TimeField :model-value="d.finish" default-pm :label="`${d.weekday} ${d.date} finish time`" :invalid="bad(d, 'finish')" @update:model-value="(m) => set(d, 'finish', m)" /></td>
                     </template>
                     <template v-else>
                       <td class="py-2 font-mono tabular-nums">{{ d.start != null ? time(d.start) : '' }}</td>
@@ -241,17 +250,17 @@ function clearAll() {
                   <UButton v-if="!has(d) && !opened.has(w * 5 + j)" variant="link" class="-ml-2.5 mt-1 h-11" @click="opened.add(w * 5 + j)">Add hours</UButton>
                   <dl v-else class="mt-2 grid grid-cols-[9rem_1fr] items-center gap-y-2">
                     <dt>Start time</dt>
-                    <dd><TimeField :model-value="d.start" :label="`${d.weekday} ${d.date} start time`" @update:model-value="(m) => set(d, 'start', m)" /></dd>
+                    <dd><TimeField :model-value="d.start" :label="`${d.weekday} ${d.date} start time`" :invalid="bad(d, 'start')" @update:model-value="(m) => set(d, 'start', m)" /></dd>
                     <dt>Rest break (mins)</dt>
                     <dd>
                       <UInput
                         :model-value="d.brk ?? ''" type="number" inputmode="numeric" min="0" size="xl" class="w-20"
-                        :aria-label="`${d.weekday} ${d.date} rest break in minutes`" :ui="{ base: 'h-11 text-right font-mono tabular-nums md:h-9' }"
+                        :aria-label="`${d.weekday} ${d.date} rest break in minutes`" :color="bad(d, 'brk') ? 'error' : undefined" :highlight="bad(d, 'brk')" :aria-invalid="bad(d, 'brk') ? 'true' : undefined" :ui="{ base: 'h-11 text-right font-mono tabular-nums md:h-9' }"
                         @update:model-value="(x) => set(d, 'brk', x === '' ? undefined : Number(x))"
                       />
                     </dd>
                     <dt>Finish time</dt>
-                    <dd><TimeField :model-value="d.finish" default-pm :label="`${d.weekday} ${d.date} finish time`" @update:model-value="(m) => set(d, 'finish', m)" /></dd>
+                    <dd><TimeField :model-value="d.finish" default-pm :label="`${d.weekday} ${d.date} finish time`" :invalid="bad(d, 'finish')" @update:model-value="(m) => set(d, 'finish', m)" /></dd>
                   </dl>
                 </template>
                 <p v-else-if="valid(d)" class="mt-1 font-mono text-sm tabular-nums">{{ shiftText(d) }}</p>

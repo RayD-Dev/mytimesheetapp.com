@@ -95,7 +95,7 @@ Keep all tokens in `src/assets/css/main.css` (or a `tokens.css` it imports). It'
 }
 ```
 
-The values above are the Ledger tokens recorded in DESIGN.md §4. DESIGN.md is the source of truth if they ever differ.
+The values above are the Ledger tokens recorded in DESIGN.md section 4. DESIGN.md is the source of truth if they ever differ.
 
 Nuxt UI's variables (v4): text `--ui-text-dimmed | -muted | -toned | (base) | -highlighted | -inverted`; backgrounds `--ui-bg | -muted | -elevated | -accented | -inverted`; borders `--ui-border | -muted | -accented | -inverted`; semantic `--ui-primary | secondary | success | info | warning | error`; layout `--ui-radius`, `--ui-container`, `--ui-header-height`. Light-mode overrides go in `:root` and dark-mode overrides in `.dark`.
 

@@ -83,11 +83,16 @@ Implemented in `mockup/src/assets/main.css` (`@theme` and `:root`). The file mov
 - **Warnings:** a row-level caution tint plus icon and text, e.g. "This shift is 1h 00m. Is AM/PM correct?"
 - **Destructive actions** (Clear, Reject) ask for confirmation in a dialog that names the consequence.
 - **Empty and blocked states** use the PRD's exact wording, e.g. FR-06: "Your manager hasn't set up the pay schedule yet".
-- **Sign-in pages** (a Keycloak login theme): the business name above a ruled sheet with the double rule under it, "Timesheets" beneath the name (alone until the name is set). One sheet per step: Sign in, Choose a new password, Reset your password, Check your email, This link has expired. Errors sit in a tinted box above the fields. M1 password rule: at least 8 characters, with letters and numbers.
+- **Sign-in pages** (a Keycloak login theme): the business name above a ruled sheet with the double rule under it, "Timesheets" beneath the name (alone until the name is set). An optional logo sits beside the name, at most 48px high and 240px wide; the name wraps underneath when a wide logo leaves it less than 160px. One sheet per step: Sign in, Choose a new password, Reset your password, Check your email, This link has expired. Errors sit in a tinted box above the fields. M1 password rule: at least 8 characters, with letters and numbers.
 - **Loading and failed to load** are the same on every page: the page title, then ruled placeholder lines (shown only after about 300 ms); or "Couldn't load {what}. Check your internet connection, then try again." with *Try again*.
 - **Not saved:** the save status turns red ("Not saved", with a cloud-off icon), and a box above the weeks explains that changes are kept on screen and retried, with *Try now*.
 - **Changed on another device:** a dismissible notice at the top of the timesheet, never a toast, because the person needs to check their last change.
 - **Session ended:** a dialog that can't be dismissed, "You've been signed out… Your saved hours are safe", with *Sign in again*.
+- **Errors** (round R8; never a toast alone):
+  - Form errors when a button is pressed: the field turns red (`aria-invalid`) with a message under it, focus moves to the first bad field, and a toast says what didn't happen. Buttons stay enabled and check on press; the submit review keeps its disabled button and hint.
+  - Failed actions (submit, approve, PDF, save): a red inline message by the button plus a toast.
+  - While typing (FR-09 on a day): red field and message, no toast.
+  - Keycloak's pages have no toasts: red field plus the tinted box above the form.
 - **Not found and no access** keep the top bar with nothing underlined, and offer *Go to My timesheet*.
 
 ## 6. Vocabulary
@@ -123,7 +128,7 @@ Implemented in `mockup/src/assets/main.css` (`@theme` and `:root`). The file mov
 | 2026-10-11 | Profile approved in round R3: name from the sign-in account, signature with Replace, Change password via the sign-in page | Owner reviewed every state. |
 | 2026-10-11 | Typed signatures: the user types their name and picks one of three styles (La Belle Aurore, the default; Herr Von Muellerhoff; Mrs Saint Delafield), all SIL OFL and self-hosted. The style is saved with the signature; drawing remains the alternative | The owner's choice: a signature should feel like the person's own. Resolves the FE doc's open question on the typed-signature font. |
 | 2026-10-12 | Approvals approved in round R4 (list grouped by status; read-only sheet with Signatures; confirm before approving; "Next to approve"; Self-approved notice; manager phone Menu). Approve is green; fortnights are labelled "(current)" and "(previous)", and My timesheet's switch says "Current fortnight" | The owner's review. One name per thing: "current" everywhere, not "this". |
-| 2026-10-12 | The mock-up lives in `mockup/`, and `mockup/src/pages/` mirrors the real app's routes (FE design §6): `/timesheet`, `/timesheet/review`, `/approvals`, `/approvals/:fortnight/:timesheet`, `/admin`, `/profile` | The owner's suggestion. The folders read like a sitemap, and the real app's routes match the mock-up's one-to-one, so screenshots compare directly. The review is a full-screen step in the real app; it has its own URL in the mock-up so it can be reviewed. |
+| 2026-10-12 | The mock-up lives in `mockup/`, and `mockup/src/pages/` mirrors the real app's routes (FE design section 6): `/timesheet`, `/timesheet/review`, `/approvals`, `/approvals/:fortnight/:timesheet`, `/admin`, `/profile` | The owner's suggestion. The folders read like a sitemap, and the real app's routes match the mock-up's one-to-one, so screenshots compare directly. The review is a full-screen step in the real app; it has its own URL in the mock-up so it can be reviewed. |
 | 2026-10-12 | Admin approved in round R5: PDF first, then Employees, then Pay schedule (moved to the top on first run); temporary passwords shown once with Copy; a Mondays-only calendar | The order follows how often each task happens. |
 | 2026-10-12 | Status groups are told apart by tinted heading bands with icon, colour and count (round R6, variant b) | The owner found the three Approvals groups looked the same. Icons rather than emoji, so they render the same everywhere and colour is never the only signal. |
 | 2026-10-12 | Mock-up frozen after round R6. The approved screenshots in `mockup/approved/` (every page and state, phone and desktop) are the visual reference for the engineered front end | So the real build can be checked against what the owner approved, image by image. |
@@ -133,6 +138,8 @@ Implemented in `mockup/src/assets/main.css` (`@theme` and `:root`). The file mov
 | 2026-10-18 | M1 password rule: at least 8 characters, with letters and numbers | The owner's choice for now; it's a Keycloak setting and can change later. |
 | 2026-10-18 | No two-factor sign-in in M1 | The owner's call. The system design's SD-03 needs updating to match. |
 | 2026-10-18 | A version conflict shows as an inline notice, not a toast | The owner's choice: a toast is easy to miss. |
+| 2026-10-18 | Round R8 approved: optional business logo, shown beside the business name on the sign-in pages; basic error messages | The owner: "Lets have the business name configured by the admin, with an optional logo"; "Beside name thanks". |
+| 2026-10-18 | Errors: red field with a message plus a toast; failed actions get an inline message plus a toast; never a toast alone | The owner: "I don't like toast only notification, it would be good to have field highlight + toast". |
 
 ## Open questions
 

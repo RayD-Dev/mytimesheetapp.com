@@ -69,4 +69,10 @@ export const employees: { id: string; name: string; email: string; active: boole
 ]
 // R7-8: set by the manager on Admin, shown on the sign-in page. Unset on first run, when "Timesheets" shows alone.
 export const business = { name: 'Harbour Street Bakery', long: 'The Original Harbour Street Bakery & Wholesale Catering Company' }
+// R8: optional logo, uploaded on Admin. Mock images only; the real app stores the uploaded PNG or JPG.
+const svg = (w: number, h: number, body: string) => `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${body}</svg>`)}`
+export const logos = {
+  badge: svg(120, 120, '<circle cx="60" cy="60" r="56" fill="#7A3E12"/><circle cx="60" cy="60" r="46" fill="none" stroke="#F6E7C8" stroke-width="3"/><path d="M60 28c-8 10-8 22 0 32 8-10 8-22 0-32zM44 42c-2 12 4 22 16 26-1-12-7-22-16-26zM76 42c2 12-4 22-16 26 1-12 7-22 16-26z" fill="#F6E7C8"/><text x="60" y="94" text-anchor="middle" font-family="Georgia,serif" font-size="15" fill="#F6E7C8">HSB</text>'),
+  wide: svg(760, 80, '<rect width="760" height="80" fill="#0E5A6E"/><text x="24" y="54" font-family="Georgia,serif" font-size="40" fill="#fff">THE ORIGINAL HARBOUR STREET</text>'),
+}
 export const tempPassword = 'maple-river-4271' // mock only: shown once, changed at first sign-in

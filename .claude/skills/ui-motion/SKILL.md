@@ -11,8 +11,8 @@ The rules here apply Emil Kowalski's interface animation practice to this app. H
 
 | Need | Read |
 |---|---|
-| Building any new motion | `../animate/SKILL.md` "The Build Sequence", then the matching recipe in `../animate/RECIPES.md`, adapted to the tokens in §2 and the Vue recipes in `references/recipes-vue.md` |
-| Reviewing motion | §6 below, with values from `../review-animations/STANDARDS.md` |
+| Building any new motion | `../animate/SKILL.md` "The Build Sequence", then the matching recipe in `../animate/RECIPES.md`, adapted to the tokens in section 2 and the Vue recipes in `references/recipes-vue.md` |
+| Reviewing motion | Section 6 below, with values from `../review-animations/STANDARDS.md` |
 | Something drops frames | `../animation-performance/SKILL.md`, symptom table first |
 | "What could animate here?" | `../find-animation-opportunities/SKILL.md`. Expect to reject most candidates: this is a precise, frequently used tool |
 | Auditing all the motion in the app | `../improve-animations/SKILL.md`, with plans written to `.claude/plans/animation/` |
@@ -84,7 +84,7 @@ Rules of thumb:
 ## 5. Implementation
 
 - Vue's `<Transition>` and `<TransitionGroup>` with CSS classes cover everything this app needs. Don't add GSAP or a motion library unless a requirement can't be met with CSS. It costs bundle size on phones and invites decoration.
-- Nuxt UI components (Modal, Drawer, Popover, Toast) have their own transitions. Align their duration and easing with the tokens through the component theme (see ui-craft `references/tokens.md` §4), rather than stacking a second animation on top.
+- Nuxt UI components (Modal, Drawer, Popover, Toast) have their own transitions. Align their duration and easing with the tokens through the component theme (see ui-craft `references/tokens.md` section 4), rather than stacking a second animation on top.
 - Recipes are in `references/recipes-vue.md`: the motion token CSS, the reduced-motion block, popover and dialog transitions, the phone sheet, the value-change highlight, the save status, expand and collapse, and press feedback.
 
 ## 6. Reviewing motion

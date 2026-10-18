@@ -11,7 +11,7 @@
 
 | ID | Requirement | Source |
 |---|---|---|
-| FR-14 | <short form> | PRD §6, "Filling in a timesheet" |
+| FR-14 | <short form> | PRD section 6, "Filling in a timesheet" |
 | C-1 | <something agreed in conversation> | Conversation 12/10/2026: "<the user's words>" |
 
 ## What the user sees

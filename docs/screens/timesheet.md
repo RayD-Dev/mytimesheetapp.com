@@ -2,7 +2,7 @@
 
 **Who:** Employees and managers (each sees their own timesheet)
 **Requirements:** FR-06, FR-07, FR-08, FR-09, FR-10, FR-11, FR-12, FR-13, FR-14, FR-17, FR-27
-**Approved:** round R1 on 11/10/2026, with R7 on 18/10/2026 for the not-saved, conflict, session-ended, loading and load-failed states
+**Approved:** round R1 on 11/10/2026, with R7 on 18/10/2026 for the not-saved, conflict, session-ended, loading and load-failed states, and R8 on 18/10/2026 for the day-error state and the not-saved toast
 **Screenshots:** `mockup/approved/timesheet-*` (the review's `timesheet-review--*` files are in `timesheet-review.md`)
 **Mock-up page:** `mockup/src/pages/timesheet/index.vue`
 
@@ -23,9 +23,9 @@ The mock-up's `?state=` values exist only in the mock-up. In the real app each s
 | No pay schedule | Manager hasn't set the pay schedule (FR-06) | Heading and title only, then the FR-06 message; no pay period, switch, weeks, totals or buttons | `timesheet-state-no-schedule` |
 | Just submitted | Returned from the review after Submit timesheet | Submitted state plus a "Timesheet submitted" toast; the status label settles in with a short animation | `timesheet--after-submit` |
 | Clear confirmation | Clear pressed | Dialog "Clear this timesheet?" (mock-up source only; not screenshotted) | none |
-| Day with a problem | A filled day fails FR-09 | Red inline message on the day (mock-up source only; not screenshotted) | none |
+| Day error (R8-4) | Mock `day-error`: filled days fail FR-09 (mock: Wed 07/10/2026 has a start time and no finish; Tue 13/10/2026 finishes before it starts) | Editable draft. On each bad day the red inline message ("Add a finish time", "Finish time must be after start time") and the field it is about turns red (`aria-invalid`); the day shows no hours. No toast, because the error appears as the person types | `timesheet-state-day-error` |
 | Saving | Right after any edit | Header shows "Saving…", then "Saved" (source only; "Saved" is in the draft screenshots) | none |
-| Not saved (R7-6) | Autosave is failing, e.g. no signal; the app keeps retrying (FE design §7.1). Mock: editable draft | Header status turns red: cloud-off icon and "Not saved" (replaces "Saving…" / "Saved"); a red-tinted box under the header: "Your latest changes aren't saved yet" with an explanation and *Try now*; fields stay editable | `timesheet-state-not-saved` |
+| Not saved (R7-6, R8-4) | Autosave is failing, e.g. no signal; the app keeps retrying (FE design section 7.1). Mock: editable draft | Header status turns red: cloud-off icon and "Not saved" (replaces "Saving…" / "Saved"); a red-tinted box under the header: "Your latest changes aren't saved yet" with an explanation and *Try now*; fields stay editable; a toast "Changes not saved" with "We'll keep trying. Leave this page open." when the failure first happens | `timesheet-state-not-saved` |
 | Changed on another device (R7-6) | The server reports a newer version than the one being edited; the app reloaded the latest (version conflict). Mock: `conflict` | Editable draft with a dismissible blue-tinted notice at the top: "This timesheet was changed on another device"; header shows "Saved" | `timesheet-state-conflict` |
 | Session ended (R7-2) | The session expired while the page was open. Mock: `session-ended` | The editable draft stays visible behind a modal "You've been signed out" that can't be dismissed (no X, no Escape, no click outside); one button, *Sign in again* | `timesheet--session-ended` |
 | Loading (R7-7) | Data takes longer than about 300 ms | Top bar, then the title "{name} Timesheet" and ruled placeholder lines (shared `LoadState` part); nothing shown if loading is faster | `timesheet-state-loading` |
@@ -106,6 +106,7 @@ The mock-up's `?state=` values exist only in the mock-up. In the real app each s
 | Loading | Title "{name} Timesheet"; screen-reader text "Loading your timesheet…" |
 | Load failed | Heading "Couldn't load your timesheet"; "Check your internet connection, then try again."; button "Try again" |
 | Toast after submit | Title "Timesheet submitted"; description "Your manager will review it." |
+| Toast, not saved (R8-4) | Title "Changes not saved"; description "We'll keep trying. Leave this page open." |
 | Field labels (accessible names) | "{Weekday} {date} start time", "{Weekday} {date} finish time", "{Weekday} {date} rest break in minutes" |
 | Empty time field | segments show `-- : --` and AM |
 
@@ -119,21 +120,22 @@ Hours format: `8h 30m (8.50)`. Times: `7:30 AM`. Dates: `05/10/2026`, weekday se
 | Press "Add hours" (phone) | Day expands to its three fields; stays expanded until the state changes | FR-08 |
 | Type in a time field | Segmented 12-hour field: hour, minute, AM/PM | FR-11 |
 | Day worked time is 1h or less, or over 12h | Row tinted with the FR-27 warning; saving and Submit stay enabled | FR-27 |
-| Day is incomplete or invalid | Red inline message; day shows no hours | FR-09 |
+| Day is incomplete or invalid | Red inline message under the day, and the field it is about turns red (start: "Add a start time"; finish: "Add a finish time" or "Finish time must be after start time"; rest break: "Rest break must be shorter than the shift"); day shows no hours; no toast | FR-09, R8-4 |
 | Press "Previous fortnight" / "Current fortnight" | Selected button turns solid and the Pay period changes (mock: label only; see Open questions) | FR-07 |
 | Press "Submit" (enabled once a day has valid hours) | Opens the review at `/timesheet/review` | FR-14 |
 | Press "Clear" (enabled once any day has data) | Opens the Clear dialog | FR-13 |
 | "Keep hours" | Closes the dialog, nothing changes | FR-13 |
 | "Clear timesheet" | Empties every day, closes the dialog, shows "Saving…" then "Saved" | FR-13 |
 | Return from the review after Submit timesheet | Read-only Submitted view with the toast | FR-14 |
-| Autosave fails | Header shows "Not saved" and the box appears; edits stay on screen and are retried automatically; fields stay editable (mock: the state is fixed and nothing retries) | FE design §7.1 |
-| Press "Try now" | Retries the save at once; the box is expected to go and the header to show "Saved" on success (mock: does nothing) | FE design §7.1 |
-| Server reports a newer version | Page reloads the latest timesheet and shows the conflict notice at the top | FE design §7.1 |
+| Autosave fails | Toast "Changes not saved" once; header shows "Not saved" and the box appears; edits stay on screen and are retried automatically; fields stay editable (mock: the state is fixed and nothing retries) | FE design section 7.1 |
+| Press "Try now" | Retries the save at once; the box is expected to go and the header to show "Saved" on success (mock: does nothing) | FE design section 7.1 |
+| Server reports a newer version | Page reloads the latest timesheet and shows the conflict notice at the top | FE design section 7.1 |
 | Press "Dismiss" on the conflict notice | Notice closes; it comes back only if the state changes (mock) | n/a |
 | Session ends | Modal opens over the page; *Sign in again* goes to the sign-in page (`sign-in.md`), and signing in brings the person back here (modal text: "carry on where you left off") | R7-2 |
 | Data slow to load | After about 300 ms the loading view replaces the sheet | R7-7 |
 | Load fails | Load-failed view; *Try again* repeats the request (mock: button does nothing) | R7-7 |
 | Press "Sign out" / "Profile" / "My timesheet" | Top-bar navigation | n/a |
+| Errors (app-wide rule, R8-4) | Form errors on button press: the field turns red with a message under it, focus moves to the first bad field, and a toast says what didn't happen. Failed actions: an inline message by the button plus a toast, never a toast alone. Live typing errors: red field and message, no toast. Keycloak pages: red field plus the alert box, no toasts | R8-4 |
 
 ## Components
 
@@ -150,6 +152,7 @@ Hours format: `8h 30m (8.50)`. Times: `7:30 AM`. Dates: `05/10/2026`, weekday se
 | Phone day blocks | Ordered list | Rule between days |
 | "Add hours" | `UButton` variant link | 44px tall |
 | Warning / problem | Icon (triangle-alert / circle-alert) + text | Warning uses `caution` and `caution-bg`; problem uses `danger` |
+| Field in error (R8-4) | `TimeField` (`invalid` prop: `error` colour, highlight, `aria-invalid`) and the rest-break `UInput` (same) | The field the problem is about turns red; the others on the day stay normal |
 | Fortnight total | Mono 32px, double bottom rule | Only the fortnight total is double-ruled |
 | Clear dialog | `UModal` | Buttons: outline "Keep hours", error "Clear timesheet" |
 | Toast | Nuxt UI toast | Success colour, circle-check icon |
@@ -198,17 +201,18 @@ All API field names are proposed; the OpenAPI spec doesn't exist yet.
 - Every time field and rest-break input has an accessible name that includes the weekday and date (see Copy).
 - The save status has `role="status"`, so changes are announced politely.
 - Status is a word plus an icon, never colour alone; warnings and problems are text plus icon.
+- Errors (R8-4): a field with a day problem has `aria-invalid="true"`, next to the written message under the day (red is never the only signal). The "Changes not saved" toast is announced in addition to the `role="alert"` box.
 - The not-saved box has `role="alert"`, so it is announced as soon as it appears; the header status stays `role="status"` and reads "Not saved". Neither relies on colour alone (icon and words).
 - The conflict notice has `role="status"` (polite); its dismiss button is icon-only with `aria-label` "Dismiss" and is 44px.
 - The session-ended modal can't be closed except by *Sign in again* (`dismissible` false, no X); focus is trapped in it and its title is its accessible name.
 - Loading view: `aria-busy="true"` on the sheet, `role="status"` with screen-reader-only text "Loading your timesheet…"; the placeholders are decorative. Load-failed view: `role="alert"`, so the failure is announced.
-- Quality floor (DESIGN.md §2): 44px targets and 16px inputs on phones, visible focus.
+- Quality floor (DESIGN.md section 2): 44px targets and 16px inputs on phones, visible focus.
 - Focus order follows reading order: top bar, switch, days top to bottom (start, break, finish), Clear, Submit on desktop (Clear before Submit in the markup); on phone Submit appears above Clear visually while Clear comes first in the markup. See Open questions.
 - Not visible in screenshots: the table has no `caption` or accessible name in the mock-up source.
 
 ## Motion
 
-The R7 states add no motion of their own (the loading placeholders use the Nuxt UI skeleton's default pulse). Only the status label settles in (scale from 1.04 and opacity from 0.4 to 1, 240 ms, strong ease-out) when arriving from the review after submitting; none with reduced motion. Saved and Saving… changes cross-fade per DESIGN.md §4 (not implemented in the mock-up source). Nothing else animates.
+The R7 states add no motion of their own (the loading placeholders use the Nuxt UI skeleton's default pulse). Only the status label settles in (scale from 1.04 and opacity from 0.4 to 1, 240 ms, strong ease-out) when arriving from the review after submitting; none with reduced motion. Saved and Saving… changes cross-fade per DESIGN.md section 4 (not implemented in the mock-up source). Nothing else animates.
 
 ## Changes since approval
 
@@ -217,13 +221,13 @@ The R7 states add no motion of their own (the loading placeholders use the Nuxt 
 
 ## Open questions
 
-1. **Previous fortnight.** The mock-up's switch changes only the Pay period label (to `21/09/2026 to 02/10/2026`); no previous-fortnight data or state was designed or screenshotted. FE design §6.1 also uses `/timesheet/:fortnightStart`, while the mock-up has one route.
-2. **Deletion date after Clear.** FE design §6.1 and FR-13 say the header shows the deletion date for a cleared rejected timesheet. The mock-up shows no such date after Clear, and the Clear dialog's 3-month sentence is marked *proposed* in the FE design.
+1. **Previous fortnight.** The mock-up's switch changes only the Pay period label (to `21/09/2026 to 02/10/2026`); no previous-fortnight data or state was designed or screenshotted. FE design section 6.1 also uses `/timesheet/:fortnightStart`, while the mock-up has one route.
+2. **Deletion date after Clear.** FE design section 6.1 and FR-13 say the header shows the deletion date for a cleared rejected timesheet. The mock-up shows no such date after Clear, and the Clear dialog's 3-month sentence is marked *proposed* in the FE design.
 3. **Not-saved details.** The mock-up fixes the state and *Try now* does nothing. Not specified: how often the app retries, whether *Try now* shows progress, and how recovery looks (does the box just disappear and the header return to "Saved"?). The box tells people to leave the page open; closing the tab loses the changes.
 4. **Save status when empty.** The mock-up hides "Saved" and the "Draft" label until at least one day has data, so a brand-new timesheet shows no status. After Clear, the status disappears too. Confirm this is intended.
 5. **Finish time default.** The source passes `default-pm` to the finish field, but `TimeField` doesn't declare it and the screenshots show finish fields defaulting to AM. Is a PM default wanted (not documented anywhere)?
 6. **Phone button order.** On phone, Submit is shown above Clear (reversed flex column) while Clear comes first in the markup; confirm the intended tab order.
 7. **Wording of the FR-27 warning for long shifts.** The same text, "Is AM/PM correct?", is shown for shifts over 12 hours (e.g. 13h 00m, see the review's no-warnings screenshot). FR-27 gives only the 1-hour example.
 8. **Mock data oddities.** Submitted and approved times (16/10/2026 and 19/10/2026) are after "today" (15/10/2026). Assumed to be mock data only.
-9. **Other failures.** Submit failing (network or server error on the review page) and a failed *Clear* have no design; R7 covers loading, a failed load and a failed autosave only.
+9. **Other failures.** A failed *Clear* has no design. Submit failing is designed on the review page (see `timesheet-review.md`).
 10. **Rest-break validation.** Input is `min="0"`; behaviour for non-integer or very large values isn't shown. Only "Rest break must be shorter than the shift" is designed.

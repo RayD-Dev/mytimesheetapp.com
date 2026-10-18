@@ -1,9 +1,9 @@
 <!-- Read-only copy of Detailed Design Doc — FE: https://app.notion.com/p/3f5771bd4d43819981e0f96e66fae263
      Notion is the master; comment and edit there, then run docs-sync.
-     Notion last edited: 2026-10-11T01:40:09.837Z · Synced: 12/10/2026 -->
+     Notion last edited: 2026-10-17T14:39:19.049Z · Synced: 18/10/2026 -->
 <content>
 <callout icon="🎨" color="gray_bg">
-	**Status:** Draft · **Last updated:** <mention-date start="2026-10-11"/> · **Type:** Detailed design for the web front end. Companion to <mention-page url="https://app.notion.com/p/3f4771bd4d4380e28d76d2038edbfac4"/> (architecture), the <mention-page url="https://app.notion.com/p/3f5771bd4d438156a93ec42b3548821d"/> (requirements) and <mention-page url="https://app.notion.com/p/3f5771bd4d43813e90c8e11492d92e2b"/>.
+	**Status:** Draft · **Last updated:** <mention-date start="2026-10-18"/> · **Type:** Detailed design for the web front end. Companion to <mention-page url="https://app.notion.com/p/3f4771bd4d4380e28d76d2038edbfac4"/> (architecture), the <mention-page url="https://app.notion.com/p/3f5771bd4d438156a93ec42b3548821d"/> (requirements) and <mention-page url="https://app.notion.com/p/3f5771bd4d43813e90c8e11492d92e2b"/>.
 </callout>
 <table_of_contents/>
 ---
@@ -28,7 +28,7 @@ The HL design chose a client-rendered **single-page app (SPA)**. Alternatives co
 <tr>
 <td>**SSR — server-side rendering** (Nuxt)</td>
 <td>A Node server renders HTML per request, then the browser takes over ("hydration")</td>
-<td>Faster first paint; SEO for public pages; the Nuxt server can double as a Backend-for-Frontend for login (see §3)</td>
+<td>Faster first paint; SEO for public pages; the Nuxt server can double as a Backend-for-Frontend for login (see section 3)</td>
 <td>Another runtime (Node) to run, scale, secure and patch; code runs on both server and client, so more complex (hydration bugs); higher infra cost</td>
 </tr>
 <tr>
@@ -120,7 +120,7 @@ A backend performs the login and keeps the refresh token, but hands the short-li
 </tr>
 <tr>
 <td>Component library</td>
-<td>Nuxt UI (v4), built on Reka UI and Tailwind CSS v4. Used in the plain Vue + Vite app through its Vite plugin (`@nuxt/ui/vite`); it doesn't need the Nuxt framework, so the SPA decision (§2) stands</td>
+<td>Nuxt UI (v4), built on Reka UI and Tailwind CSS v4. Used in the plain Vue + Vite app through its Vite plugin (`@nuxt/ui/vite`); it doesn't need the Nuxt framework, so the SPA decision (section 2) stands</td>
 <td>MIT</td>
 </tr>
 <tr>
@@ -130,8 +130,8 @@ A backend performs the login and keeps the refresh token, but hands the short-li
 </tr>
 <tr>
 <td>Typed-signature font</td>
-<td>*TBD* — a bundled script font</td>
-<td>SIL OFL 1.1 (allowed, HL §11)</td>
+<td>Three bundled script fonts the person picks from: La Belle Aurore (the default), Herr Von Muellerhoff and Mrs Saint Delafield (mock-up round R3)</td>
+<td>SIL OFL 1.1 (allowed, HL section 11)</td>
 </tr>
 <tr>
 <td>12-hour time input</td>
@@ -159,7 +159,7 @@ A backend performs the login and keeps the refresh token, but hands the short-li
 *TBD — folder layout within the monorepo, feature modules.*
 ---
 ## 6. Screens & navigation
-Routes and layouts for the screens listed in the PRD (§5). *Proposed.*
+Routes and layouts for the screens listed in the PRD (section 5). *Proposed.*
 <table header-row="true">
 <tr>
 <td>Route</td>
@@ -169,7 +169,7 @@ Routes and layouts for the screens listed in the PRD (§5). *Proposed.*
 </tr>
 <tr>
 <td>Keycloak pages</td>
-<td>Sign in, password change at first sign-in, password reset (FR-01)</td>
+<td>Sign in, password change at first sign-in, password reset (FR-01). Styled in the app's look as a Keycloak theme, headed by the business name, with the optional logo beside it (FR-28)</td>
 <td>Everyone</td>
 <td>1</td>
 </tr>
@@ -193,7 +193,7 @@ Routes and layouts for the screens listed in the PRD (§5). *Proposed.*
 </tr>
 <tr>
 <td>`/admin`</td>
-<td>Admin — pay schedule, employees, PDF download</td>
+<td>Admin — pay schedule, employees, PDF download, business name and logo</td>
 <td>Managers</td>
 <td>3 (PDF in 4)</td>
 </tr>
@@ -223,6 +223,7 @@ Routes and layouts for the screens listed in the PRD (§5). *Proposed.*
 - **Pay schedule:** set the first fortnight's start date, with a date picker that offers Mondays only (FR-04); read-only once any timesheet exists, including an unsubmitted draft (FR-05).
 - **Employees:** add (with a temporary password), deactivate and reset password (FR-24). M1 has one manager, whose role is set in Keycloak, not on this page.
 - **PDF:** pick a fortnight, see which timesheets aren't approved yet (leaving out empty ones), then download (FR-22, FR-23).
+- **Business name and logo:** shown above the sign-in box; the name is set the first time and changed later. The logo is optional: upload, replace or remove a PNG or JPG up to 1 MB (no SVG). On the sign-in pages it sits beside the name, at most 48 px high and 240 px wide, and the name wraps underneath when a wide logo leaves too little room (FR-28).
 ### 6.4 Profile
 - **Signature:** draw it (signature pad), or type text, their name by default, to generate one. Both produce a PNG that's uploaded to the API. The page shows the current signature with a Replace option (FR-20). The same component is used for the prompts at first submit and first approval.
 - **Change password:** sends the user to Keycloak's password page and back (an application-initiated action), so the app never handles passwords.
@@ -232,8 +233,13 @@ Routes and layouts for the screens listed in the PRD (§5). *Proposed.*
 ### 7.1 Autosave
 - Each day saves on its own, after the user stops typing (short debounce) and when they leave a field. The request carries the timesheet's version (AD-18).
 - The response carries the server's calculated hours, which replace the on-screen preview, and the timesheet's deletion date if it has one (FR-12, FR-13). Entering hours in a cleared rejected timesheet removes its deletion date.
-- A version conflict (the timesheet changed on another device) reloads the timesheet and tells the user.
+- A version conflict (the timesheet changed on another device) reloads the timesheet and tells the user with an inline notice at the top of the timesheet, not a toast (mock-up round R7).
 - If a save fails (e.g. no signal on a phone), the change stays in memory, the status shows "Not saved", the app retries, and it warns before the page is left. No timesheet data in browser storage.
+### 7.2 Loading and errors
+- **Loading:** every page shows its title and ruled placeholder lines, only if loading takes longer than about 300 ms, so fast loads don't flash (mock-up round R7).
+- **Failed to load:** "Couldn't load \{what\}. Check your internet connection, then try again." with a *Try again* button (R7).
+- **Session ended:** a dialog that can't be dismissed, "You've been signed out", saying saved hours are safe, with *Sign in again* (R7).
+- **A failed action** (submit, approve, PDF download, save): a red inline message next to the button plus a toast, never a toast alone (round R8).
 ---
 ## 8. State management
 *TBD*
@@ -242,20 +248,21 @@ Routes and layouts for the screens listed in the PRD (§5). *Proposed.*
 *TBD — client-side validation mirroring backend rules.*
 - Client-side checks mirror FR-09 for instant feedback: start and finish both needed, finish after start on the same day, break shorter than the shift, no future days. The server's verdict wins. Warnings (FR-27) are previewed the same way and never block.
 - Hours are previewed while typing (FR-10) and replaced by the server's figure after each autosave.
-- Shared formatters, used on every screen (FR-11): times on a 12-hour clock with AM/PM (7:30 AM); hours as `{hours}h {minutes}m`, always both parts with two-digit minutes (12h 30m, 8h 00m, 0h 45m), followed by decimal hours in brackets, e.g. 8h 10m (8.17); totals past 24 hours allowed (76h 30m). Decimals are rounded half-up to 2 places from the server's exact minutes, in integer arithmetic (no floating point), the same rule as the PDF. FR-11's note sits under the totals. The rule's test cases live in one shared fixture file in the monorepo, run by both the web app's and the backend's tests. A shift reads e.g. "7:30 AM to 8:30 PM, 30 min break, 12h 30m". The PDF template follows the same rules (BE §3.3), tested against the same cases.
-- ~~Displaying times across time zones and DST.~~ All times are in the business's time zone (PRD §2), so they're shown exactly as entered, with no conversion. "Today" and the current fortnight come from the API, not the device clock, so a phone set to another zone can't shift them.
+- **Showing errors (mock-up round R8):** buttons stay enabled and check the form when pressed. Each field with a problem turns red (`aria-invalid`) with a message under it, focus moves to the first one, and a toast says what didn't happen. Errors found while typing, such as FR-09 on a day, show on the field without a toast. Keycloak's pages have no toasts, so they show the red field plus a message box above the form. Server-side validation errors map back onto the same fields.
+- Shared formatters, used on every screen (FR-11): times on a 12-hour clock with AM/PM (7:30 AM); hours as `{hours}h {minutes}m`, always both parts with two-digit minutes (12h 30m, 8h 00m, 0h 45m), followed by decimal hours in brackets, e.g. 8h 10m (8.17); totals past 24 hours allowed (76h 30m). Decimals are rounded half-up to 2 places from the server's exact minutes, in integer arithmetic (no floating point), the same rule as the PDF. FR-11's note sits under the totals. The rule's test cases live in one shared fixture file in the monorepo, run by both the web app's and the backend's tests. A shift reads e.g. "7:30 AM to 8:30 PM, 30 min break, 12h 30m". The PDF template follows the same rules (BE section 3.3), tested against the same cases.
+- ~~Displaying times across time zones and DST.~~ All times are in the business's time zone (PRD section 2), so they're shown exactly as entered, with no conversion. "Today" and the current fortnight come from the API, not the device clock, so a phone set to another zone can't shift them.
 ---
 ## 10. Testing strategy
-*TBD* — includes Playwright runs at desktop and 375 px phone widths (PRD §5).
+*TBD* — includes Playwright runs at desktop and 375 px phone widths (PRD section 5).
 ---
 ## 11. Build & deployment
 *TBD — container image, runtime configuration, caching.*
 ---
 ## 12. Open questions
-- [ ] Browser authentication approach (§3)
-- [x] Component library — **Decided:** Nuxt UI (§4)
+- [ ] Browser authentication approach (section 3)
+- [x] Component library — **Decided:** Nuxt UI (section 4)
 - [ ] Package manager (npm or pnpm)
-- [ ] Signature drawing library, and which OFL font to use for typed signatures (OFL is now allowed, HL §11)
+- [ ] Signature drawing library (candidate: signature_pad). The typed-signature fonts are decided (section 4)
 - [ ] Autosave debounce, and how long to retry when offline
 - [ ] Check Nuxt UI's `UInputTime` on iOS and Android at 375 px: AM/PM always shown with `hour-cycle` 12, and typing works with the phone keyboard
 - [x] Show the deletion date on a cleared rejected timesheet, like the draft expiry date? — **Decided:** yes; both show their deletion date (FR-12, FR-13)
@@ -285,7 +292,7 @@ Routes and layouts for the screens listed in the PRD (§5). *Proposed.*
 </tr>
 <tr>
 <td><mention-date start="2026-10-11"/></td>
-<td>My timesheet works at 375 px wide without sideways scrolling (PRD §5)</td>
+<td>My timesheet works at 375 px wide without sideways scrolling (PRD section 5)</td>
 </tr>
 <tr>
 <td><mention-date start="2026-10-11"/></td>
@@ -297,7 +304,7 @@ Routes and layouts for the screens listed in the PRD (§5). *Proposed.*
 </tr>
 <tr>
 <td><mention-date start="2026-10-11"/></td>
-<td>Timesheet columns and labels follow the business's paper sheet: Date, Start time, Rest break (mins), Finish time, Total hours (PRD §5)</td>
+<td>Timesheet columns and labels follow the business's paper sheet: Date, Start time, Rest break (mins), Finish time, Total hours (PRD section 5)</td>
 </tr>
 <tr>
 <td><mention-date start="2026-10-11"/></td>
@@ -343,6 +350,26 @@ Routes and layouts for the screens listed in the PRD (§5). *Proposed.*
 <td><mention-date start="2026-10-11"/></td>
 <td>The timesheet shows its deletion date whenever it has one: a never-submitted draft's expiry, or a cleared rejected timesheet's deletion (FR-12, FR-13)</td>
 </tr>
+<tr>
+<td><mention-date start="2026-10-18"/></td>
+<td>Sign-in pages use the app's look as a Keycloak theme, headed by the business name (FR-28)</td>
+</tr>
+<tr>
+<td><mention-date start="2026-10-18"/></td>
+<td>A version conflict shows as an inline notice at the top of the timesheet</td>
+</tr>
+<tr>
+<td><mention-date start="2026-10-18"/></td>
+<td>Optional business logo (PNG or JPG, up to 1 MB) set on Admin and shown beside the business name on the sign-in pages (FR-28)</td>
+</tr>
+<tr>
+<td><mention-date start="2026-10-18"/></td>
+<td>Errors: the field turns red with a message plus a toast; failed actions get an inline message plus a toast; never a toast alone (the owner's call in round R8)</td>
+</tr>
+<tr>
+<td><mention-date start="2026-10-18"/></td>
+<td>Typed signatures offer three bundled OFL script fonts: La Belle Aurore (the default), Herr Von Muellerhoff and Mrs Saint Delafield (mock-up round R3)</td>
+</tr>
 </table>
 ---
 ## 14. Revision history
@@ -374,6 +401,18 @@ Routes and layouts for the screens listed in the PRD (§5). *Proposed.*
 <tr>
 <td><mention-date start="2026-10-11"/></td>
 <td>Component library decided: Nuxt UI, used without the Nuxt framework, so the SPA stands. The 12-hour time input is now Nuxt UI's `UInputTime`, replacing the PrimeVue candidate. A cleared rejected timesheet shows its deletion date, like a draft's expiry date (FR-13).</td>
+</tr>
+<tr>
+<td><mention-date start="2026-10-18"/></td>
+<td>Followed mock-up round R7: Keycloak pages in the app's look, headed by the business name; business name on Admin (FR-28); version conflicts shown as an inline notice. Section references are now written as words.</td>
+</tr>
+<tr>
+<td><mention-date start="2026-10-18"/></td>
+<td>Followed mock-up round R8: optional business logo on Admin, shown beside the name on the sign-in pages (FR-28); new section 7.2 on loading, failed loads, session end and failed actions; how errors are shown on forms (section 9).</td>
+</tr>
+<tr>
+<td><mention-date start="2026-10-18"/></td>
+<td>Recorded the typed-signature fonts chosen in mock-up round R3 (section 4); the signature drawing library stays open.</td>
 </tr>
 </table>
 </content>

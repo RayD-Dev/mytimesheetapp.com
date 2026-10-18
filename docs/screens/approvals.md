@@ -63,8 +63,8 @@ Exact text, in DESIGN.md's vocabulary.
 | Tap or click anywhere on a row | Opens `/approvals/:fortnight/:timesheet` for that person | FR-15 |
 | Click "Download the fortnight's PDF on the Admin page" | Goes to `/admin` | FR-22 |
 | Arrive from rejecting a timesheet | List shows "Timesheet rejected" toast, row moved to Rejected | FR-17 |
-| Tap Menu (phone) | Opens the dropdown; choosing an item navigates; Sign out signs out | DESIGN.md §5 |
-| Tap a top-bar link (desktop) | Navigates to that page | DESIGN.md §5 |
+| Tap Menu (phone) | Opens the dropdown; choosing an item navigates; Sign out signs out | DESIGN.md section 5 |
+| Tap a top-bar link (desktop) | Navigates to that page | DESIGN.md section 5 |
 | Data slow to load | After about 300 ms the loading view replaces the page content | R7-7 |
 | Load fails | Load-failed view; *Try again* repeats the request (mock: button does nothing) | R7-7 |
 

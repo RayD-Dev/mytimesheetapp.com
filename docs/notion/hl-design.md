@@ -1,9 +1,9 @@
 <!-- Read-only copy of HL Design Doc: https://app.notion.com/p/3f4771bd4d4380e28d76d2038edbfac4
      Notion is the master; comment and edit there, then run docs-sync.
-     Notion last edited: 2026-10-11T05:50:04.036Z · Synced: 12/10/2026 -->
+     Notion last edited: 2026-10-17T14:50:54.676Z · Synced: 18/10/2026 -->
 <content>
 <callout icon="📄" color="gray_bg">
-	**Status:** Draft · **Last updated:** <mention-date start="2026-10-11"/> · **Type:** High-level solution design — *what* the system is, covering both the web front end and the backend. Why each decision was made, and how the system runs, are in the <mention-page url="https://app.notion.com/p/3f6771bd4d4381fbadd6f819e59e08fd"/>. Requirements live in the <mention-page url="https://app.notion.com/p/3f5771bd4d438156a93ec42b3548821d"/>; implementation detail lives in the <mention-page url="https://app.notion.com/p/3f5771bd4d43813e90c8e11492d92e2b"/> and the <mention-page url="https://app.notion.com/p/3f5771bd4d43819981e0f96e66fae263"/>.
+	**Status:** Draft · **Last updated:** <mention-date start="2026-10-18"/> · **Type:** High-level solution design — *what* the system is, covering both the web front end and the backend. Why each decision was made, and how the system runs, are in the <mention-page url="https://app.notion.com/p/3f6771bd4d4381fbadd6f819e59e08fd"/>. Requirements live in the <mention-page url="https://app.notion.com/p/3f5771bd4d438156a93ec42b3548821d"/>; implementation detail lives in the <mention-page url="https://app.notion.com/p/3f5771bd4d43813e90c8e11492d92e2b"/> and the <mention-page url="https://app.notion.com/p/3f5771bd4d43819981e0f96e66fae263"/>.
 </callout>
 <table_of_contents/>
 ---
@@ -14,10 +14,11 @@ The MVP for this timesheet app lets
 3. The manager to download the timesheets (grouped by pay cycle) in one PDF for the business's accountant with a log of workflow and admin actions (see the <mention-page url="https://app.notion.com/p/3f5771bd4d438156a93ec42b3548821d"/>). 
 It is delivered as a Vue web app and a Spring Boot API.
 M1 (MVP) is self-hosted for one small business on a single home machine, reached through a rented relay server. M3 moves it to Kubernetes as a multi-tenant SaaS without re-architecture.
-This document describes the solution at a high level: what drives the architecture, the main building blocks and how they interact, how it's deployed, and the key decisions. The reasoning behind each decision, and the detail of how the system runs, are in the <span discussion-urls="discussion://3f4771bd-4d43-80e2-8d76-d2038edbfac4/e8840be0-1538-4cbc-b460-b7768791db6b/3f6771bd-4d43-80b1-afa4-001c3478e02a">System Design</span>.
+This document describes the solution at a high level: what drives the architecture, the main building blocks and how they interact, how it's deployed, and the key decisions. The reasoning behind each decision, and the detail of how the system runs, are in the <span discussion-urls="discussion://3f4771bd-4d43-80e2-8d76-d2038edbfac4/e8840be0-1538-4cbc-b460-b7768791db6b/3f6771bd-4d43-80b1-afa4-001c3478e02a"><mention-page url="https://app.notion.com/p/3f6771bd4d4381fbadd6f819e59e08fd"/></span>.
 ---
 ## 2. Architecture drivers
 ### 2.1 Quality attributes
+Each row is a quality the system must have: the target it must hit, and what the design does to meet it. Why each choice was made is in the System Design.
 <table header-row="true">
 <colgroup>
 <col width="126.328125">
@@ -27,17 +28,17 @@ This document describes the solution at a high level: what drives the architectu
 <tr>
 <td>Driver</td>
 <td>Target</td>
-<td><span discussion-urls="discussion://3f4771bd-4d43-80e2-8d76-d2038edbfac4/cffe1190-f650-432b-9ba9-80bf8b34c6c8/3f6771bd-4d43-80c1-aa8f-001c638b6562">Architectural implication</span></td>
+<td><span discussion-urls="discussion://3f4771bd-4d43-80e2-8d76-d2038edbfac4/d5e9dc2f-51d5-42cc-953a-881a7b1c7947/3f6771bd-4d43-80c1-aa8f-001c638b6562">How the design meets it</span></td>
 </tr>
 <tr>
 <td>**Auditability**</td>
-<td>  • Every workflow and admin action listed (in <span discussion-urls="discussion://3f4771bd-4d43-80e2-8d76-d2038edbfac4/68cd35a0-e1e0-44be-a030-c10754ed2d9d/3f6771bd-4d43-8022-8b10-001c90b5e1e6">FR-26</span>) are logged with who, when and what.<br>  • Log records are append-only. <br>  • Drafted autosaves and cleared timesheets are not logged. <br>  • Account changes made directly in Keycloak are recorded by Keycloak's admin events, kept indefinitely (FR-26).</td>
+<td>  • Every workflow and admin action listed (in <span discussion-urls="discussion://3f4771bd-4d43-80e2-8d76-d2038edbfac4/6a846035-43f8-47de-8353-70e2452d12fe/3f6771bd-4d43-8022-8b10-001c90b5e1e6">FR-26</span> of the <mention-page url="https://app.notion.com/p/3f5771bd4d438156a93ec42b3548821d"/>) are logged with who, when and what.<br>  • Log records are append-only. <br>  • Draft autosaves and the Clear action aren't logged; the later deletion of a cleared rejected timesheet is (FR-13). <br>  • Account changes made directly in Keycloak are recorded by Keycloak's admin events, kept indefinitely (FR-26).</td>
 <td>  • Log record written in the same transaction as the action (AD-06), dedicated Audit module.<br>  • Keycloak admin events turned on with no expiry, covered by the Keycloak database backup.</td>
 </tr>
 <tr>
 <td>**Security**</td>
-<td>  • OIDC / OAuth2 authentication with server-side role-based authorisation<br>  • <span discussion-urls="discussion://3f4771bd-4d43-80e2-8d76-d2038edbfac4/4e0fcdf3-34a9-4bcc-b783-1dc4a973c479/3f6771bd-4d43-8096-873b-001c7bf7e3e6">Least privilege</span><br>  • <span discussion-urls="discussion://3f4771bd-4d43-80e2-8d76-d2038edbfac4/4e0fcdf3-34a9-4bcc-b783-1dc4a973c479/3f6771bd-4d43-802a-9594-001c9e5421d0">OWASP Top 10 / ASVS Level 2 baseline</span><br>  • TLS outside local dev<br>  • <span discussion-urls="discussion://3f4771bd-4d43-80e2-8d76-d2038edbfac4/4e0fcdf3-34a9-4bcc-b783-1dc4a973c479/3f6771bd-4d43-8011-bbf4-001c1e2d048d">No secrets in code or images.</span></td>
-<td>  • External identity provider (AD-04)<br>  • Authorisation in the API (AD-05)<br>  • Browser sign-in approach chosen deliberately (AD-15)<br>  • One public entry point for all traffic, sign-in included (AD-20)<br>  • Nothing open to the internet at home (AD-21)<br>  • Content Security Policy on the web app.</td>
+<td>  • OIDC / OAuth2 authentication with server-side role-based authorisation<br>  • <span discussion-urls="discussion://3f4771bd-4d43-80e2-8d76-d2038edbfac4/e2fdd4e0-e484-4931-adc7-b912b7b2f8c4/3f6771bd-4d43-8096-873b-001c7bf7e3e6">Least privilege</span>: every person, service and account gets only the access it needs<br>  • <span discussion-urls="discussion://3f4771bd-4d43-80e2-8d76-d2038edbfac4/e2fdd4e0-e484-4931-adc7-b912b7b2f8c4/3f6771bd-4d43-802a-9594-001c9e5421d0">OWASP Top 10 / ASVS Level 2 baseline</span>: built and tested against OWASP's list of the ten most common web-app security risks, and level 2 of its Application Security Verification Standard, the level meant for apps that hold personal data<br>  • TLS outside local dev<br>  • <span discussion-urls="discussion://3f4771bd-4d43-80e2-8d76-d2038edbfac4/e2fdd4e0-e484-4931-adc7-b912b7b2f8c4/3f6771bd-4d43-8011-bbf4-001c1e2d048d">No secrets in code or images.</span> Checked automatically: a secret scan runs before every commit, so a secret never enters the history, and again in CI on the code and the container images.</td>
+<td>  • External identity provider (AD-04)<br>  • Authorisation in the API (AD-05)<br>  • Browser sign-in approach chosen deliberately (AD-15)<br>  • One public entry point for all traffic, sign-in included (AD-20)<br>  • Nothing open to the internet at home (AD-21)<br>  • Content Security Policy on the web app<br>  • Secret scanning before every commit and in CI.</td>
 </tr>
 <tr>
 <td>**Multi-tenancy**</td>
@@ -51,8 +52,8 @@ This document describes the solution at a high level: what drives the architectu
 </tr>
 <tr>
 <td>**Recoverability**</td>
-<td>  • A documented backup and restore procedure, with a restore tested before go-live (PRD §7). The install holds the record of what people are owed.</td>
-<td>  • All state in PostgreSQL (app and Keycloak databases, signature images included) plus the install's configuration, so one backup covers everything (AD-19, §6).</td>
+<td>  • A documented backup and restore procedure, with a restore tested before go-live (PRD section 7). The install holds the record of what people are owed.</td>
+<td>  • All state in PostgreSQL (app and Keycloak databases, signature images included) plus the install's configuration, so one backup covers everything (AD-19, section 6).</td>
 </tr>
 <tr>
 <td>**Performance**</td>
@@ -76,7 +77,7 @@ This document describes the solution at a high level: what drives the architectu
 </tr>
 <tr>
 <td>**Privacy (GDPR)**</td>
-<td>M1 keeps data indefinitely (PRD §7). From M3: self-service personal data access and erasure without breaking the log.</td>
+<td>M1 keeps data indefinitely (PRD section 7). From M3: self-service personal data access and erasure without breaking the log.</td>
 <td>Erasure by pseudonymising personal data in log records rather than deleting them (M3); retention revisited before M3.</td>
 </tr>
 <tr>
@@ -86,16 +87,16 @@ This document describes the solution at a high level: what drives the architectu
 </tr>
 </table>
 ### 2.2 Constraints
-- **Open source only** — every dependency must meet the licence policy (§11).
+- **Open source only** — every dependency must meet the licence policy (section 11).
 - **Self-hosted first, cloud-ready** — M1 runs on a single home machine behind a rented relay (AD-21); M3 moves to Kubernetes with the same images.
-- **One time zone** — all times are in the business's time zone (PRD §2).
-- **Tenant-ready data model** — M3 must add businesses, and M4 dimensions (projects, clients, sites), without changing M1 data (PRD §2).
+- **One time zone** — all times are in the business's time zone (PRD section 2).
+- **Tenant-ready data model** — M3 must add businesses, and M4 dimensions (projects, clients, sites), without changing M1 data (PRD section 2).
 - **Vendor-neutral** — nothing that only works on one cloud provider.
 ### 2.3 Out of scope for this design
 - Server-side rendering of the web app (see AD-11)
 - Microservices, message brokers, caches — until there's a measured need
 - Production cloud deployment (designed for, delivered in M3)
-- Features the PRD places after M1 (PRD §4, §9) — the design leaves room for them but doesn't build them
+- Features the PRD places after M1 (PRD sections 4 and 9) — the design leaves room for them but doesn't build them
 ---
 ## 3. System context
 Who and what the app interacts with. Numbers follow a fortnight, 1 to 5; letters mark supporting and later interactions; dashed lines are later milestones.
@@ -172,11 +173,11 @@ flowchart LR
 </tr>
 <tr>
 <td>**Keycloak**</td>
-<td>User accounts, sign-in, temporary passwords changed at first sign-in, password change from the Profile page, password reset emails (FR-01); admin events record account changes made directly in Keycloak (FR-26); issues tokens. Two-factor sign-in for the manager account; single sign-on available when needed.</td>
+<td>User accounts, sign-in, temporary passwords changed at first sign-in, password change from the Profile page, password reset emails (FR-01); admin events record account changes made directly in Keycloak (FR-26); issues tokens. Its sign-in pages use a login theme that matches the app and shows the business's name and logo (FR-28). Two-factor sign-in for the manager in M2 (SD-03); single sign-on available when needed.</td>
 </tr>
 <tr>
 <td>**PostgreSQL**</td>
-<td>System of record for timesheets, signatures and the log (and Keycloak's own data, in a separate database). Backed up as one unit (§6).</td>
+<td>System of record for timesheets, signatures, the business logo and the log (and Keycloak's own data, in a separate database). Backed up as one unit (section 6).</td>
 </tr>
 <tr>
 <td>**Observability**</td>
@@ -193,7 +194,7 @@ How the browser signs in (tokens held in the browser vs a Backend-for-Frontend) 
 </tr>
 <tr>
 <td>**Organisation & Users**</td>
-<td>Business settings (time zone; pay schedule start date, which must be a Monday, and its lock, FR-04–FR-06), employee accounts (FR-24, FR-25), through Keycloak's admin API. The one manager's role is set in Keycloak. More managers, reporting lines and approver overrides arrive in M2.</td>
+<td>Business settings (name and optional logo, shown on the sign-in pages, FR-28; time zone; pay schedule start date, which must be a Monday, and its lock, FR-04–FR-06), employee accounts (FR-24, FR-25), through Keycloak's admin API. The one manager's role is set in Keycloak. More managers, reporting lines and approver overrides arrive in M2.</td>
 <td>Business (the tenant), people, pay schedule</td>
 </tr>
 <tr>
@@ -338,7 +339,7 @@ The detail of how the system runs (request path, hosting, TLS, environments, sca
 </tr>
 <tr>
 <td>Admin access</td>
-<td>Over WireGuard only; two-factor sign-in for the manager account</td>
+<td>Over WireGuard only; two-factor sign-in for the manager in M2</td>
 <td>Provider access controls; Keycloak's admin console never public</td>
 </tr>
 </table>
@@ -356,10 +357,10 @@ The detail of how the system runs (request path, hosting, TLS, environments, sca
 - **Signatures** — everyone sets up a signature on the Profile page (drawn, or generated from typed text, their name by default). It's stored once as an image and copied onto each submission and approval, so replacing it never changes earlier timesheets. Anyone without one is prompted at their first submit or approval (FR-20, FR-21).
 - **Observability** — OpenTelemetry across web app and API; a correlation ID follows each request end to end.
 - **Configuration & secrets** — externalised per environment; nothing secret in code or images.
-- **Backup & restore** — a documented, tested procedure is part of the M1 deliverable (§6, AD-19).
+- **Backup & restore** — a documented, tested procedure is part of the M1 deliverable (section 6, AD-19).
 ---
 ## 8. Key architectural decisions
-Why each decision was made, with the options considered, is in the System Design (§13).
+Why each decision was made, with the options considered, is in the System Design (section 13).
 <table header-row="true">
 <tr>
 <td>ID</td>
@@ -452,7 +453,7 @@ Why each decision was made, with the options considered, is in the System Design
 </table>
 ---
 ## 9. Technology choices
-High-level choices only. Why each was chosen is in the System Design (§13.3); versions, libraries and configuration are in the BE and FE Detailed Design docs.
+High-level choices only. Why each was chosen is in the System Design (section 13.3); versions, libraries and configuration are in the BE and FE Detailed Design docs.
 <table header-row="true">
 <tr>
 <td>Area</td>
@@ -555,6 +556,16 @@ High-level choices only. Why each was chosen is in the System Design (§13.3); v
 <td>MIT</td>
 </tr>
 <tr>
+<td>Home network *(M1)*</td>
+<td>OpenWrt router in front of the server, before go-live</td>
+<td>GPLv2, as separate infrastructure</td>
+</tr>
+<tr>
+<td>Logs *(M1)*</td>
+<td>systemd journal: kept 1 year, compressed, capped at 2 GB</td>
+<td>LGPL 2.1</td>
+</tr>
+<tr>
 <td>Cloud orchestration *(M3)*</td>
 <td>Kubernetes + Helm; cert-manager for certificates</td>
 <td>Apache 2.0</td>
@@ -574,13 +585,18 @@ High-level choices only. Why each was chosen is in the System Design (§13.3); v
 <td>Vitest, Playwright</td>
 <td>MIT / Apache 2.0</td>
 </tr>
+<tr>
+<td>Secret scanning</td>
+<td>gitleaks, as a pre-commit hook and in CI</td>
+<td>MIT</td>
+</tr>
 </table>
 <callout icon="⚠️" color="yellow_bg">
 	**Docker Desktop is not open source** and needs a paid subscription for larger companies. Use Docker Engine, Podman Desktop or Rancher Desktop for local development — they run the same images.
 </callout>
 ---
 ## 10. Guiding principles
-- **Open source only** — every dependency must meet the licence policy (§11).
+- **Open source only** — every dependency must meet the licence policy (section 11).
 - **Tenant-aware by default** — no tenant-owned data without a tenant identifier.
 - **Store facts, calculate the rest** — timesheets store who, start time, rest break and finish time; hours (and pay rates in M4) are calculated on the server.
 - **Log what matters** — every workflow and admin action is recorded (FR-26); draft autosaves aren't.
@@ -645,9 +661,9 @@ Strategy only — tools, thresholds and environments are in the Detailed Design 
 	- **Warnings** — days with 1 hour or less, or more than 12 hours, of worked time are flagged on the row, in the review and on Approvals, and never block saving or submitting (FR-15, FR-27).
 	- **PDF contents** — only the chosen fortnight's approved timesheets, laid out as in FR-22 (Monday to Friday rows), each with the employee's and the approver's signature copies and dates and times; the not-yet-approved list leaves out empty timesheets (FR-21, FR-22, FR-23).
 	- **Entry point** — through the reverse proxy, Keycloak's admin console, master realm and Account Console are refused, and the security headers are present.
-	- **Backup & restore** — the documented restore is rehearsed on a clean machine before go-live (PRD §7).
+	- **Backup & restore** — the documented restore is rehearsed on a clean machine before go-live (PRD section 7).
 	- **Module boundaries** — architecture tests fail the build if a module reaches into another's internals.
-- **Non-functional:** static analysis, dependency vulnerability scanning, container image scanning, licence scanning, load testing before cloud go-live.
+- **Non-functional:** static analysis, secret scanning (before every commit and in CI), dependency vulnerability scanning, container image scanning, licence scanning, load testing before cloud go-live.
 - **Quality gates:** a change merges only if all tests pass, coverage meets the agreed threshold, and there are no high/critical vulnerabilities or disallowed licences.
 ---
 ## 13. Technical risks
@@ -745,7 +761,7 @@ Strategy only — tools, thresholds and environments are in the Detailed Design 
 <tr>
 <td>The only manager is away, so nobody can approve</td>
 <td>Late pay</td>
-<td>Whoever runs the server gives a second person the Manager role in Keycloak (PRD §12), following the runbook; the API checks the role, not a count, so no code change is needed</td>
+<td>Whoever runs the server gives a second person the Manager role in Keycloak (PRD section 12), following the runbook; the API checks the role, not a count, so no code change is needed</td>
 </tr>
 <tr>
 <td>Screen and PDF format hours or times differently</td>
@@ -774,7 +790,8 @@ Tracked in the detailed design docs:
 - <mention-page url="https://app.notion.com/p/3f5771bd4d438156a93ec42b3548821d"/>
 - <mention-page url="https://app.notion.com/p/3f5771bd4d43813e90c8e11492d92e2b"/>
 - <mention-page url="https://app.notion.com/p/3f5771bd4d43819981e0f96e66fae263"/>
-- <mention-page url="https://app.notion.com/p/3f6771bd4d4381fbadd6f819e59e08fd"/> — its decision records (§13) serve as the ADR log
+- <mention-page url="https://app.notion.com/p/3f6771bd4d4381fbadd6f819e59e08fd"/> — its decision records (section 13) serve as the ADR log
+- <mention-page url="https://app.notion.com/p/3fc771bd4d4381eb9433c4242b560077"/> — why PostgreSQL (AD-10)
 ### Revision history
 <table header-row="true">
 <tr>
@@ -787,7 +804,7 @@ Tracked in the detailed design docs:
 </tr>
 <tr>
 <td><mention-date start="2026-10-10"/></td>
-<td>Resolved recall, notifications, retention, fallback approver, time entry model; added time edge cases (§6.3)</td>
+<td>Resolved recall, notifications, retention, fallback approver, time entry model; added time edge cases (section 6.3)</td>
 </tr>
 <tr>
 <td><mention-date start="2026-10-10"/></td>
@@ -839,7 +856,27 @@ Tracked in the detailed design docs:
 </tr>
 <tr>
 <td><mention-date start="2026-10-11"/></td>
-<td>Added the System Design doc: it now holds why each decision was made and how the system runs, and this doc states what. Numbered the system context diagram; sign-in now goes through the reverse proxy (`/auth`) in the container diagram; §6 is a summary table of M1 and M3; §8 lists decisions only and §9 lists choices and licences only. Added AD-20 (one public entry point, Caddy in M1) and AD-21 (M1 on a home machine behind a rented relay), the Caddy, relay, backup and monitoring tools, an entry-point test and three hosting risks.</td>
+<td>Added the System Design doc: it now holds why each decision was made and how the system runs, and this doc states what. Numbered the system context diagram; sign-in now goes through the reverse proxy (`/auth`) in the container diagram; section 6 is a summary table of M1 and M3; section 8 lists decisions only and section 9 lists choices and licences only. Added AD-20 (one public entry point, Caddy in M1) and AD-21 (M1 on a home machine behind a rented relay), the Caddy, relay, backup and monitoring tools, an entry-point test and three hosting risks.</td>
+</tr>
+<tr>
+<td><mention-date start="2026-10-18"/></td>
+<td>Section references are now written as words, not a symbol. Added the OpenWrt router that walls the home server off from the home network, and the systemd journal for logs, to the technology choices.</td>
+</tr>
+<tr>
+<td><mention-date start="2026-10-18"/></td>
+<td>Followed mock-up round R7: Keycloak's sign-in pages use a theme matching the app and show the business's name, now a business setting (FR-28); no two-factor sign-in in M1, the manager's comes after M1 (SD-03). Linked the new Database Options page.</td>
+</tr>
+<tr>
+<td><mention-date start="2026-10-18"/></td>
+<td>Followed mock-up round R8: an optional business logo joins the business name as a business setting, stored in PostgreSQL and shown on the sign-in pages (FR-28).</td>
+</tr>
+<tr>
+<td><mention-date start="2026-10-18"/></td>
+<td>Answered review comments: section 1 links to the System Design and the Auditability row to the PRD; the drivers table's third column is now "How the design meets it", with a line explaining the table; least privilege and the OWASP / ASVS baseline are explained in a line each; secret scanning before every commit and in CI is added to the drivers, technology choices and testing approach.</td>
+</tr>
+<tr>
+<td><mention-date start="2026-10-18"/></td>
+<td>Consistency fixes from the docs index: two-factor sign-in for the manager is in M2, as in the PRD roadmap (sections 4.1 and 6); the Auditability row now says the Clear action isn't logged but the later deletion of a cleared rejected timesheet is (FR-13).</td>
 </tr>
 </table>
 </content>

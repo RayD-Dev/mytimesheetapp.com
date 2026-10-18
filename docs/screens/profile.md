@@ -2,7 +2,7 @@
 
 **Who:** Everyone (employees and the manager)
 **Requirements:** FR-01, FR-20, FR-21, FR-26
-**Approved:** round R3 on 11/10/2026, with R7 on 18/10/2026 for the loading and load-failed states
+**Approved:** round R3 on 11/10/2026, with R7 on 18/10/2026 for the loading and load-failed states, and R8 on 18/10/2026 for the signature error
 **Screenshots:** `mockup/approved/profile-*`
 **Mock-up page:** `mockup/src/pages/profile/index.vue`
 
@@ -15,6 +15,7 @@ Shows the signed-in person's name, lets them set up or replace the signature use
 | Typed signature | Signature exists, typed | Name; signature in the chosen style on its signature line; "Saved {date}"; *Replace signature*; FR-21 note; Password section | `profile-state-signed` |
 | Drawn signature | Signature exists, drawn | Same as above, with the drawn image (alt "Your signature") left-aligned on the line | `profile-state-drawn` |
 | No signature | Never set up | Info line "You don't have a signature yet. You'll need one before your first submit."; signature set-up open, action *Save signature*, no Cancel | `profile-state-no-signature` |
+| Signature error (R8-4) | *Save signature* pressed with no name typed (mock `signature-error`: no signature yet, "Type it" with the name field empty) | As No signature; the name field is red with "Type your name as you sign it." under it, and a toast "Signature not saved" with "Fix the highlighted field."; focus on the field. Drawing with nothing drawn shows "Draw your signature in the box." under the canvas | `profile-state-signature-error` |
 | Replacing | *Replace signature* pressed | Signature set-up open in place of the current signature, on the current style if typed; action *Save new signature*, with *Cancel* | `profile-state-replacing` |
 | Password changed | Back from the sign-in page after changing password | Page as in "Typed signature", plus a success toast "Password changed" | `profile--password-changed` |
 | Signature saved (toast only) | After *Save signature* or *Save new signature* | Page returns to the signature display; toast "Signature saved" (first time) or "Signature replaced"; saved date updates | none (source only) |
@@ -55,6 +56,8 @@ Shows the signed-in person's name, lets them set up or replace the signature use
 | Toast, first save | "Signature saved" |
 | Toast, replace | "Signature replaced" |
 | Toast, password | Title "Password changed"; description "Use your new password next time you sign in." |
+| Signature errors (R8-4) | Type mode, name blank: "Type your name as you sign it."; draw mode, nothing drawn: "Draw your signature in the box." |
+| Toast, signature error (R8-4) | Title "Signature not saved"; description "Fix the highlighted field." |
 | Loading (R7-7) | Title "Profile"; screen-reader text "Loading your profile…" |
 | Load failed (R7-7) | Heading "Couldn't load your profile"; "Check your internet connection, then try again."; button "Try again" |
 
@@ -70,7 +73,9 @@ Shows the signed-in person's name, lets them set up or replace the signature use
 | Edit typed name | Every style row previews the edited name; text shrinks to fit its line (32px down to 20px) | FR-20 |
 | Pick a style | Selects it (default Style 1); saved with the signature | FR-20 |
 | Draw on canvas | Pointer, touch or mouse strokes; "Clear drawing" enables once something is drawn | FR-20 |
-| Save action | Disabled until typed name is non-empty (type) or something is drawn (draw). Saves, leaves set-up, shows toast, updates "Saved" date. Earlier submitted timesheets keep their old signature | FR-20, FR-21 |
+| Save action | Always enabled; checks on press. With a typed name or something drawn: saves, leaves set-up, shows toast, updates "Saved" date. Earlier submitted timesheets keep their old signature | FR-20, FR-21 |
+| Save action with a blank name (type) or nothing drawn (draw) | Nothing is saved; the field shows its message and has `aria-invalid`, focus moves to it, and the toast "Signature not saved" appears. Typing in the field removes the message; drawing removes the other one | FR-20, R8-4 |
+| Errors (app-wide rule, R8-4) | Form errors on button press: the field turns red with a message under it, focus moves to the first bad field, and a toast says what didn't happen. Failed actions: an inline message by the button plus a toast, never a toast alone. Live typing errors: red field and message, no toast. Keycloak pages: red field plus the alert box, no toasts | R8-4 |
 | *Change password* | Goes to the sign-in (Keycloak) page and returns here; the app never handles a password. On return, shows the "Password changed" toast | FR-01 |
 | Data slow to load | After about 300 ms the loading view replaces the page content | R7-7 |
 | Load fails | Load-failed view; *Try again* repeats the request (mock: button does nothing) | R7-7 |
@@ -93,12 +98,13 @@ Reused by this page, by the submit review (first submit, FR-14/FR-20) and by the
 
 | Aspect | Detail |
 |---|---|
-| Props | `name` (default text, the person's name); `actionLabel` (default "Use this signature"; Profile passes "Save signature" or "Save new signature"); `cancellable` (shows *Cancel*; Profile sets it only when replacing); `initialStyle` (style to start on) |
-| Events | `done` with the signature; `cancel` |
+| Props | `name` (default text, the person's name); `actionLabel` (default "Use this signature"; Profile passes "Save signature" or "Save new signature"); `cancellable` (shows *Cancel*; Profile sets it only when replacing); `initialStyle` (style to start on); `showError` (mock-up only: opens in the error state, for the `signature-error` screenshot) |
+| Events | `done` with the signature; `cancel`; `invalid` (R8-4: the action was pressed with a blank name or nothing drawn; the parent decides whether to toast. Profile does) |
 | Mode switch | Segmented pair "Type it" (default) and "Draw it"; selected one is solid, the other outline; each 44px high on phone |
 | Type mode | Text input "Your name as you sign it", pre-filled with the name, editable; fieldset "Choose a style" with three radio rows (24px radios, rows at least 56px high, whole row clickable). Each row previews the current text in its script font without a signature line. The selected row has an ink border on a paper tint. |
 | Draw mode | Hint, 160px-high canvas (full width, control-border outline, ink stroke 2.5px, round caps) with a faint baseline rule across it, then "Clear drawing" as a link-style button. Output is an image. |
-| Actions | Primary-position button (neutral outline) with the action label, disabled until valid; optional ghost *Cancel*. They wrap on a narrow screen. |
+| Actions | Primary-position button (neutral outline) with the action label, always enabled and validating on press (R8-4); optional ghost *Cancel*. They wrap on a narrow screen. |
+| Validation (R8-4) | Type mode: a blank name gives "Type your name as you sign it." under the field (red, `aria-invalid`), cleared when the person types. Draw mode: nothing drawn gives "Draw your signature in the box." under the canvas, cleared when the person draws; the canvas has `aria-invalid` and can take focus. On failure the component emits `invalid` and moves focus to the first invalid element. |
 | Result | Typed: `{ text, style }`. Drawn: image. The style is saved with a typed signature so the same look is reused when replacing. |
 
 Typed styles (from `mockup/src/signature.ts`), all SIL OFL and self-hosted:
@@ -131,8 +137,8 @@ All API fields are proposed (no OpenAPI spec yet). The app never sees or stores 
 - **Long name:** "Priya Ramaswamy-Kingsley" (the mock-up name) fits on one line on a phone; typed signatures shrink to fit (down to 20px) and never wrap or clip.
 - **No signature:** the set-up is open straight away with no *Cancel*, because there is nothing to go back to.
 - **Replacing a drawn signature:** starts on "Type it" with the default style (no typed style to restore).
-- **Typed name emptied:** save action disabled; style previews are blank.
-- **Drawn, nothing drawn yet:** save action and "Clear drawing" disabled.
+- **Typed name emptied:** style previews are blank; pressing the save action shows "Type your name as you sign it." (R8-4).
+- **Drawn, nothing drawn yet:** "Clear drawing" is disabled; pressing the save action shows "Draw your signature in the box." (R8-4).
 - **Phone toast over content:** the "Password changed" toast covers the bottom of the page (see screenshot); it is dismissible.
 
 ## Accessibility
@@ -141,6 +147,7 @@ All API fields are proposed (no OpenAPI spec yet). The app never sees or stores 
 - Mode switch is a labelled group ("How to make your signature"). Style choices are a fieldset with the legend "Choose a style" and native radios, each with an `aria-label` of its label ("Style 1" and so on); arrow keys move between them.
 - The signature image has `alt="Your signature"`; the drawing canvas has `aria-label="Signature drawing area"`. A canvas cannot be used with a keyboard, so "Type it" is the keyboard route.
 - Toasts must be announced politely (status role) and not take focus.
+- Errors (R8-4): an invalid name field has `aria-invalid="true"` with its message attached; the empty canvas is `aria-invalid` and focusable for that case, with its message under it. Focus moves to the first invalid element on a press. The error toast "Signature not saved" is announced. Each uses an icon and words, not colour alone.
 - Buttons and radios meet the 44px phone target; visible focus ring in the accent colour.
 - Active top-bar link has `aria-current="page"`.
 - Loading view: `aria-busy="true"` on the sheet, `role="status"` with screen-reader-only text "Loading your profile…"; the placeholders are decorative. Load-failed view: `role="alert"`, so the failure is announced. The `h1` stays in both.
@@ -156,10 +163,10 @@ None beyond Nuxt UI's defaults for the toast (slide in, progress bar, dismiss).
 
 ## Open questions
 
-1. **What the API stores.** The FE design (§6.4) says both typed and drawn signatures produce a PNG that is uploaded; R3-6 says the chosen style is saved with a typed signature. Needs a decision: image only, or image plus text and style (and which wins if they disagree).
+1. **What the API stores.** The FE design (section 6.4) says both typed and drawn signatures produce a PNG that is uploaded; R3-6 says the chosen style is saved with a typed signature. Needs a decision: image only, or image plus text and style (and which wins if they disagree).
 2. **"Saved" date source.** The mock-up hard-codes 02/10/2026 and, after saving, 16/10/2026. Real data should come from the server's save time.
 3. **How the "Password changed" toast is triggered.** The mock-up uses a state flag. The real trigger (return parameter from Keycloak, or something else) isn't settled.
-4. **Errors are not designed:** failed upload, failed save, and returning from the sign-in page without changing the password. (Loading and a failed load are in R7; an expired session shows the dialog described in `timesheet.md`, assumed to work the same here.)
+4. **Errors not designed:** failed upload or save (by the app-wide rule: an inline message by the button plus a toast), and returning from the sign-in page without changing the password. Blank-signature errors are designed (R8-4). (Loading and a failed load are in R7; an expired session shows the dialog described in `timesheet.md`, assumed to work the same here.)
 5. **Leaving the set-up with unsaved input** (navigating away mid-draw or mid-edit): no warning is designed.
 6. **Manager view of this page** isn't in the screenshots (Approvals and Admin links in the top bar). The page body is assumed identical.
 7. **FR-26:** the signature change is logged server-side; no UI implication, noted for completeness.

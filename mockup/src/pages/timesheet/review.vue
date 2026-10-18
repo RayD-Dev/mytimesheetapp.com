@@ -4,6 +4,7 @@ export const order = 2
 export const states = {
   ready: 'Opened from Submit: one warning day, nothing ticked',
   ticked: 'Everything ticked, Submit timesheet enabled',
+  'submit-failed': "Submit timesheet didn't go through",
   'no-warnings': 'No warning days, so only the declaration',
   'no-signature': 'First submit: signature set-up first (FR-20)',
 }
@@ -28,10 +29,12 @@ const days = ref<Day[]>([])
 const checked = ref<Record<string, boolean>>({}) // warning days the employee has confirmed
 const confirmed = ref(false)
 const signature = ref<Signature | null>(null)
+const toast = useToast()
 watch(s, (st) => {
-  days.value = fortnight('draft').map((d) => (st === 'no-warnings' && warning(d) ? { ...d, finish: 1230 } : d)) // Thu fixed to 8:30 PM
-  checked.value = Object.fromEntries(days.value.filter(warning).map((d) => [d.date, st === 'ticked']))
-  confirmed.value = st === 'ticked'
+  days.value = fortnight('draft').map((d) => (st === 'no-warnings' && warning(d) ? { ...d, brk: 30, finish: 990 } : d)) // Thu fixed to 4:30 PM with a 30 min break (8h 30m), so no day warns
+  checked.value = Object.fromEntries(days.value.filter(warning).map((d) => [d.date, st === 'ticked' || st === 'submit-failed']))
+  confirmed.value = st === 'ticked' || st === 'submit-failed'
+  if (st === 'submit-failed') toast.add({ title: 'Timesheet not submitted', description: 'Check your connection and try again.', icon: 'i-lucide-circle-alert', color: 'error' })
   signature.value = st === 'no-signature' ? null : { kind: 'typed', text: me.name, style: 'aurore' }
 }, { immediate: true })
 
@@ -113,7 +116,7 @@ const submit = () => router.push({ path: '/timesheet', query: { state: 'submitte
           </template>
           <template v-else>
             <p class="mt-1 text-sm text-ink-muted">You need a signature before your first submit. It's saved to your profile and added to each timesheet you submit.</p>
-            <SignatureSetup :name="me.name" class="mt-4" @done="(sig) => (signature = sig)" />
+            <SignatureSetup :name="me.name" class="mt-4" @done="(sig) => (signature = sig)" @invalid="toast.add({ title: 'Signature not saved', description: 'Fix the highlighted field.', icon: 'i-lucide-circle-alert', color: 'error' })" />
           </template>
         </section>
 
@@ -121,6 +124,9 @@ const submit = () => router.push({ path: '/timesheet', query: { state: 'submitte
           <UCheckbox v-model="confirmed" label="I confirm these hours are correct" :ui="{ base: 'size-6', icon: 'size-5', label: 'text-base font-semibold' }" />
           <div class="mt-6 flex flex-col gap-3 sm:flex-row-reverse sm:items-start sm:justify-between">
             <div class="flex flex-col gap-2 sm:items-end">
+              <section v-if="s === 'submit-failed'" class="rounded-sm border border-danger/40 bg-danger/5 p-3" role="alert">
+                <p class="flex items-start gap-2 text-sm"><UIcon name="i-lucide-circle-alert" class="mt-0.5 size-4 shrink-0 text-danger" /> Your timesheet wasn't submitted. Check your connection and try again. Your hours are saved.</p>
+              </section>
               <UButton size="xl" class="h-11 w-full justify-center sm:w-auto sm:px-8" :disabled="missing.length > 0" @click="submit">Submit timesheet</UButton>
               <p v-if="missing.length" class="text-sm text-ink-muted sm:text-right">To submit, {{ missing.length > 1 ? `${missing.slice(0, -1).join(', ')} and ${missing.at(-1)}` : missing[0] }}.</p>
             </div>

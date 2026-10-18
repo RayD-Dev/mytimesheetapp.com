@@ -8,6 +8,49 @@ Decisions that should outlast the mock-up move into `DESIGN.md` (decision log) a
 
 ---
 
+## Frozen again · 18/10/2026 (R8)
+R8 approved: "LGTM". New screens added to `approved/`; replaced: Admin's full-page states (section renamed "Business name and logo"), sign-in `wrong-password` and `worst` (red fields), My timesheet `not-saved` (toast), and `timesheet-review--no-warnings-top` (R8-3).
+
+---
+
+## R8 · 18/10/2026 · Business logo and error messages
+**Look at:**
+- Sign-in with a logo: http://localhost:5180/#/sign-in?state=logo; `?state=worst` has a very wide logo
+- Error states (R8-4): the states listed under R8-4 below, e.g. http://localhost:5180/#/admin?state=add-employee-error
+- Admin: http://localhost:5180/#/admin?state=logo, `?state=logo-too-big`, and the default `?state=pdf-some` (no logo yet)
+
+**Question:** the error states (R8-4); anything else, or approve R8.
+
+**Feedback that started it**
+- "Lets have the business name configured by the admin, with an optional logo"
+
+**Changes**
+- R8-1 Admin's last section becomes **Business name and logo**, with a Name part (as R7-8) and a Logo part, marked optional:
+  - No logo: "Without one, the sign-in page shows the name on its own." and *Upload logo*.
+  - With a logo: a preview, *Replace logo* and *Remove logo*.
+  - "PNG or JPG, up to 1 MB. A logo on a white or clear background works best." SVG is left out because it can carry scripts.
+  - Too big: "That file is 3.2 MB. Logos can be up to 1 MB." The old logo, if any, stays.
+- R8-2 The sign-in pages show the logo with the business name, up to 48px high and 240px wide whatever its shape, so a wide or square logo never pushes the form down. Shown beside the name (decided); when a very wide logo leaves the name less than 160px, the name wraps underneath.
+- R8-3 Fixed a mock-data bug in an approved screenshot: `timesheet-review--no-warnings-top` showed a warning, because Thursday was "fixed" to 7:30 AM to 8:30 PM (13h 00m). Thursday is now 7:30 AM to 4:30 PM with a 30-minute break, and the screenshot is replaced.
+- R8-4 Basic error messages, one pattern everywhere:
+  - Form errors after pressing a button: the field turns red with a message under it, focus moves to the first bad field, and a toast says what didn't happen. Buttons stay enabled and check on press. The submit review keeps its approved disabled button and hint.
+  - Server or connection errors: a red inline message by the button, plus a toast. Never a toast alone.
+  - While typing (FR-09 on a day): the field turns red with its message, but no toast.
+  - Sign-in pages (Keycloak) have no toasts: red fields plus the tinted box above the form.
+  - New states: sign-in `password-error` and `forgot-error`; Admin `add-employee-error` and `pdf-failed`; One timesheet `reject-error` and `approve-failed`; Submit review `submit-failed`; My timesheet `day-error`; Profile `signature-error`. Also red fields on `wrong-password`, toasts on `logo-too-big` and `not-saved`.
+
+**Feedback**
+- R8-2: "Beside name thanks"
+- "LGTM" (R8 approved)
+- R8-3: "yes please"
+- R8-4: "Lets just include basic relevent error messages at the current moment thanks. If there is an error in a form or something it would make sense to have that field highlight red as well. I don't like toast only notification, it would be good to have field highlight + toast"
+
+**Decided → DESIGN.md**
+- The manager can add an optional logo (PNG or JPG, up to 1 MB, no SVG) next to the business name; the sign-in pages show it beside the name.
+- Errors: red field with a message plus a toast; failed actions get an inline message plus a toast; never a toast alone.
+
+---
+
 ## Frozen again · 18/10/2026
 R7 approved: "I like the sign in and admin pages". Its screens are added to `approved/`, and Admin's three full-page screenshots were replaced to show the Business name section.
 
@@ -37,7 +80,7 @@ Adds to the frozen R1–R6 screens; nothing approved was changed. Brief: `.claud
 - R7-4 No access: an employee opening a manager's page sees "This page is for managers", with their name and *Go to My timesheet*.
 - R7-5 Deactivated (FR-25): on the sign-in page, "This account has been deactivated. You can't sign in any more. If you think that's a mistake, ask your manager."
 - R7-6 My timesheet:
-  - Not saved (FE §7.1): the header status turns red, "Not saved", and a box explains that changes are kept on screen and retried, with *Try now*.
+  - Not saved (FE section 7.1): the header status turns red, "Not saved", and a box explains that changes are kept on screen and retried, with *Try now*.
   - Changed on another device: a dismissible notice at the top, "This timesheet was changed on another device. We loaded the latest version. Check your last change is still there."
 - R7-7 Loading and failed, shared by every page:
   - Loading shows the page title and ruled placeholder lines, and only appears if loading takes more than about 300 ms.

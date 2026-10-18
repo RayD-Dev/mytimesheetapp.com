@@ -26,11 +26,11 @@ npm run dev        # run in the background; Vite prints Local and Network URLs (
 
 - **Phone:** open the Network URL on a phone on the same Wi-Fi. On Windows, allow Node through the firewall for private networks if asked.
 - **Template:** a Vite + Vue + Nuxt UI app with:
-  - the Ledger token file and fonts (DESIGN.md §4)
+  - the Ledger token file and fonts (DESIGN.md section 4)
   - FR-11 formatters (`fmt.ts`)
   - fake data with realistic extremes and DD/MM/YYYY dates (`fixtures.ts`)
   - a mock bar (☰ Mock) for switching screens, states and variants, hidden in screenshots and board frames
-- **Pages mirror the site.** `src/pages/` has the same structure as the real app's routes (FE design §6): folders are URL segments, `index.vue` is a folder's own page, and `[name]` is a URL parameter. Each page is routed automatically and appears on the board. For this project:
+- **Pages mirror the site.** `src/pages/` has the same structure as the real app's routes (FE design section 6): folders are URL segments, `index.vue` is a folder's own page, and `[name]` is a URL parameter. Each page is routed automatically and appears on the board. For this project:
   ```
   src/pages/timesheet/index.vue                     → #/timesheet
   src/pages/timesheet/review.vue                    → #/timesheet/review   (a full-screen step in the real app)
@@ -68,7 +68,7 @@ const { state, v } = useMock(states)
 
 **Never cut corners on what the user judges:**
 - Real Nuxt UI components and tokens only (ui-craft). No raw colours or one-off sizes; the scanner checks.
-- The PRD's exact copy, labels and column order (DESIGN.md §2 and §6).
+- The PRD's exact copy, labels and column order (DESIGN.md sections 2 and 6).
 - Every state the requirements name, with realistic data: long names, 76h 30m totals, warnings, empty.
 - Real calendar facts. Generate dates in fixtures with code, or check every weekday with code; never type "Mon 06/10/2026" from memory. A fortnight that starts on the wrong weekday breaks the requirements and undermines trust in every screen.
 - Phone first at 375px, then desktop.
@@ -89,7 +89,7 @@ const { state, v } = useMock(states)
      - Add a `worst` state with realistic worst-case data, following Phases 1–4 of `../break-ui/SKILL.md` and its `CATALOG.md`: long and short names, 76h 30m totals, every status at once, empty, exactly one item.
      - Feed the data in through `fixtures.ts`, never by editing markup, and switch it from the existing mock bar rather than a new toggle.
      - Fix what's plainly a bug. Put the judgment calls, such as truncating or wrapping a name, to the user with the round.
-   - The guidelines review from ui-audit (pass 2) on the pages you changed. If motion changed, review it as ui-motion §6 describes.
+   - The guidelines review from ui-audit (pass 2) on the pages you changed. If motion changed, review it as ui-motion section 6 describes.
 
    The user's attention is for taste and flow, not for catching overflow bugs.
 5. **Present** in a few lines:

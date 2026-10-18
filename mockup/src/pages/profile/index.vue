@@ -5,6 +5,7 @@ export const states = {
   signed: 'Has a typed signature',
   drawn: 'Has a drawn signature',
   'no-signature': 'No signature yet',
+  'signature-error': 'Save pressed with no name typed',
   replacing: 'Replacing the signature',
   'password-changed': 'Back from the sign-in page after changing password',
   loading: 'R7-7: loading, slower than 300 ms',
@@ -34,10 +35,13 @@ const signature = ref<Signature | null>(null)
 const replacing = ref(false)
 const savedOn = ref('02/10/2026')
 watch(s, (st) => {
-  signature.value = st === 'no-signature' ? null : st === 'drawn' ? { kind: 'drawn', url: sample } : { kind: 'typed', text: me.name, style: 'aurore' }
+  signature.value = st === 'no-signature' || st === 'signature-error' ? null : st === 'drawn' ? { kind: 'drawn', url: sample } : { kind: 'typed', text: me.name, style: 'aurore' }
   replacing.value = st === 'replacing'
 }, { immediate: true })
 
+function invalidSignature() {
+  toast.add({ title: 'Signature not saved', description: 'Fix the highlighted field.', icon: 'i-lucide-circle-alert', color: 'error' })
+}
 function save(sig: Signature) {
   const first = !signature.value
   signature.value = sig
@@ -46,6 +50,7 @@ function save(sig: Signature) {
   toast.add({ title: first ? 'Signature saved' : 'Signature replaced', icon: 'i-lucide-circle-check', color: 'success' })
 }
 onMounted(() => {
+  if (s.value === 'signature-error') invalidSignature()
   if (s.value === 'password-changed') toast.add({ title: 'Password changed', description: 'Use your new password next time you sign in.', icon: 'i-lucide-circle-check', color: 'success' })
 })
 </script>
@@ -83,11 +88,13 @@ onMounted(() => {
             </p>
             <SignatureSetup
               :name="me.name"
+              :show-error="s === 'signature-error'"
               :action-label="signature ? 'Save new signature' : 'Save signature'"
               :cancellable="!!signature"
               :initial-style="signature?.kind === 'typed' ? signature.style : undefined"
               class="mt-4"
               @done="save"
+              @invalid="invalidSignature"
               @cancel="replacing = false"
             />
           </template>
