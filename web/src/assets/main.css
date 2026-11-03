@@ -1,2 +1,66 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
+
+/* Design tokens, ported unchanged from mockup/src/assets/main.css.
+   Direction: Ledger. Values and contrast checks in DESIGN.md section 4, which wins if the two ever differ. */
+@theme static {
+  --font-sans: "IBM Plex Sans", ui-sans-serif, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-signature: "La Belle Aurore", cursive; /* default typed-signature style; users pick 1 of 3 (src/signature.ts) */
+
+  --color-paper: #FAFAF8;          /* page */
+  --color-sheet: #FFFFFF;          /* raised surface */
+  --color-ink: #1B2330;            /* text, 15.8:1 */
+  --color-ink-muted: #586273;      /* secondary text, 6.2:1 */
+  --color-rule: #D5DAE1;           /* decorative lines */
+  --color-control-border: #7D8796; /* input outlines, 3.6:1 */
+  --color-accent: #2547A6;         /* primary action, focus, links, 8.3:1 */
+  --color-caution: #8A5300;        /* warning text, 5.7:1 on caution-bg */
+  --color-caution-bg: #FFF3D1;
+  --color-danger: #B3261E;
+  --color-approved: #1D7148;
+  --color-info: #2547A6;
+
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+:root {
+  --ui-primary: var(--color-accent);
+  --ui-warning: var(--color-caution);
+  --ui-error: var(--color-danger);
+  --ui-success: var(--color-approved);
+  --ui-info: var(--color-info);
+
+  --ui-text-highlighted: var(--color-ink);
+  --ui-text: var(--color-ink);
+  --ui-text-toned: var(--color-ink-muted);
+  --ui-text-muted: var(--color-ink-muted);
+  --ui-text-dimmed: var(--color-ink-muted);
+  --ui-bg: var(--color-sheet);
+  --ui-bg-muted: var(--color-paper);
+  --ui-border: var(--color-rule);
+  --ui-border-muted: var(--color-rule);
+  --ui-border-accented: var(--color-control-border);
+  --ui-bg-elevated: color-mix(in oklab, var(--color-ink) 5%, var(--color-sheet));   /* hover fills */
+  --ui-bg-accented: color-mix(in oklab, var(--color-ink) 10%, var(--color-sheet));
+  --ui-bg-inverted: var(--color-ink);       /* selected toggles, neutral solid buttons */
+  --ui-text-inverted: var(--color-sheet);
+  --ui-border-inverted: var(--color-ink);
+  --ui-radius: 0.125rem;
+
+  --duration-fast: 120ms;
+  --duration-base: 180ms;
+  --duration-slow: 240ms;
+  --duration-sheet: 360ms;
+  --motion-rise: 4px;
+  --motion-scale-from: 0.96;
+  --motion-sheet: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --motion-rise: 0px; --motion-scale-from: 1; --motion-sheet: 0%; }
+}
+
+body { background: var(--color-paper); color: var(--color-ink); }
