@@ -11,9 +11,9 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:components": "vitest run --passWithNoTests component.test",
-    "codegen": "node -e \"console.log('codegen: added in task 3')\"",
-    "codegen:check": "node -e \"console.log('codegen:check: added in task 3')\"",
-    "contract:lint": "npx @redocly/cli lint ../contract/openapi.yaml --config ../contract/redocly.yaml",
+    "codegen": "orval",
+    "codegen:check": "node src/shared/api/codegen-check.mjs",
+    "contract:lint": "redocly lint ../contract/openapi.yaml --config ../contract/redocly.yaml",
     "test:e2e": "playwright test --pass-with-no-tests",
     "audit": "node ../.claude/skills/ui-audit/scripts/slop-scan.mjs --strict src",
     "check:build": "vite build --sourcemap hidden && node scripts/check-build.mjs"
@@ -23,16 +23,19 @@
     "pinia": "4.1.0",
     "tailwindcss": "4.3.4",
     "vue": "3.5.44",
-    "vue-router": "5.4.0"
+    "vue-router": "5.4.0",
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1",
+    "@redocly/cli": "2.72.1",
     "@types/node": "^22.0.0",
     "@vitejs/plugin-vue": "6.0.10",
     "@vue/test-utils": "2.5.1",
     "eslint": "10.14.0",
     "eslint-plugin-vue": "10.12.0",
     "jsdom": "30.1.3",
+    "orval": "8.46.0",
     "typescript": "6.0.3",
     "typescript-eslint": "8.72.1",
     "vite": "8.3.5",
