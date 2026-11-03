@@ -1,0 +1,62 @@
+{
+  "note": "Shared by the web app and the back end. Minutes are exact whole minutes; decimals are hundredths rounded half-up as (minutes * 100 + 30) div 60. Times are 24-hour HH:mm, dates are YYYY-MM-DD.",
+  "formatting": [
+    { "description": "zero minutes", "minutes": 0, "duration": "0h 00m", "decimal": "0.00", "display": "0h 00m (0.00)" },
+    { "description": "under an hour keeps 0h", "minutes": 45, "duration": "0h 45m", "decimal": "0.75", "display": "0h 45m (0.75)" },
+    { "description": "whole hours keep two-digit minutes", "minutes": 480, "duration": "8h 00m", "decimal": "8.00", "display": "8h 00m (8.00)" },
+    { "description": "8h 10m is 8.1666 so rounds up to 8.17", "minutes": 490, "duration": "8h 10m", "decimal": "8.17", "display": "8h 10m (8.17)" },
+    { "description": "one minute is 0.0166 so rounds up to 0.02", "minutes": 1, "duration": "0h 01m", "decimal": "0.02", "display": "0h 01m (0.02)" },
+    { "description": "8h 20m is 8.3333 so rounds down to 8.33", "minutes": 500, "duration": "8h 20m", "decimal": "8.33", "display": "8h 20m (8.33)" },
+    { "description": "12h 30m", "minutes": 750, "duration": "12h 30m", "decimal": "12.50", "display": "12h 30m (12.50)" },
+    { "description": "fortnight total past 24 hours", "minutes": 4590, "duration": "76h 30m", "decimal": "76.50", "display": "76h 30m (76.50)" },
+    { "description": "three digit hours", "minutes": 6000, "duration": "100h 00m", "decimal": "100.00", "display": "100h 00m (100.00)" }
+  ],
+  "totals": [
+    {
+      "description": "three days of 8h 10m: each shows 8.17 but the week is 24h 30m (24.50)",
+      "dayMinutes": [490, 490, 490],
+      "totalMinutes": 1470,
+      "display": "24h 30m (24.50)"
+    },
+    {
+      "description": "nine days of 8h 30m make 76h 30m",
+      "dayMinutes": [510, 510, 510, 510, 510, 510, 510, 510, 510],
+      "totalMinutes": 4590,
+      "display": "76h 30m (76.50)"
+    },
+    { "description": "no days", "dayMinutes": [], "totalMinutes": 0, "display": "0h 00m (0.00)" }
+  ],
+  "clock": [
+    { "description": "midnight", "time": "00:00", "display": "12:00 AM" },
+    { "description": "morning", "time": "07:30", "display": "7:30 AM" },
+    { "description": "last minute of the morning", "time": "11:59", "display": "11:59 AM" },
+    { "description": "noon", "time": "12:00", "display": "12:00 PM" },
+    { "description": "afternoon", "time": "13:05", "display": "1:05 PM" },
+    { "description": "evening", "time": "20:30", "display": "8:30 PM" },
+    { "description": "last minute of the day", "time": "23:59", "display": "11:59 PM" }
+  ],
+  "warnings": [
+    { "description": "45 minutes is under the lower limit", "start": "09:00", "finish": "09:45", "breakMinutes": 0, "workedMinutes": 45, "warnings": ["SHORT_SHIFT"], "message": "This shift is 0h 45m. Is AM/PM correct?" },
+    { "description": "exactly 1h 00m warns (1 hour or less)", "start": "09:00", "finish": "10:00", "breakMinutes": 0, "workedMinutes": 60, "warnings": ["SHORT_SHIFT"], "message": "This shift is 1h 00m. Is AM/PM correct?" },
+    { "description": "1h 01m does not warn", "start": "09:00", "finish": "10:01", "breakMinutes": 0, "workedMinutes": 61, "warnings": [], "message": null },
+    { "description": "a normal 8h 00m day", "start": "09:00", "finish": "17:30", "breakMinutes": 30, "workedMinutes": 480, "warnings": [], "message": null },
+    { "description": "exactly 12h 00m does not warn (more than 12 hours)", "start": "07:00", "finish": "19:00", "breakMinutes": 0, "workedMinutes": 720, "warnings": [], "message": null },
+    { "description": "12h 01m warns", "start": "07:00", "finish": "19:01", "breakMinutes": 0, "workedMinutes": 721, "warnings": ["LONG_SHIFT"], "message": "This shift is 12h 01m. Is AM/PM correct?" },
+    { "description": "12h 30m after a 30 minute break warns", "start": "07:30", "finish": "20:30", "breakMinutes": 30, "workedMinutes": 750, "warnings": ["LONG_SHIFT"], "message": "This shift is 12h 30m. Is AM/PM correct?" }
+  ],
+  "dayValidation": [
+    { "description": "an untouched day is valid and empty", "today": "2026-10-15", "day": { "date": "2026-10-08", "start": null, "breakMinutes": 0, "finish": null }, "errors": [], "workedMinutes": 0 },
+    { "description": "a complete day", "today": "2026-10-15", "day": { "date": "2026-10-08", "start": "07:30", "breakMinutes": 30, "finish": "16:30" }, "errors": [], "workedMinutes": 510 },
+    { "description": "start with no finish", "today": "2026-10-15", "day": { "date": "2026-10-07", "start": "07:30", "breakMinutes": 0, "finish": null }, "errors": [{ "field": "finish", "code": "FINISH_MISSING" }], "workedMinutes": 0 },
+    { "description": "finish with no start", "today": "2026-10-15", "day": { "date": "2026-10-07", "start": null, "breakMinutes": 0, "finish": "16:30" }, "errors": [{ "field": "start", "code": "START_MISSING" }], "workedMinutes": 0 },
+    { "description": "a break with no times needs both times", "today": "2026-10-15", "day": { "date": "2026-10-07", "start": null, "breakMinutes": 30, "finish": null }, "errors": [{ "field": "start", "code": "START_MISSING" }, { "field": "finish", "code": "FINISH_MISSING" }], "workedMinutes": 0 },
+    { "description": "finish before start", "today": "2026-10-15", "day": { "date": "2026-10-13", "start": "16:30", "breakMinutes": 0, "finish": "07:30" }, "errors": [{ "field": "finish", "code": "FINISH_BEFORE_START" }], "workedMinutes": 0 },
+    { "description": "finish equal to start is not after it", "today": "2026-10-15", "day": { "date": "2026-10-13", "start": "09:00", "breakMinutes": 0, "finish": "09:00" }, "errors": [{ "field": "finish", "code": "FINISH_BEFORE_START" }], "workedMinutes": 0 },
+    { "description": "break as long as the shift", "today": "2026-10-15", "day": { "date": "2026-10-13", "start": "09:00", "breakMinutes": 60, "finish": "10:00" }, "errors": [{ "field": "breakMinutes", "code": "BREAK_TOO_LONG" }], "workedMinutes": 0 },
+    { "description": "break longer than the shift", "today": "2026-10-15", "day": { "date": "2026-10-13", "start": "09:00", "breakMinutes": 90, "finish": "10:00" }, "errors": [{ "field": "breakMinutes", "code": "BREAK_TOO_LONG" }], "workedMinutes": 0 },
+    { "description": "a break one minute shorter than the shift is valid", "today": "2026-10-15", "day": { "date": "2026-10-13", "start": "09:00", "breakMinutes": 59, "finish": "10:00" }, "errors": [], "workedMinutes": 1 },
+    { "description": "today can be filled in", "today": "2026-10-15", "day": { "date": "2026-10-15", "start": "07:30", "breakMinutes": 0, "finish": "08:30" }, "errors": [], "workedMinutes": 60 },
+    { "description": "a future day with hours is refused", "today": "2026-10-15", "day": { "date": "2026-10-16", "start": "07:30", "breakMinutes": 0, "finish": "16:30" }, "errors": [{ "field": "date", "code": "FUTURE_DAY" }], "workedMinutes": 0 },
+    { "description": "a future day left empty is valid", "today": "2026-10-15", "day": { "date": "2026-10-16", "start": null, "breakMinutes": 0, "finish": null }, "errors": [], "workedMinutes": 0 }
+  ]
+}
