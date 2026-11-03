@@ -1,0 +1,92 @@
+{
+  "realm": "timesheet",
+  "enabled": true,
+  "sslRequired": "external",
+  "loginTheme": "timesheet",
+  "displayName": "",
+  "registrationAllowed": false,
+  "registrationEmailAsUsername": true,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "editUsernameAllowed": false,
+  "rememberMe": false,
+  "resetPasswordAllowed": true,
+  "verifyEmail": false,
+  "internationalizationEnabled": false,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 28800,
+  "bruteForceProtected": true,
+  "permanentLockout": false,
+  "failureFactor": 5,
+  "waitIncrementSeconds": 60,
+  "maxFailureWaitSeconds": 900,
+  "maxDeltaTimeSeconds": 43200,
+  "passwordPolicy": "length(8) and digits(1) and regexPattern(.*[A-Za-z].*)",
+  "smtpServer": {
+    "host": "mailpit",
+    "port": "1025",
+    "from": "no-reply@timesheet.test",
+    "fromDisplayName": "Timesheets",
+    "auth": "false",
+    "ssl": "false",
+    "starttls": "false"
+  },
+  "roles": {
+    "realm": [
+      { "name": "employee", "description": "Records and submits timesheets" },
+      { "name": "manager", "description": "Approves timesheets and administers the business" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "timesheet-web",
+      "name": "Timesheets",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "local-dev-only-not-a-real-secret",
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "baseUrl": "http://localhost:5173/",
+      "redirectUris": ["http://localhost:8080/login/oauth2/code/keycloak"],
+      "webOrigins": [],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
+    }
+  ],
+  "users": [
+    {
+      "username": "priya.rk@example.com",
+      "email": "priya.rk@example.com",
+      "firstName": "Priya",
+      "lastName": "Rao-Kumar",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "timesheet-test-1", "temporary": false }],
+      "realmRoles": ["employee"]
+    },
+    {
+      "username": "sam.manager@example.com",
+      "email": "sam.manager@example.com",
+      "firstName": "Sam",
+      "lastName": "Manager",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "timesheet-test-1", "temporary": false }],
+      "realmRoles": ["employee", "manager"]
+    },
+    {
+      "username": "dana.former@example.com",
+      "email": "dana.former@example.com",
+      "firstName": "Dana",
+      "lastName": "Former",
+      "enabled": false,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "timesheet-test-1", "temporary": false }],
+      "realmRoles": ["employee"]
+    }
+  ]
+}

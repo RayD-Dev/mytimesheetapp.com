@@ -1,0 +1,37 @@
+# Local Keycloak for developing the sign-in theme (brief C-2). Dev mode, test values only.
+# Keycloak: http://localhost:8180 (admin console login: admin / admin, local only)
+# Mail catcher: http://localhost:8025 (reset emails land here, nothing leaves the machine)
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.8.0
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_HTTP_PORT: "8180"
+      KC_HEALTH_ENABLED: "true"
+      # Theme edits show on reload instead of after a restart.
+      KC_SPI_THEME_CACHE_THEMES: "false"
+      KC_SPI_THEME_CACHE_TEMPLATES: "false"
+      KC_SPI_THEME_STATIC_MAX_AGE: "-1"
+    ports:
+      - "127.0.0.1:8180:8180"
+      - "127.0.0.1:9000:9000"
+    volumes:
+      - ./theme/timesheet:/opt/keycloak/themes/timesheet:ro
+      - ./realm:/opt/keycloak/data/import:ro
+    depends_on:
+      - mailpit
+    healthcheck:
+      # The Keycloak image has no curl; open the management port with bash.
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /health/ready HTTP/1.0\r\n\r\n' >&3 && grep -q '\"UP\"' <&3"]
+      interval: 5s
+      timeout: 5s
+      retries: 40
+      start_period: 20s
+
+  mailpit:
+    image: axllent/mailpit:v1.27.0
+    ports:
+      - "127.0.0.1:8025:8025"
+      - "127.0.0.1:1025:1025"
