@@ -28,21 +28,22 @@ Source: `contract/openapi.yaml`, written in task 1 and agreed with the back-end 
 
 | Endpoint | Fields used | Notes |
 |---|---|---|
-| `GET /api/v1/me` | name, roles, today (business time zone), `payScheduleSet`, `signatureSet`, `currentFortnightStart`, `previousFortnightStart`, `periodLengthDays`, `idleExpiresAt`, `absoluteExpiresAt` | Sets the CSRF cookie before the first write. 401 when signed out |
-| `GET /api/v1/session/login?returnTo=` | `returnTo` | Starts sign-in. `returnTo` must be a relative path starting with `/`, checked by the server (open-redirect guard); anything else goes to `/timesheet` |
-| `POST /api/v1/session/logout` | none | Needs the CSRF header. Clears the session here and at Keycloak |
-| `POST /api/v1/session/keepalive` | none | *Stay signed in* from the idle warning. Needs the CSRF header |
-| `GET /api/v1/session/change-password` | none | Redirects to Keycloak's password page (`kc_action=UPDATE_PASSWORD`). On success returns to `/profile?passwordChanged=1`; on cancel or error returns to `/profile` with no flag |
-| `GET`, `PUT /api/v1/me/signature` | image (PNG), kind, text, style, `savedAt` | `PUT` takes all four and replaces them together |
-| `GET /api/v1/me/timesheets/{fortnightStart}` | status, version, rejection reason, deletion date, days (start, break, finish, minutes, warnings), week and fortnight totals | Totals and warnings from the server |
-| `PUT /api/v1/me/timesheets/{fortnightStart}/days/{date}` | version; start, break, finish | Returns the new version, the day's figures and warnings, the week and fortnight totals, and the deletion date if any |
-| `DELETE /api/v1/me/timesheets/{fortnightStart}` | version | Clear. Returns the deletion date for a rejected timesheet |
-| `POST /api/v1/me/timesheets/{fortnightStart}/submit` | version, declaration, warning-day ticks | Submitted data is the version the page last received |
+| `GET /api/v1/me` | name, roles, today (business time zone), `payScheduleSet`, `signatureSet`, `currentFortnightStart`, `previousFortnightStart`, `periodLengthDays`, `idleExpiresAt`, `absoluteExpiresAt`, `serverNow` | Sets the CSRF cookie before the first write. 401 when signed out. Does not reset the idle timer |
+| `GET /api/v1/session/login?returnTo=` | `returnTo` | `navigation` operation: the front end sets `location`, it is not a fetch call. The server sanitises `returnTo` (relative path, no `//`, no backslash); anything else goes to `/timesheet`. Never answers 400 or 401 |
+| `POST /api/v1/session/logout` | none | Needs the CSRF header. Idempotent: 204 even with no session. Clears the session here and at Keycloak |
+| `POST /api/v1/session/keepalive` | none | *Stay signed in* from the idle warning. Needs the CSRF header. Returns the three expiry fields; never extends past `absoluteExpiresAt` |
+| `GET /api/v1/session/change-password` | none | `navigation` operation. Redirects to Keycloak's password page (`kc_action=UPDATE_PASSWORD`); with no session it redirects to sign-in with `returnTo=/profile`. On success returns to `/profile?passwordChanged=1`; on cancel or error to `/profile` |
+| `GET`, `PUT /api/v1/me/signature` | image (PNG, at most 300000 characters), kind (`typed` or `drawn`), text, style, `savedAt` | `PUT` takes image, kind, text and style together and returns the saved signature (200). `typed` needs text and style |
+| `GET /api/v1/me/timesheets/{fortnightStart}` | status, version, `periodStart`, `periodEnd`, rejection reason, deletion date, days (start, break, finish, minutes, warnings), totals (`weeks` list of `{weekStart, minutes}`, `fortnightMinutes`) | Totals and warnings from the server. The current and previous fortnights always return 200 (an empty draft, version 0); other fortnights return 404 |
+| `PUT /api/v1/me/timesheets/{fortnightStart}/days/{date}` | version; start, break, finish | Returns the new version, the day's figures and warnings, the totals, the three expiry fields and the deletion date if any |
+| `DELETE /api/v1/me/timesheets/{fortnightStart}?version=` | version (query parameter, no body) | Clear. Returns the deletion date for a rejected timesheet |
+| `POST /api/v1/me/timesheets/{fortnightStart}/submit` | version, declaration, warning-day ticks | Submitted data is the version the page last received. Returns the updated timesheet (200) |
 
-Error bodies carry a stable `code` so the client maps them to the designed messages: `VERSION_CONFLICT` (409), `SIGNATURE_REQUIRED`, `NO_HOURS`, `WARNING_TICKS_MISMATCH`, `PAY_SCHEDULE_NOT_SET` (422, one code each), and per-field codes on 400 (`FINISH_BEFORE_START`, `BREAK_TOO_LONG`, `FUTURE_DAY`, `START_MISSING`, `FINISH_MISSING`).
+Error bodies carry a stable `code` and are one closed union discriminated by it, so the client maps them to the designed messages: `VERSION_CONFLICT` and `TIMESHEET_NOT_EDITABLE` (409), `SIGNATURE_REQUIRED`, `NO_HOURS`, `WARNING_TICKS_MISMATCH`, `PAY_SCHEDULE_NOT_SET` (422, one code each), `BAD_REQUEST` (400, body cannot be parsed), `CSRF_TOKEN_INVALID` (403), and per-field codes on 400 `VALIDATION_FAILED` (`FINISH_BEFORE_START`, `BREAK_TOO_LONG`, `FUTURE_DAY`, `START_MISSING`, `FINISH_MISSING`; fields `start`, `breakMinutes`, `finish`, `date`, `version`).
 
-- Every write (`PUT`, `POST`, `DELETE`) declares the CSRF header (name confirmed in task 1 against Spring's single-page-app setting). The mock refuses a write without it with 403, as the real API does (AC-29).
-- Every endpoint declares its 401. Mock and real API return the same body (AC-22).
+- Every write (`PUT`, `POST`, `DELETE`) carries the CSRF header, declared once as a second security scheme (`csrfHeader`) rather than a parameter, so only `client.ts` adds it. The mock refuses a write without it with 403, as the real API does (AC-29).
+- `/api/**` never redirects. An invalid or expired session returns 401 before any CSRF check, so a lapsed session never shows as a 403. Every endpoint except the two `navigation` ones declares its 401 and a `default` error response. Mock and real API return the same body (AC-22).
+- All `date-time` values are UTC with a `Z` suffix. The idle warning counts down against `serverNow`, not the browser clock.
 - Shared hours cases live in `contract/fixtures/hours-cases.json`, which the back end also reads.
 
 If the back-end plan changes any of this, the contract changes first and every generated file is regenerated.
@@ -53,7 +54,7 @@ Each task is one agent's work (5 points at most). Every task's check includes th
 
 | # | Task | Agent | Owns files | Covers | Waits for | Status |
 |---|---|---|---|---|---|---|
-| 1 | Slice 1 OpenAPI contract | implementer, main session reviews | `contract/openapi.yaml` | AC-26, AC-29, AC-22 | — | Todo |
+| 1 | Slice 1 OpenAPI contract | implementer, main session reviews | `contract/openapi.yaml` | AC-26, AC-29, AC-22 | — | Done (branch task/01-contract) |
 | 2 | Scaffold `web/`, scripts, production-build check | implementer | `web/` config, `package.json`, lint and build config | D-3 | — | Todo |
 | 3 | Generate types, client and schemas; client wrapper | implementer, main session reviews | `web/orval.config.ts`, `web/src/shared/api/` | AC-26 | 1, 2 | Todo |
 | 4 | MSW mock API with seeded states | implementer | `web/src/mocks/` | AC-22, AC-23, AC-29, AC-11, AC-26 | 3 | Todo |
@@ -114,6 +115,7 @@ Rules in `.claude/skills/ui-e2e/references/engineering-practices.md`; `standards
 
 - **Read first:** `contract/openapi.yaml`; standards "Defensive vs maintainable (API checks)".
 - **Do:** `web/orval.config.ts` generating into `web/src/shared/api/generated/` (types, client functions, zod schemas). `web/src/shared/api/client.ts` is the only place requests are sent: it adds the CSRF header from the cookie on writes, checks every response and every request body against its zod schema, raises one typed "unauthorised" event on 401 (task 6 listens), and has a `keepalive` send mode that still adds the CSRF header. Confirm with the pinned orval that the checks hook in without hand-written glue; if not, stop and report.
+- **Also:** exclude the `navigation` tag in `orval.config.ts` (login and change-password are page navigations, not fetch calls); add `@redocly/cli` as a pinned devDependency and use it in `contract:lint` instead of `npx`; check the generated zod accepts `Z` date-times, discriminated error unions and the `csrfHeader` scheme without a header argument, and raise it if not.
 - **Tests first:** header present on `PUT`/`POST`/`DELETE`, absent on `GET`; a response failing its schema throws; a 401 raises the event; the `keepalive` mode carries the header.
 - **Check:** `pnpm -C web codegen && pnpm -C web codegen:check && pnpm -C web typecheck && pnpm -C web lint && pnpm -C web test`
 - **Done when:** `codegen:check` passes on a clean tree; nothing under `generated/` is hand-edited; no other file calls `fetch`.
