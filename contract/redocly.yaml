@@ -1,0 +1,7 @@
+extends:
+  - recommended
+
+rules:
+  # The redirect endpoints (sign-in, change password) answer only 302, so they have no 2xx or 4xx response.
+  operation-2xx-response: off
+  operation-4xx-response: off
