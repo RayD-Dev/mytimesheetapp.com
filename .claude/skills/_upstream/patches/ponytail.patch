@@ -1,0 +1,10 @@
+--- a/SKILL.md
++++ b/SKILL.md
+@@ -8,6 +8,7 @@
+   over-engineering or bloat. Levels: lite, full (default), ultra.
+ argument-hint: "[lite|full|ultra|off]"
+ license: MIT
++disable-model-invocation: true
+ ---
+ 
+ # Ponytail

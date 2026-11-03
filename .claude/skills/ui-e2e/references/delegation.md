@@ -10,6 +10,7 @@ The main session plans, decides and reviews. Sub-agents on cheaper models do the
 | `mechanic` | Haiku | Exact-spec edits: fixtures and worst-case data, renames, wiring generated API code, commit messages from a diff |
 | `runner` | Haiku | The check commands: type-check, lint, tests, build, the ui-audit scan, ui-visual-check captures. Failures come back summarised |
 | `Explore` | Haiku | Finding things: where a component is used, what the mock-up page shows in a state, what a doc section says |
+| `general-purpose` with `model: opus`, `effort: high` | Opus 5.5 | Only the ponytail and pstack skill jobs: `ponytail-review`, `ponytail-audit`, `interrogate`, `architect`, `how`, `why`, `reflect`. Read-only; findings come back to the main session (`engineering-practices.md`, "Who runs them") |
 
 **Stays in the main session:**
 - briefs, plans and settling ambiguity
@@ -27,7 +28,7 @@ Sub-agents don't see the conversation, so every brief names:
 
 1. **Files:** what to read first and what it may change. Each task owns its files.
 2. **The task:** what to build, the decisions already made, and the acceptance criteria it covers, copied in rather than referenced vaguely.
-3. **Rules to follow:** `.claude/skills/ui-e2e/references/standards.md`. For UI, also `ui-craft` and `ui-motion`, the page's `docs/screens/<page>.md`, and its approved screenshots in `mockup/approved/`.
+3. **Rules to follow:** `.claude/skills/ui-e2e/references/standards.md`, plus up to four ponytail or pstack skill files for this task (`references/engineering-practices.md`, "How a brief uses them"). For UI, also `ui-craft` and `ui-motion`, the page's `docs/screens/<page>.md`, and its approved screenshots in `mockup/approved/`.
 4. **The check command**, and what passing means.
 5. **What to send back:** files changed with one line each, the check result, and anything skipped or uncertain. No full logs or pasted code.
 
@@ -38,7 +39,7 @@ If the plan task is written well, the brief is mostly that task copied in. A bri
 Check, in this order:
 1. The diff touches only the task's files.
 2. Tests exist for each acceptance criterion it covers, and they test behaviour by role and label.
-3. The standards ranking was followed where it applies. Look especially for hand-written API types, guards for impossible states, comments that restate code, and long expressions.
+3. The standards ranking was followed where it applies. Look especially for hand-written API types, guards for impossible states, comments that restate code, and long expressions. Run `ponytail-review` on the diff for bugs, missing tests and code that needn't exist.
 4. No dependency was added that the plan didn't name.
 5. For UI: the screen matches the approved screenshot at both widths (ui-visual-check), or the difference is listed in the spec's "Changes since approval".
 

@@ -16,6 +16,14 @@
     "vercel-agent-skills": {
       "repo": "https://github.com/vercel-labs/agent-skills.git",
       "license": "MIT"
+    },
+    "ponytail": {
+      "repo": "https://github.com/DietrichGebert/ponytail.git",
+      "license": "MIT"
+    },
+    "pstack": {
+      "repo": "https://github.com/backnotprop/pstack.git",
+      "license": "MIT"
     }
   },
   "skills": {
@@ -130,6 +138,276 @@
       ],
       "patch": "patches/web-design-guidelines.patch",
       "localChanges": "Reads the pinned command.md instead of fetching the rules from the web on every review. AGENTS.md is stored as build-rules.md so Claude Code doesn't auto-load it whenever a file in this folder is read."
+    },
+    "ponytail": {
+      "pins": { "ponytail": "96608e078b2d5ea607c5c3b8b5a54d1c1fba6846" },
+      "upstreamDir": { "source": "ponytail", "path": "skills/ponytail" },
+      "files": [
+        { "to": "SKILL.md", "source": "ponytail", "path": "skills/ponytail/SKILL.md" },
+        { "to": "LICENSE", "source": "ponytail", "path": "LICENSE" }
+      ],
+      "patch": "patches/ponytail.patch",
+      "localChanges": "Manual-only (disable-model-invocation): read when a brief or the ui-e2e skill names it."
+    },
+    "ponytail-review": {
+      "pins": { "ponytail": "96608e078b2d5ea607c5c3b8b5a54d1c1fba6846" },
+      "upstreamDir": { "source": "ponytail", "path": "skills/ponytail-review" },
+      "files": [
+        { "to": "SKILL.md", "source": "ponytail", "path": "skills/ponytail-review/SKILL.md" },
+        { "to": "LICENSE", "source": "ponytail", "path": "LICENSE" }
+      ],
+      "patch": "patches/ponytail-review.patch",
+      "localChanges": "Manual-only (disable-model-invocation): read when a brief or the ui-e2e skill names it."
+    },
+    "ponytail-audit": {
+      "pins": { "ponytail": "96608e078b2d5ea607c5c3b8b5a54d1c1fba6846" },
+      "upstreamDir": { "source": "ponytail", "path": "skills/ponytail-audit" },
+      "files": [
+        { "to": "SKILL.md", "source": "ponytail", "path": "skills/ponytail-audit/SKILL.md" },
+        { "to": "LICENSE", "source": "ponytail", "path": "LICENSE" }
+      ],
+      "patch": "patches/ponytail-audit.patch",
+      "localChanges": "Manual-only (disable-model-invocation): read when a brief or the ui-e2e skill names it."
+    },
+    "ponytail-debt": {
+      "pins": { "ponytail": "96608e078b2d5ea607c5c3b8b5a54d1c1fba6846" },
+      "upstreamDir": { "source": "ponytail", "path": "skills/ponytail-debt" },
+      "files": [
+        { "to": "SKILL.md", "source": "ponytail", "path": "skills/ponytail-debt/SKILL.md" },
+        { "to": "LICENSE", "source": "ponytail", "path": "LICENSE" }
+      ],
+      "patch": "patches/ponytail-debt.patch",
+      "localChanges": "Manual-only (disable-model-invocation): read when a brief or the ui-e2e skill names it."
+    },
+    "typescript-best-practices": {
+      "pins": { "pstack": "6c75f4e67546c2ddbf9634734c1e3ebbea34861a" },
+      "upstreamDir": { "source": "pstack", "path": "skills/typescript-best-practices" },
+      "files": [
+        { "to": "SKILL.md", "source": "pstack", "path": "skills/typescript-best-practices/SKILL.md" },
+        { "to": "references/patterns.md", "source": "pstack", "path": "skills/typescript-best-practices/references/patterns.md" },
+        { "to": "LICENSE", "source": "pstack", "path": "LICENSE" }
+      ]
+    },
+    "tdd": {
+      "pins": { "pstack": "6c75f4e67546c2ddbf9634734c1e3ebbea34861a" },
+      "upstreamDir": { "source": "pstack", "path": "skills/tdd" },
+      "files": [
+        { "to": "SKILL.md", "source": "pstack", "path": "skills/tdd/SKILL.md" },
+        { "to": "LICENSE", "source": "pstack", "path": "LICENSE" }
+      ]
+    },
+    "blast-radius": {
+      "pins": { "pstack": "6c75f4e67546c2ddbf9634734c1e3ebbea34861a" },
+      "upstreamDir": { "source": "pstack", "path": "skills/blast-radius" },
+      "files": [
+        { "to": "SKILL.md", "source": "pstack", "path": "skills/blast-radius/SKILL.md" },
+        { "to": "LICENSE", "source": "pstack", "path": "LICENSE" }
+      ]
+    },
+    "interrogate": {
+      "pins": { "pstack": "6c75f4e67546c2ddbf9634734c1e3ebbea34861a" },
+      "upstreamDir": { "source": "pstack", "path": "skills/interrogate" },
+      "files": [
+        { "to": "SKILL.md", "source": "pstack", "path": "skills/interrogate/SKILL.md" },
+        { "to": "LICENSE", "source": "pstack", "path": "LICENSE" }
+      ]
+    },
+    "how": {
+      "pins": { "pstack": "6c75f4e67546c2ddbf9634734c1e3ebbea34861a" },
+      "upstreamDir": { "source": "pstack", "path": "skills/how" },
+      "files": [
+        { "to": "SKILL.md", "source": "pstack", "path": "skills/how/SKILL.md" },
+        { "to": "references/explainer-prompt.md", "source": "pstack", "path": "skills/how/references/explainer-prompt.md" },
+        { "to": "references/explorer-prompt.md", "source": "pstack", "path": "skills/how/references/explorer-prompt.md" },
+        { "to": "LICENSE", "source": "pstack", "path": "LICENSE" }
+      ]
+    },
+    "why": {
+      "pins": { "pstack": "6c75f4e67546c2ddbf9634734c1e3ebbea34861a" },
+      "upstreamDir": { "source": "pstack", "path": "skills/why" },
+      "files": [
+        { "to": "SKILL.md", "source": "pstack", "path": "skills/why/SKILL.md" },
+        { "to": "references/epistemics.md", "source": "pstack", "path": "skills/why/references/epistemics.md" },
+        { "to": "references/investigator-prompt.md", "source": "pstack", "path": "skills/why/references/investigator-prompt.md" },
+        { "to": "references/source-playbook.md", "source": "pstack", "path": "skills/why/references/source-playbook.md" },
+        { "to": "references/sources/code-archaeology.md", "source": "pstack", "path": "skills/why/references/sources/code-archaeology.md" },
+        { "to": "references/sources/databricks.md", "source": "pstack", "path": "skills/why/references/sources/databricks.md" },
+        { "to": "references/sources/datadog.md", "source": "pstack", "path": "skills/why/references/sources/datadog.md" },
+        { "to": "references/sources/incident-postmortem.md", "source": "pstack", "path": "skills/why/references/sources/incident-postmortem.md" },
+        { "to": "references/sources/linear.md", "source": "pstack", "path": "skills/why/references/sources/linear.md" },
+        { "to": "references/sources/notion.md", "source": "pstack", "path": "skills/why/references/sources/notion.md" },
+        { "to": "references/sources/sentry.md", "source": "pstack", "path": "skills/why/references/sources/sentry.md" },
+        { "to": "references/sources/slack.md", "source": "pstack", "path": "skills/why/references/sources/slack.md" },
+        { "to": "references/synthesizer-prompt.md", "source": "pstack", "path": "skills/why/references/synthesizer-prompt.md" },
+        { "to": "LICENSE", "source": "pstack", "path": "LICENSE" }
+      ]
+    },
+    "architect": {
+      "pins": { "pstack": "6c75f4e67546c2ddbf9634734c1e3ebbea34861a" },
+      "upstreamDir": { "source": "pstack", "path": "skills/architect" },
+      "files": [
+        { "to": "SKILL.md", "source": "pstack", "path": "skills/architect/SKILL.md" },
+        { "to": "references/design-red-flags.md", "source": "pstack", "path": "skills/architect/references/design-red-flags.md" },
+        { "to": "references/rationale-template.md", "source": "pstack", "path": "skills/architect/references/rationale-template.md" },
+        { "to": "references/runner-prompt.md", "source": "pstack", "path": "skills/architect/references/runner-prompt.md" },
+        { "to": "LICENSE", "source": "pstack", "path": "LICENSE" }
+      ]
+    },
+    "arena": {
+      "pins": { "pstack": "6c75f4e67546c2ddbf9634734c1e3ebbea34861a" },
+      "upstreamDir": { "source": "pstack", "path": "skills/arena" },
+      "files": [
+        { "to": "SKILL.md", "source": "pstack", "path": "skills/arena/SKILL.md" },
+        { "to": "LICENSE", "source": "pstack", "path": "LICENSE" }
+      ]
+    },
+    "unslop": {
+      "pins": { "pstack": "6c75f4e67546c2ddbf9634734c1e3ebbea34861a" },
+      "upstreamDir": { "source": "pstack", "path": "skills/unslop" },
+      "files": [
+        { "to": "SKILL.md", "source": "pstack", "path": "skills/unslop/SKILL.md" },
+        { "to": "LICENSE", "source": "pstack", "path": "LICENSE" }
+      ]
+    },
+    "technical-writing": {
+      "pins": { "pstack": "6c75f4e67546c2ddbf9634734c1e3ebbea34861a" },
+      "upstreamDir": { "source": "pstack", "path": "skills/technical-writing" },
+      "files": [
+        { "to": "SKILL.md", "source": "pstack", "path": "skills/technical-writing/SKILL.md" },
+        { "to": "LICENSE", "source": "pstack", "path": "LICENSE" }
+      ]
+    },
+    "reflect": {
+      "pins": { "pstack": "6c75f4e67546c2ddbf9634734c1e3ebbea34861a" },
+      "upstreamDir": { "source": "pstack", "path": "skills/reflect" },
+      "files": [
+        { "to": "SKILL.md", "source": "pstack", "path": "skills/reflect/SKILL.md" },
+        { "to": "references/divergent-reviewer.md", "source": "pstack", "path": "skills/reflect/references/divergent-reviewer.md" },
+        { "to": "references/judgment-reviewer.md", "source": "pstack", "path": "skills/reflect/references/judgment-reviewer.md" },
+        { "to": "references/synthesizer.md", "source": "pstack", "path": "skills/reflect/references/synthesizer.md" },
+        { "to": "references/tooling-reviewer.md", "source": "pstack", "path": "skills/reflect/references/tooling-reviewer.md" },
+        { "to": "LICENSE", "source": "pstack", "path": "LICENSE" }
+      ]
+    },
+    "correct": {
+      "pins": { "pstack": "6c75f4e67546c2ddbf9634734c1e3ebbea34861a" },
+      "upstreamDir": { "source": "pstack", "path": "skills/correct" },
+      "files": [
+        { "to": "SKILL.md", "source": "pstack", "path": "skills/correct/SKILL.md" },
+        { "to": "LICENSE", "source": "pstack", "path": "LICENSE" }
+      ]
+    },
+    "ketchup": {
+      "pins": { "pstack": "6c75f4e67546c2ddbf9634734c1e3ebbea34861a" },
+      "upstreamDir": { "source": "pstack", "path": "skills/ketchup" },
+      "files": [
+        { "to": "SKILL.md", "source": "pstack", "path": "skills/ketchup/SKILL.md" },
+        { "to": "LICENSE", "source": "pstack", "path": "LICENSE" }
+      ]
+    },
+    "principle-prove-it-works": {
+      "pins": { "pstack": "6c75f4e67546c2ddbf9634734c1e3ebbea34861a" },
+      "upstreamDir": { "source": "pstack", "path": "skills/principle-prove-it-works" },
+      "files": [
+        { "to": "SKILL.md", "source": "pstack", "path": "skills/principle-prove-it-works/SKILL.md" },
+        { "to": "LICENSE", "source": "pstack", "path": "LICENSE" }
+      ]
+    },
+    "principle-test-behavior-not-implementation": {
+      "pins": { "pstack": "6c75f4e67546c2ddbf9634734c1e3ebbea34861a" },
+      "upstreamDir": { "source": "pstack", "path": "skills/principle-test-behavior-not-implementation" },
+      "files": [
+        { "to": "SKILL.md", "source": "pstack", "path": "skills/principle-test-behavior-not-implementation/SKILL.md" },
+        { "to": "LICENSE", "source": "pstack", "path": "LICENSE" }
+      ]
+    },
+    "principle-boundary-discipline": {
+      "pins": { "pstack": "6c75f4e67546c2ddbf9634734c1e3ebbea34861a" },
+      "upstreamDir": { "source": "pstack", "path": "skills/principle-boundary-discipline" },
+      "files": [
+        { "to": "SKILL.md", "source": "pstack", "path": "skills/principle-boundary-discipline/SKILL.md" },
+        { "to": "LICENSE", "source": "pstack", "path": "LICENSE" }
+      ]
+    },
+    "principle-type-system-discipline": {
+      "pins": { "pstack": "6c75f4e67546c2ddbf9634734c1e3ebbea34861a" },
+      "upstreamDir": { "source": "pstack", "path": "skills/principle-type-system-discipline" },
+      "files": [
+        { "to": "SKILL.md", "source": "pstack", "path": "skills/principle-type-system-discipline/SKILL.md" },
+        { "to": "LICENSE", "source": "pstack", "path": "LICENSE" }
+      ]
+    },
+    "principle-fix-root-causes": {
+      "pins": { "pstack": "6c75f4e67546c2ddbf9634734c1e3ebbea34861a" },
+      "upstreamDir": { "source": "pstack", "path": "skills/principle-fix-root-causes" },
+      "files": [
+        { "to": "SKILL.md", "source": "pstack", "path": "skills/principle-fix-root-causes/SKILL.md" },
+        { "to": "LICENSE", "source": "pstack", "path": "LICENSE" }
+      ]
+    },
+    "principle-guard-the-context-window": {
+      "pins": { "pstack": "6c75f4e67546c2ddbf9634734c1e3ebbea34861a" },
+      "upstreamDir": { "source": "pstack", "path": "skills/principle-guard-the-context-window" },
+      "files": [
+        { "to": "SKILL.md", "source": "pstack", "path": "skills/principle-guard-the-context-window/SKILL.md" },
+        { "to": "LICENSE", "source": "pstack", "path": "LICENSE" }
+      ]
+    },
+    "principle-laziness-protocol": {
+      "pins": { "pstack": "6c75f4e67546c2ddbf9634734c1e3ebbea34861a" },
+      "upstreamDir": { "source": "pstack", "path": "skills/principle-laziness-protocol" },
+      "files": [
+        { "to": "SKILL.md", "source": "pstack", "path": "skills/principle-laziness-protocol/SKILL.md" },
+        { "to": "LICENSE", "source": "pstack", "path": "LICENSE" }
+      ]
+    },
+    "principle-subtract-before-you-add": {
+      "pins": { "pstack": "6c75f4e67546c2ddbf9634734c1e3ebbea34861a" },
+      "upstreamDir": { "source": "pstack", "path": "skills/principle-subtract-before-you-add" },
+      "files": [
+        { "to": "SKILL.md", "source": "pstack", "path": "skills/principle-subtract-before-you-add/SKILL.md" },
+        { "to": "LICENSE", "source": "pstack", "path": "LICENSE" }
+      ]
+    },
+    "principle-sequence-verifiable-units": {
+      "pins": { "pstack": "6c75f4e67546c2ddbf9634734c1e3ebbea34861a" },
+      "upstreamDir": { "source": "pstack", "path": "skills/principle-sequence-verifiable-units" },
+      "files": [
+        { "to": "SKILL.md", "source": "pstack", "path": "skills/principle-sequence-verifiable-units/SKILL.md" },
+        { "to": "LICENSE", "source": "pstack", "path": "LICENSE" }
+      ]
+    },
+    "principle-model-the-domain": {
+      "pins": { "pstack": "6c75f4e67546c2ddbf9634734c1e3ebbea34861a" },
+      "upstreamDir": { "source": "pstack", "path": "skills/principle-model-the-domain" },
+      "files": [
+        { "to": "SKILL.md", "source": "pstack", "path": "skills/principle-model-the-domain/SKILL.md" },
+        { "to": "LICENSE", "source": "pstack", "path": "LICENSE" }
+      ]
+    },
+    "principle-minimize-reader-load": {
+      "pins": { "pstack": "6c75f4e67546c2ddbf9634734c1e3ebbea34861a" },
+      "upstreamDir": { "source": "pstack", "path": "skills/principle-minimize-reader-load" },
+      "files": [
+        { "to": "SKILL.md", "source": "pstack", "path": "skills/principle-minimize-reader-load/SKILL.md" },
+        { "to": "LICENSE", "source": "pstack", "path": "LICENSE" }
+      ]
+    },
+    "principle-attack-the-premise": {
+      "pins": { "pstack": "6c75f4e67546c2ddbf9634734c1e3ebbea34861a" },
+      "upstreamDir": { "source": "pstack", "path": "skills/principle-attack-the-premise" },
+      "files": [
+        { "to": "SKILL.md", "source": "pstack", "path": "skills/principle-attack-the-premise/SKILL.md" },
+        { "to": "LICENSE", "source": "pstack", "path": "LICENSE" }
+      ]
+    },
+    "principle-encode-lessons-in-structure": {
+      "pins": { "pstack": "6c75f4e67546c2ddbf9634734c1e3ebbea34861a" },
+      "upstreamDir": { "source": "pstack", "path": "skills/principle-encode-lessons-in-structure" },
+      "files": [
+        { "to": "SKILL.md", "source": "pstack", "path": "skills/principle-encode-lessons-in-structure/SKILL.md" },
+        { "to": "LICENSE", "source": "pstack", "path": "LICENSE" }
+      ]
     }
   }
 }

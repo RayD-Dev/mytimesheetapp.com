@@ -14,6 +14,7 @@ The specialist skills do the detailed work; this one sequences them and holds th
 | Design | ui-mockup, ui-craft, ui-motion |
 | Check | ui-audit, ui-visual-check |
 | Docs | docs-sync |
+| Plan, Build, Review, Close | ponytail and pstack, as `references/engineering-practices.md` maps them to each stage |
 
 ## Where things live
 
@@ -80,7 +81,8 @@ Delegate as `references/delegation.md` describes:
 | runner | Haiku | Runs checks and reports failures |
 | Explore | Haiku | Finds things in the code or docs |
 
-- **Review every diff** against the brief and plan before marking a task done. An agent's report is a claim, not proof.
+- **Name the practices in each brief:** the few ponytail and pstack skill files that task needs (`references/engineering-practices.md`). `standards.md` wins where they differ.
+- **Review every diff** against the brief and plan before marking a task done. Run `ponytail-review` on it; security-sensitive tasks also get an Opus `interrogate` pass. An agent's report is a claim, not proof.
 - **Two failures, then take it back.** A task that fails its check twice comes back to the main session; don't retry it at the same tier.
 - **Parallel only on separate files.** Tasks that don't share files run in parallel.
 - **Stay inside the plan.** If building shows the plan is wrong, stop, fix the plan, and tell the user if it changes what they approved.
@@ -99,6 +101,7 @@ Their OK in the browser closes the slice.
 
 ## 6. Close
 
+- Collect the `shortcut:` notes with `ponytail-debt`, run `ponytail-audit` on the finished slice, and turn any lesson into a standard or a test (`reflect`).
 - Record what was decided along the way: screen specs and `DESIGN.md` for design, the Notion decision log for engineering.
 - Work on a branch per slice. Commit finished tasks with conventional-commit messages and no AI attribution. Merge to `main` when the user approves the slice.
 - Mark the tasks done in `plan.md` and list follow-ups.
