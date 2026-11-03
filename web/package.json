@@ -3,7 +3,9 @@
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.34.9",
-  "engines": { "node": ">=22.12" },
+  "engines": {
+    "node": ">=22.12"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -19,6 +21,7 @@
     "check:build": "vite build --sourcemap hidden && node scripts/check-build.mjs"
   },
   "dependencies": {
+    "@internationalized/date": "3.12.4",
     "@nuxt/ui": "4.12.0",
     "pinia": "4.1.0",
     "tailwindcss": "4.3.4",
@@ -40,6 +43,9 @@
     "vue-tsc": "3.3.14"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild", "@parcel/watcher"]
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "@parcel/watcher"
+    ]
   }
 }

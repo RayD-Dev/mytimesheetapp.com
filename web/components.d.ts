@@ -14,5 +14,6 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     UApp: typeof import('./node_modules/.pnpm/@nuxt+ui@4.12.0_bd6a5055f97141746c460da4b18e532d/node_modules/@nuxt/ui/dist/runtime/components/App.vue')['default']
+    UInputTime: typeof import('./node_modules/.pnpm/@nuxt+ui@4.12.0_bd6a5055f97141746c460da4b18e532d/node_modules/@nuxt/ui/dist/runtime/components/InputTime.vue')['default']
   }
 }
