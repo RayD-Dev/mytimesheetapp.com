@@ -1,0 +1,16 @@
+/* SIL Open Font License 1.1, licences beside the files. Latin range only. */
+@font-face {
+  font-family: 'La Belle Aurore';
+  font-display: swap;
+  src: url(./fonts/la-belle-aurore-latin-400-normal.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Herr Von Muellerhoff';
+  font-display: swap;
+  src: url(./fonts/herr-von-muellerhoff-latin-400-normal.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Mrs Saint Delafield';
+  font-display: swap;
+  src: url(./fonts/mrs-saint-delafield-latin-400-normal.woff2) format('woff2');
+}
