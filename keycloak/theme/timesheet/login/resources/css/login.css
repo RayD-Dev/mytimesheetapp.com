@@ -81,6 +81,9 @@ input[aria-invalid="true"] { border-color: var(--danger); }
   display: inline-flex; align-items: center; height: var(--control-height);
   margin: 1rem 0 0 -0.625rem; padding: 0 0.625rem; color: var(--accent); font-size: 1rem; text-decoration: none;
 }
+button.link-button { border: 0; background: none; font-family: inherit; cursor: pointer; }
+.attempted-username { margin: 0.5rem 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: 0 0.5rem; overflow-wrap: anywhere; }
+.attempted-username .link-button { margin: 0; }
 .link-button:hover { text-decoration: underline; }
 
 .instruction { margin: 1rem 0 0; }

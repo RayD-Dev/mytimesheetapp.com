@@ -1,4 +1,5 @@
-# Local Keycloak for developing the sign-in theme (brief C-2). Dev mode, test values only.
+# LOCAL IMPORT ONLY, TEST CREDENTIALS: every user, password and secret here is a throwaway test value.
+# Local Keycloak for developing the sign-in theme (brief C-2). Dev mode.
 # Keycloak: http://localhost:8180 (admin console login: admin / admin, local only)
 # Mail catcher: http://localhost:8025 (reset emails land here, nothing leaves the machine)
 services:
@@ -16,7 +17,6 @@ services:
       KC_SPI_THEME_STATIC_MAX_AGE: "-1"
     ports:
       - "127.0.0.1:8180:8180"
-      - "127.0.0.1:9000:9000"
     volumes:
       - ./theme/timesheet:/opt/keycloak/themes/timesheet:ro
       - ./realm:/opt/keycloak/data/import:ro

@@ -20,6 +20,8 @@ for (const size of sizes) {
     test('sign in shows the sheet with email, password and the forgot link', async ({ page }, testInfo) => {
       await expect(page.getByRole('heading', { level: 1, name: 'Sign in' })).toBeVisible()
       await expect(page.getByText('Timesheets', { exact: true })).toBeVisible()
+      // C-3: no business name yet, so the masthead is the single line "Timesheets".
+      await expect(page.locator('.masthead p')).toHaveText(['Timesheets'])
       await expect(page.getByLabel('Email')).toBeVisible()
       await expect(page.getByLabel('Password', { exact: true })).toBeVisible()
       await expect(page.getByRole('button', { name: 'Sign in' })).toBeVisible()
@@ -86,6 +88,26 @@ for (const size of sizes) {
       await expect(page.getByRole('link', { name: 'Sign in' })).toBeVisible()
       await expectNoSidewaysScroll(page)
       await captureState(page, testInfo, 'signed-out', size.name)
+    })
+
+    test('a deactivated account with a wrong password gets the generic alert', async ({ page }) => {
+      await fillSignIn(page, users.deactivated, 'not-the-password-1')
+
+      const alert = page.getByRole('alert')
+      await expect(alert).toContainText("That email and password don't match. Try again, or reset your password.")
+      await expect(alert).not.toContainText('deactivated')
+    })
+
+    test('a locked-out account reads the same as a wrong password', async ({ page }) => {
+      for (let attempt = 0; attempt < 6; attempt++) {
+        await fillSignIn(page, users.lockout, 'not-the-password-1')
+        await expect(page.getByRole('alert')).toContainText("That email and password don't match.")
+        await page.getByLabel('Password', { exact: true }).fill('')
+      }
+      // The correct password is refused while locked, and says nothing about the lock.
+      await fillSignIn(page, users.lockout, password)
+      await expect(page.getByRole('alert')).toContainText("That email and password don't match. Try again, or reset your password.")
+      await expect(page.getByRole('alert')).not.toContainText(/disabled|locked|temporar/i)
     })
 
     test('a deactivated account gets the deactivated alert and no session', async ({ page }, testInfo) => {

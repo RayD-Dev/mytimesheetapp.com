@@ -15,6 +15,7 @@
     "codegen:check": "node -e \"console.log('codegen:check: added in task 3')\"",
     "contract:lint": "npx @redocly/cli lint ../contract/openapi.yaml --config ../contract/redocly.yaml",
     "test:e2e": "playwright test --pass-with-no-tests",
+    "test:e2e:keycloak": "playwright test -c e2e/keycloak/playwright.config.ts",
     "audit": "node ../.claude/skills/ui-audit/scripts/slop-scan.mjs --strict src",
     "check:build": "vite build --sourcemap hidden && node scripts/check-build.mjs"
   },

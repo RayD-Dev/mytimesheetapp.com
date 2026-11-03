@@ -7,24 +7,27 @@
         ${msg("loginAccountTitle")}
     <#elseif section = "form">
         <#assign fieldsInvalid = messagesPerField.existsError('username', 'password')>
+        <#assign alertRef = fieldsInvalid?then(" kc-alert", "")>
         <form id="kc-form-login" class="form" action="${url.loginAction}" method="post" novalidate
               data-email-required="${msg("emailRequired")}" data-email-invalid="${msg("emailInvalid")}"
               data-password-required="${msg("passwordRequired")}">
+            <#if !usernameHidden??>
             <div class="field">
                 <label for="username">${msg("usernameOrEmail")}</label>
                 <input id="username" name="username" type="email" autocomplete="username"
                        value="${(login.username!'')}" autofocus
                        aria-invalid="${fieldsInvalid?c}"
-                       aria-describedby="username-error">
+                       aria-describedby="username-error${alertRef}">
                 <p id="username-error" class="field-error" hidden></p>
             </div>
+            </#if>
 
             <div class="field">
                 <label for="password">${msg("password")}</label>
                 <div class="password-wrap">
                     <input id="password" name="password" type="password" autocomplete="current-password"
                            aria-invalid="${fieldsInvalid?c}"
-                           aria-describedby="password-error">
+                           aria-describedby="password-error${alertRef}">
                     <button type="button" id="password-toggle" class="icon-button"
                             aria-label="${msg("showPassword")}"
                             data-show-label="${msg("showPassword")}" data-hide-label="${msg("hidePassword")}">

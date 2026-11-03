@@ -2,9 +2,9 @@
 <#-- Generic info page. After Sign out Keycloak shows this page with the logged-out message,
      so that one case is dressed as the Sign in page with its "You've signed out." line. -->
 <@layout.registrationLayout displayMessage=false; section>
-    <#assign signedOut = (message.summary == msg("loggedOutMessage"))>
+    <#assign signedOut = (message.summary == msg("successLogout"))>
     <#if section = "header">
-        <#if signedOut>${msg("loginAccountTitle")}<#elseif messageHeader??>${messageHeader}<#else>${message.summary}</#if>
+        <#if signedOut>${msg("loginAccountTitle")}<#elseif messageHeader??>${kcSanitize(msg(messageHeader))?no_esc}<#else>${message.summary}</#if>
     <#elseif section = "form">
         <#if signedOut>
             <p class="notice notice-ok" role="status">

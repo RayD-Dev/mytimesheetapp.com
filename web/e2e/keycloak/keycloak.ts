@@ -7,6 +7,8 @@ export const password = 'timesheet-test-1'
 export const users = {
   employee: 'priya.rk@example.com',
   deactivated: 'dana.former@example.com',
+  // Only the lockout spec signs in as this user, so the employee is never locked out.
+  lockout: 'lockout.test@example.com',
 } as const
 
 export const sizes = [
