@@ -27,6 +27,8 @@ The higher one wins: **Tests → Readable → Defensive → Maintainable → Sho
 | Defensive vs tests | Tests | No guards for states the types already rule out. Make impossible states unrepresentable instead, so every branch can be tested. |
 | Intent vs short (comments) | Why only | Comment only why, mostly requirement links (`// FR-27: warn, never block`). Never restate what the code does. |
 
+The ponytail and pstack skills sharpen these rules and never override them; where they differ, this ranking wins (`engineering-practices.md`).
+
 ## Future milestones: seams, not features
 
 Build only the current milestone. Leave a seam only where it costs nothing today. Each plan lists the roadmap items its code touches (`docs/INDEX.md`, roadmap section) and the seams it leaves.

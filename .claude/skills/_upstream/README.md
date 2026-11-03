@@ -1,6 +1,6 @@
 # Upstream skills
 
-Twelve skills in `.claude/skills/` are copies of skills published in public GitHub repos (all MIT licensed; each keeps its `LICENSE`). This folder records where each one came from and keeps them up to date on our terms.
+Forty-two skills in `.claude/skills/` are copies of skills published in public GitHub repos (all MIT licensed; each keeps its `LICENSE`). This folder records where each one came from and keeps them up to date on our terms.
 
 - `manifest.json` lists, for every skill, the commit it was copied from (`pins`), which upstream file became which local file, and any local change.
 - `patches/` holds our local changes as unified diffs.
@@ -49,6 +49,38 @@ To add a local change to a skill that has none, make the same kind of patch agai
 | `mobile-native` | [emilkowalski/skill](https://github.com/emilkowalski/skill) | None |
 | `break-ui` | [emilkowalski/skill](https://github.com/emilkowalski/skill) | None |
 | `web-design-guidelines` | [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills) and [vercel-labs/web-interface-guidelines](https://github.com/vercel-labs/web-interface-guidelines) | Reads the pinned `command.md` instead of fetching the rules from the web on every review. Upstream `AGENTS.md` is stored as `build-rules.md` so Claude Code doesn't auto-load it whenever a file in this folder is read. |
+| `ponytail` | [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) | Manual-only (`disable-model-invocation`): read when a brief or the `ui-e2e` skill names it. |
+| `ponytail-review` | [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) | Manual-only (`disable-model-invocation`): read when a brief or the `ui-e2e` skill names it. |
+| `ponytail-audit` | [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) | Manual-only (`disable-model-invocation`): read when a brief or the `ui-e2e` skill names it. |
+| `ponytail-debt` | [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) | Manual-only (`disable-model-invocation`): read when a brief or the `ui-e2e` skill names it. |
+| `typescript-best-practices` | [backnotprop/pstack](https://github.com/backnotprop/pstack) | None (upstream already sets `disable-model-invocation`) |
+| `tdd` | [backnotprop/pstack](https://github.com/backnotprop/pstack) | None (upstream already sets `disable-model-invocation`) |
+| `blast-radius` | [backnotprop/pstack](https://github.com/backnotprop/pstack) | None (upstream already sets `disable-model-invocation`) |
+| `interrogate` | [backnotprop/pstack](https://github.com/backnotprop/pstack) | None (upstream already sets `disable-model-invocation`) |
+| `how` | [backnotprop/pstack](https://github.com/backnotprop/pstack) | None (upstream already sets `disable-model-invocation`) |
+| `why` | [backnotprop/pstack](https://github.com/backnotprop/pstack) | None (upstream already sets `disable-model-invocation`) |
+| `architect` | [backnotprop/pstack](https://github.com/backnotprop/pstack) | None (upstream already sets `disable-model-invocation`) |
+| `arena` | [backnotprop/pstack](https://github.com/backnotprop/pstack) | None (upstream already sets `disable-model-invocation`) |
+| `unslop` | [backnotprop/pstack](https://github.com/backnotprop/pstack) | None (upstream already sets `disable-model-invocation`) |
+| `technical-writing` | [backnotprop/pstack](https://github.com/backnotprop/pstack) | None (upstream already sets `disable-model-invocation`) |
+| `reflect` | [backnotprop/pstack](https://github.com/backnotprop/pstack) | None (upstream already sets `disable-model-invocation`) |
+| `correct` | [backnotprop/pstack](https://github.com/backnotprop/pstack) | None (upstream already sets `disable-model-invocation`) |
+| `ketchup` | [backnotprop/pstack](https://github.com/backnotprop/pstack) | None (upstream already sets `disable-model-invocation`) |
+| `principle-prove-it-works` | [backnotprop/pstack](https://github.com/backnotprop/pstack) | None (upstream already sets `disable-model-invocation`) |
+| `principle-test-behavior-not-implementation` | [backnotprop/pstack](https://github.com/backnotprop/pstack) | None (upstream already sets `disable-model-invocation`) |
+| `principle-boundary-discipline` | [backnotprop/pstack](https://github.com/backnotprop/pstack) | None (upstream already sets `disable-model-invocation`) |
+| `principle-type-system-discipline` | [backnotprop/pstack](https://github.com/backnotprop/pstack) | None (upstream already sets `disable-model-invocation`) |
+| `principle-fix-root-causes` | [backnotprop/pstack](https://github.com/backnotprop/pstack) | None (upstream already sets `disable-model-invocation`) |
+| `principle-guard-the-context-window` | [backnotprop/pstack](https://github.com/backnotprop/pstack) | None (upstream already sets `disable-model-invocation`) |
+| `principle-laziness-protocol` | [backnotprop/pstack](https://github.com/backnotprop/pstack) | None (upstream already sets `disable-model-invocation`) |
+| `principle-subtract-before-you-add` | [backnotprop/pstack](https://github.com/backnotprop/pstack) | None (upstream already sets `disable-model-invocation`) |
+| `principle-sequence-verifiable-units` | [backnotprop/pstack](https://github.com/backnotprop/pstack) | None (upstream already sets `disable-model-invocation`) |
+| `principle-model-the-domain` | [backnotprop/pstack](https://github.com/backnotprop/pstack) | None (upstream already sets `disable-model-invocation`) |
+| `principle-minimize-reader-load` | [backnotprop/pstack](https://github.com/backnotprop/pstack) | None (upstream already sets `disable-model-invocation`) |
+| `principle-attack-the-premise` | [backnotprop/pstack](https://github.com/backnotprop/pstack) | None (upstream already sets `disable-model-invocation`) |
+| `principle-encode-lessons-in-structure` | [backnotprop/pstack](https://github.com/backnotprop/pstack) | None (upstream already sets `disable-model-invocation`) |
+
+Only skill text is vendored: `SKILL.md`, any `references/` files and the `LICENSE`. Ponytail's hooks and band, and pstack's scripts, `poteto-mode`, `setup-pstack`, `no-comments`, `swarm` and `benny` are deliberately not vendored. None of the chosen skills has a `scripts/` folder. Both new repos are MIT licensed. They are manual-only, so briefs and the main session name them explicitly.
 
 ## Commands
 
