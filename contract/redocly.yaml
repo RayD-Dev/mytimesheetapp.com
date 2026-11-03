@@ -1,7 +1,5 @@
 extends:
   - recommended
 
-rules:
-  # The redirect endpoints (sign-in, change password) answer only 302, so they have no 2xx or 4xx response.
-  operation-2xx-response: off
-  operation-4xx-response: off
+# The two navigation operations (sign-in, change password) answer only 302; their
+# exceptions to the 2xx and 4xx rules are in .redocly.lint-ignore.yaml.
