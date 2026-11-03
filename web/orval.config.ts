@@ -13,6 +13,7 @@ export default defineConfig({
     output: {
       client: 'fetch',
       mode: 'single',
+      clean: true,
       target: `${out}/api.ts`,
       schemas: { path: `${out}/zod`, type: 'zod' },
       override: {
