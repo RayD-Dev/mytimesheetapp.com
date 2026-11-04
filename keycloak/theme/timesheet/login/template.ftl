@@ -23,8 +23,8 @@
 <body>
 <div class="page">
     <main class="column">
-        <#-- C-3: no stored business name or logo in slice 1. When the realm display name is set
-             (slice 3) it shows above "Timesheets"; until then "Timesheets" stands alone. -->
+        <#-- C-3: no stored business name or logo in M1.1. When the realm display name is set
+             (M1.3) it shows above "Timesheets"; until then "Timesheets" stands alone. -->
         <#-- Keycloak answers with the realm name when no display name is set, so that counts as "none". -->
         <#assign businessName = (realm.displayName != realm.name)?then(realm.displayName, "")>
         <div class="masthead">
