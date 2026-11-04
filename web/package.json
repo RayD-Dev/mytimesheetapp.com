@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.34.9",
-  "engines": { "node": ">=22.12" },
+  "engines": { "node": ">=22.18" },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -16,7 +16,7 @@
     "contract:lint": "npx @redocly/cli lint ../contract/openapi.yaml --config ../contract/redocly.yaml",
     "test:e2e": "playwright test --pass-with-no-tests",
     "audit": "node ../.claude/skills/ui-audit/scripts/slop-scan.mjs --strict src",
-    "check:build": "vite build --sourcemap hidden && node scripts/check-build.mjs"
+    "check:build": "vite build --sourcemap hidden && node scripts/check-build.ts"
   },
   "dependencies": {
     "@nuxt/ui": "4.12.0",

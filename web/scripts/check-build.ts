@@ -6,15 +6,15 @@ import { pathToFileURL } from 'node:url'
 const MOCK_PATH_MARKER = /src[\/]mocks/
 const MOCK_FILE_NAME = 'mockServiceWorker.js'
 
-function listFiles(dir) {
+function listFiles(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) =>
     entry.isDirectory() ? listFiles(join(dir, entry.name)) : [join(dir, entry.name)],
   )
 }
 
 /** Returns one message per mock file or mock code reference found in the build folder. */
-export function findMockLeaks(distDir) {
-  const problems = []
+export function findMockLeaks(distDir: string): string[] {
+  const problems: string[] = []
   for (const file of listFiles(distDir)) {
     if (file.endsWith(MOCK_FILE_NAME)) problems.push(`${file}: MSW worker file in the build`)
     else if (file.endsWith('.js.map') && MOCK_PATH_MARKER.test(readFileSync(file, 'utf8'))) {
