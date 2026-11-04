@@ -1,12 +1,16 @@
 {
   "_about": "Notion pages copied into docs/notion/ by the docs-sync skill. Notion is the master; never edit the copies.",
-  "syncedAt": "2026-10-18",
+  "syncedAt": "2026-11-04",
   "pages": [
-    { "title": "Product Requirements (PRD)", "file": "prd.md", "url": "https://app.notion.com/p/3f5771bd4d438156a93ec42b3548821d", "lastEdited": "2026-10-17T14:11:57.318Z" },
-    { "title": "HL Design Doc", "file": "hl-design.md", "url": "https://app.notion.com/p/3f4771bd4d4380e28d76d2038edbfac4", "lastEdited": "2026-10-17T14:50:54.676Z" },
-    { "title": "System Design", "file": "system-design.md", "url": "https://app.notion.com/p/3f6771bd4d4381fbadd6f819e59e08fd", "lastEdited": "2026-10-17T14:50:55.935Z" },
-    { "title": "Detailed Design Doc — FE", "file": "fe-design.md", "url": "https://app.notion.com/p/3f5771bd4d43819981e0f96e66fae263", "lastEdited": "2026-10-17T14:39:19.049Z" },
-    { "title": "Detailed Design Doc — BE", "file": "be-design.md", "url": "https://app.notion.com/p/3f5771bd4d43813e90c8e11492d92e2b", "lastEdited": "2026-10-17T14:50:57.177Z" },
-    { "title": "Database Options", "file": "database-options.md", "url": "https://app.notion.com/p/3fc771bd4d4381eb9433c4242b560077", "lastEdited": "2026-10-17T14:13:47.961Z" }
+    { "title": "Product Requirements (PRD)", "file": "prd.md", "url": "https://app.notion.com/p/3f5771bd4d438156a93ec42b3548821d", "lastEdited": "2026-11-04T03:53:55.375Z" },
+    { "title": "HL Design Doc", "file": "hl-design.md", "url": "https://app.notion.com/p/3f4771bd4d4380e28d76d2038edbfac4", "lastEdited": "2026-11-04T03:53:51.561Z" },
+    { "title": "System Design", "file": "system-design.md", "url": "https://app.notion.com/p/3f6771bd4d4381fbadd6f819e59e08fd", "lastEdited": "2026-11-04T03:54:44.894Z" },
+    { "title": "Detailed Design Doc — FE", "file": "fe-design.md", "url": "https://app.notion.com/p/3f5771bd4d43819981e0f96e66fae263", "lastEdited": "2026-11-04T03:53:56.375Z" },
+    { "title": "Detailed Design Doc — BE", "file": "be-design.md", "url": "https://app.notion.com/p/3f5771bd4d43813e90c8e11492d92e2b", "lastEdited": "2026-11-04T03:54:10.194Z" },
+    { "title": "Database Options", "file": "database-options.md", "url": "https://app.notion.com/p/3fc771bd4d4381eb9433c4242b560077", "lastEdited": "2026-10-17T14:13:47.961Z" },
+    { "title": "M1 (MVP) Readiness Checklist and Build Tickets", "file": "readiness-checklist.md", "url": "https://app.notion.com/p/408771bd4d43817a9954e1bd945a95ac", "lastEdited": "2026-11-04T04:07:09.643Z" },
+    { "title": "API Contract Options: OpenAPI vs Protobuf", "file": "api-contract-options.md", "url": "https://app.notion.com/p/408771bd4d4381e08220dc1d7848ac68", "lastEdited": "2026-11-04T03:54:16.754Z" },
+    { "title": "Browser Sign-In: Decision, Pros and Cons, and Security Threats", "file": "browser-sign-in.md", "url": "https://app.notion.com/p/40d771bd4d438124b4fecedf6b8ebbfd", "lastEdited": "2026-11-03T11:45:52.286Z" },
+    { "title": "M1 (MVP) Delivery Plan", "file": "delivery-plan.md", "url": "https://app.notion.com/p/40e771bd4d4381348afbc4f4257c51f4", "lastEdited": "2026-11-04T03:50:51.641Z" }
   ]
 }
