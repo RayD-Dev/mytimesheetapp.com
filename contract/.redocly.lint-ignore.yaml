@@ -1,0 +1,13 @@
+# This file instructs Redocly's linter to ignore the rules contained for specific parts of your API.
+# See https://redocly.com/docs/cli/ for more information.
+#
+# Reading the paths: ~1 means /, so ~1api~1v1~1session~1login is /api/v1/session/login.
+# Redocly needs this escaping (JSON Pointer). With plain slashes the exceptions stop matching.
+# Keep this note if you regenerate the file: --generate-ignore-file overwrites comments.
+openapi.yaml:
+  operation-4xx-response:
+    - '#/paths/~1api~1v1~1session~1login/get/responses'
+    - '#/paths/~1api~1v1~1session~1change-password/get/responses'
+  operation-2xx-response:
+    - '#/paths/~1api~1v1~1session~1login/get/responses'
+    - '#/paths/~1api~1v1~1session~1change-password/get/responses'
