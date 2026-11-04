@@ -1,0 +1,880 @@
+openapi: 3.1.0
+info:
+  title: Timesheet API, slice 1
+  version: 1.0.0
+  description: >-
+    Slice 1 contract: sign-in session, My timesheet, signature and submit.
+    Times of day are 24-hour `HH:mm` strings, durations are integer minutes,
+    dates are `YYYY-MM-DD` in the business time zone. All `date-time` values are
+    UTC with a `Z` suffix. The front end is built against a mock of this file and
+    the back end is built to it, so a change here comes first.
+
+
+    **Errors.** `/api/**` never redirects, except the two `navigation` operations
+    below. An invalid or expired session returns 401 before any CSRF check. A bad
+    or missing CSRF token returns 403 with the JSON body code `CSRF_TOKEN_INVALID`.
+    A body that cannot be parsed returns 400 with the code `BAD_REQUEST`.
+
+
+    **Session timing.** Every authenticated call counts as activity and resets the
+    idle timer, except `GET /api/v1/me`. The autosave `PUT` counts. Keepalive also
+    resets the idle timer, but never extends it past `absoluteExpiresAt`. Me,
+    keepalive and a saved day all return `idleExpiresAt`, `absoluteExpiresAt` and
+    `serverNow`, so the client counts down against the server's clock.
+  license:
+    name: Proprietary
+    identifier: LicenseRef-Proprietary
+servers:
+  - url: /
+security:
+  - cookieAuth: []
+tags:
+  - name: navigation
+    description: >-
+      The front end builds the URL and sets `location`. These are not fetch calls.
+
+paths:
+  /api/v1/me:
+    get:
+      operationId: getMe
+      summary: The signed-in person and their session
+      description: >-
+        Also sets the CSRF cookie `XSRF-TOKEN`, so it must be called before the first write.
+        It does not reset the idle timer.
+      responses:
+        '200':
+          description: The signed-in person.
+          headers:
+            Set-Cookie:
+              description: Sets the CSRF cookie `XSRF-TOKEN` (name confirmed by ticket BE-09).
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Me'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        default:
+          $ref: '#/components/responses/UnexpectedError'
+
+  /api/v1/session/login:
+    get:
+      operationId: startLogin
+      tags: [navigation]
+      summary: Start sign-in at Keycloak
+      description: Needs no session, so it has no 401 by design.
+      security: []
+      parameters:
+        - name: returnTo
+          in: query
+          required: false
+          description: >-
+            Where to go after sign-in. It is sanitised on the server, never rejected: the
+            server also refuses `//`, backslashes, encoded slashes and control characters,
+            resolves the value against the app origin and checks it is the same origin.
+            Anything else is replaced by `/timesheet`, so this parameter never causes a 400.
+            The pattern documents the accepted shape.
+          schema:
+            type: string
+            maxLength: 512
+            pattern: '^/(?![/\\])[^\s]*$'
+      responses:
+        '302':
+          description: Redirect to Keycloak's sign-in page.
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+
+  /api/v1/session/logout:
+    post:
+      operationId: logout
+      summary: Sign out
+      description: >-
+        Idempotent: answers 204 even when there is no session. Ends the session here and at
+        Keycloak, and the person ends on the Keycloak signed-out page.
+      security:
+        - cookieAuth: []
+          csrfHeader: []
+      responses:
+        '204':
+          description: Signed out.
+        '403':
+          $ref: '#/components/responses/CsrfTokenInvalid'
+        default:
+          $ref: '#/components/responses/UnexpectedError'
+
+  /api/v1/session/keepalive:
+    post:
+      operationId: keepAlive
+      summary: Stay signed in
+      description: >-
+        Called from the idle warning. Resets the idle timer, never past `absoluteExpiresAt`.
+      security:
+        - cookieAuth: []
+          csrfHeader: []
+      responses:
+        '200':
+          description: The new session expiry times.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionExpiry'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/CsrfTokenInvalid'
+        default:
+          $ref: '#/components/responses/UnexpectedError'
+
+  /api/v1/session/change-password:
+    get:
+      operationId: changePassword
+      tags: [navigation]
+      summary: Go to Keycloak's password page
+      description: >-
+        Redirects to Keycloak (`kc_action=UPDATE_PASSWORD`). On success Keycloak returns to
+        `/profile?passwordChanged=1`; on cancel or error it returns to `/profile`.
+        With no session it answers 302 to sign-in with `returnTo=/profile`, not 401.
+      responses:
+        '302':
+          description: Redirect to Keycloak's password page, or to sign-in when there is no session.
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+
+  /api/v1/me/signature:
+    get:
+      operationId: getSignature
+      summary: The saved signature
+      responses:
+        '200':
+          description: The saved signature.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavedSignature'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/SignatureNotFound'
+        default:
+          $ref: '#/components/responses/UnexpectedError'
+    put:
+      operationId: putSignature
+      summary: Save or replace the signature
+      description: Image, kind, text and style are replaced together.
+      security:
+        - cookieAuth: []
+          csrfHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Signature'
+      responses:
+        '200':
+          description: Saved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavedSignature'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/CsrfTokenInvalid'
+        default:
+          $ref: '#/components/responses/UnexpectedError'
+
+  /api/v1/me/timesheets/{fortnightStart}:
+    parameters:
+      - $ref: '#/components/parameters/FortnightStart'
+    get:
+      operationId: getTimesheet
+      summary: A timesheet with its hours and warnings
+      description: >-
+        The current and previous fortnights always answer 200, with an empty Draft at version 0
+        when nothing is saved. 404 `FORTNIGHT_NOT_FOUND` is only for other fortnights, or a date
+        that is not a fortnight start.
+      responses:
+        '200':
+          description: The timesheet.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Timesheet'
+        '400':
+          $ref: '#/components/responses/MalformedRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/FortnightNotFound'
+        '422':
+          $ref: '#/components/responses/PayScheduleNotSet'
+        default:
+          $ref: '#/components/responses/UnexpectedError'
+    delete:
+      operationId: clearTimesheet
+      summary: Clear all hours
+      description: >-
+        For a rejected timesheet, returns its deletion date. Refused with 409
+        `TIMESHEET_NOT_EDITABLE` once the timesheet is Submitted or Approved.
+      security:
+        - cookieAuth: []
+          csrfHeader: []
+      parameters:
+        - name: version
+          in: query
+          required: true
+          description: The version the page last received.
+          schema:
+            $ref: '#/components/schemas/Version'
+      responses:
+        '200':
+          description: Cleared.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClearResult'
+        '400':
+          $ref: '#/components/responses/MalformedRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/CsrfTokenInvalid'
+        '404':
+          $ref: '#/components/responses/FortnightNotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/PayScheduleNotSet'
+        default:
+          $ref: '#/components/responses/UnexpectedError'
+
+  /api/v1/me/timesheets/{fortnightStart}/days/{date}:
+    put:
+      operationId: saveDay
+      summary: Autosave one day
+      description: Refused with 409 `TIMESHEET_NOT_EDITABLE` once the timesheet is Submitted or Approved.
+      security:
+        - cookieAuth: []
+          csrfHeader: []
+      parameters:
+        - $ref: '#/components/parameters/FortnightStart'
+        - name: date
+          in: path
+          required: true
+          description: The day being saved. Must fall inside the fortnight.
+          schema:
+            $ref: '#/components/schemas/Date'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaveDayRequest'
+      responses:
+        '200':
+          description: Saved. The figures replace the on-screen preview.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SaveDayResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/CsrfTokenInvalid'
+        '404':
+          $ref: '#/components/responses/FortnightNotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/PayScheduleNotSet'
+        default:
+          $ref: '#/components/responses/UnexpectedError'
+
+  /api/v1/me/timesheets/{fortnightStart}/submit:
+    post:
+      operationId: submitTimesheet
+      summary: Submit the timesheet
+      description: >-
+        Refused without a signature. Submits the version the page last received. A second
+        submit, or a submit once Approved, is refused with 409 `TIMESHEET_NOT_EDITABLE`.
+      security:
+        - cookieAuth: []
+          csrfHeader: []
+      parameters:
+        - $ref: '#/components/parameters/FortnightStart'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitRequest'
+      responses:
+        '200':
+          description: Submitted. The timesheet as it now stands.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Timesheet'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/CsrfTokenInvalid'
+        '404':
+          $ref: '#/components/responses/FortnightNotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          description: The timesheet cannot be submitted.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/SignatureRequiredError'
+                  - $ref: '#/components/schemas/NoHoursError'
+                  - $ref: '#/components/schemas/WarningTicksMismatchError'
+                  - $ref: '#/components/schemas/PayScheduleNotSetError'
+                discriminator:
+                  propertyName: code
+                  mapping:
+                    SIGNATURE_REQUIRED: '#/components/schemas/SignatureRequiredError'
+                    NO_HOURS: '#/components/schemas/NoHoursError'
+                    WARNING_TICKS_MISMATCH: '#/components/schemas/WarningTicksMismatchError'
+                    PAY_SCHEDULE_NOT_SET: '#/components/schemas/PayScheduleNotSetError'
+        default:
+          $ref: '#/components/responses/UnexpectedError'
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: SESSION
+      description: >-
+        HttpOnly session cookie set after sign-in at Keycloak. The cookie name is
+        confirmed by ticket BE-09.
+    csrfHeader:
+      type: apiKey
+      in: header
+      name: X-XSRF-TOKEN
+      description: >-
+        CSRF token, copied from the `XSRF-TOKEN` cookie that `GET /api/v1/me` sets.
+        Required on every PUT, POST and DELETE. Ticket BE-09 confirms the header and cookie names.
+
+  parameters:
+    FortnightStart:
+      name: fortnightStart
+      in: path
+      required: true
+      description: First day (a Monday) of the fortnight.
+      schema:
+        $ref: '#/components/schemas/Date'
+
+  headers:
+    Location:
+      description: Where to go next.
+      schema:
+        type: string
+
+  responses:
+    Unauthorized:
+      description: Not signed in, or the session has ended. Checked before CSRF.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UnauthorizedError'
+    CsrfTokenInvalid:
+      description: The CSRF header is missing or wrong.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CsrfTokenInvalidError'
+    BadRequest:
+      description: The body cannot be parsed, or one or more fields are invalid.
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: '#/components/schemas/BadRequestError'
+              - $ref: '#/components/schemas/ValidationError'
+            discriminator:
+              propertyName: code
+              mapping:
+                BAD_REQUEST: '#/components/schemas/BadRequestError'
+                VALIDATION_FAILED: '#/components/schemas/ValidationError'
+    MalformedRequest:
+      description: The request cannot be parsed, for example a missing or non-numeric `version`.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/BadRequestError'
+    Conflict:
+      description: The timesheet changed on another device, or it is no longer editable.
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: '#/components/schemas/VersionConflictError'
+              - $ref: '#/components/schemas/TimesheetNotEditableError'
+            discriminator:
+              propertyName: code
+              mapping:
+                VERSION_CONFLICT: '#/components/schemas/VersionConflictError'
+                TIMESHEET_NOT_EDITABLE: '#/components/schemas/TimesheetNotEditableError'
+    SignatureNotFound:
+      description: No signature has been saved.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SignatureNotFoundError'
+    FortnightNotFound:
+      description: >-
+        No timesheet for that fortnight. A rejected timesheet is always openable,
+        whatever its fortnight (FR-17), so this never answers for one.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/FortnightNotFoundError'
+    PayScheduleNotSet:
+      description: The pay schedule is not set, so there are no fortnights.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PayScheduleNotSetError'
+    UnexpectedError:
+      description: Any other error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+
+  schemas:
+    Date:
+      type: string
+      format: date
+      pattern: '^\d{4}-\d{2}-\d{2}$'
+      description: Calendar date, `YYYY-MM-DD`.
+    Instant:
+      type: string
+      format: date-time
+      pattern: 'Z$'
+      description: A moment in time, UTC with a `Z` suffix.
+    ClockTime:
+      type: string
+      pattern: '^([01][0-9]|2[0-3]):[0-5][0-9]$'
+      description: 24-hour time of day, `HH:mm`.
+    Version:
+      type: integer
+      minimum: 0
+      description: The timesheet's version, sent back with each write.
+    Minutes:
+      type: integer
+      minimum: 0
+
+    SessionExpiry:
+      type: object
+      required: [idleExpiresAt, absoluteExpiresAt, serverNow]
+      properties:
+        idleExpiresAt:
+          $ref: '#/components/schemas/Instant'
+        absoluteExpiresAt:
+          $ref: '#/components/schemas/Instant'
+        serverNow:
+          $ref: '#/components/schemas/Instant'
+    Me:
+      allOf:
+        - $ref: '#/components/schemas/SessionExpiry'
+        - type: object
+          required:
+            - name
+            - roles
+            - today
+            - payScheduleSet
+            - signatureSet
+            - currentFortnightStart
+            - previousFortnightStart
+            - periodLengthDays
+          properties:
+            name:
+              type: string
+            roles:
+              type: array
+              minItems: 1
+              uniqueItems: true
+              items:
+                type: string
+                enum: [employee, manager]
+            today:
+              $ref: '#/components/schemas/Date'
+            payScheduleSet:
+              type: boolean
+            signatureSet:
+              type: boolean
+            currentFortnightStart:
+              description: Null until the pay schedule is set.
+              oneOf:
+                - $ref: '#/components/schemas/Date'
+                - type: 'null'
+            previousFortnightStart:
+              description: Null until the pay schedule is set.
+              oneOf:
+                - $ref: '#/components/schemas/Date'
+                - type: 'null'
+            periodLengthDays:
+              type: integer
+              minimum: 1
+
+    Signature:
+      description: >-
+        The signature, told apart by `kind`. `image` is the record that submissions copy;
+        the server checks it is a PNG by its signature bytes. `text` and `style` only
+        pre-fill the editor.
+      oneOf:
+        - $ref: '#/components/schemas/TypedSignature'
+        - $ref: '#/components/schemas/DrawnSignature'
+      discriminator:
+        propertyName: kind
+        mapping:
+          typed: '#/components/schemas/TypedSignature'
+          drawn: '#/components/schemas/DrawnSignature'
+    TypedSignature:
+      type: object
+      additionalProperties: false
+      required: [kind, image, text, style]
+      properties:
+        kind:
+          type: string
+          enum: [typed]
+        image:
+          $ref: '#/components/schemas/SignatureImage'
+        text:
+          type: string
+          minLength: 1
+          maxLength: 100
+        style:
+          $ref: '#/components/schemas/SignatureStyle'
+        savedAt:
+          $ref: '#/components/schemas/SavedAt'
+    DrawnSignature:
+      type: object
+      additionalProperties: false
+      required: [kind, image]
+      properties:
+        kind:
+          type: string
+          enum: [drawn]
+        image:
+          $ref: '#/components/schemas/SignatureImage'
+        text:
+          type: string
+          maxLength: 100
+        style:
+          $ref: '#/components/schemas/SignatureStyle'
+        savedAt:
+          $ref: '#/components/schemas/SavedAt'
+    SignatureImage:
+      type: string
+      maxLength: 300000
+      contentEncoding: base64
+      contentMediaType: image/png
+      description: The signature as a base64 PNG. The server verifies the PNG signature bytes.
+    SignatureStyle:
+      type: integer
+      enum: [1, 2, 3]
+    SavedAt:
+      readOnly: true
+      description: Set by the server; ignored on a request.
+      allOf:
+        - $ref: '#/components/schemas/Instant'
+    SavedSignature:
+      description: A signature as stored, always with `savedAt`.
+      allOf:
+        - $ref: '#/components/schemas/Signature'
+        - type: object
+          required: [savedAt]
+
+    Day:
+      type: object
+      required: [date, start, breakMinutes, finish, workedMinutes, warnings]
+      properties:
+        date:
+          $ref: '#/components/schemas/Date'
+        start:
+          oneOf:
+            - $ref: '#/components/schemas/ClockTime'
+            - type: 'null'
+        breakMinutes:
+          $ref: '#/components/schemas/Minutes'
+        finish:
+          oneOf:
+            - $ref: '#/components/schemas/ClockTime'
+            - type: 'null'
+        workedMinutes:
+          $ref: '#/components/schemas/Minutes'
+        warnings:
+          type: array
+          items:
+            type: string
+            enum: [SHORT_SHIFT, LONG_SHIFT]
+    WeekTotal:
+      type: object
+      required: [weekStart, minutes]
+      properties:
+        weekStart:
+          $ref: '#/components/schemas/Date'
+        minutes:
+          $ref: '#/components/schemas/Minutes'
+    Totals:
+      type: object
+      required: [weeks, fortnightMinutes]
+      properties:
+        weeks:
+          description: Worked minutes per week, in order.
+          type: array
+          items:
+            $ref: '#/components/schemas/WeekTotal'
+        fortnightMinutes:
+          $ref: '#/components/schemas/Minutes'
+    Timesheet:
+      type: object
+      required:
+        - fortnightStart
+        - periodStart
+        - periodEnd
+        - status
+        - version
+        - rejectionReason
+        - deletionDate
+        - days
+        - totals
+      properties:
+        fortnightStart:
+          $ref: '#/components/schemas/Date'
+        periodStart:
+          $ref: '#/components/schemas/Date'
+        periodEnd:
+          $ref: '#/components/schemas/Date'
+        status:
+          type: string
+          enum: [Draft, Submitted, Approved, Rejected]
+        version:
+          $ref: '#/components/schemas/Version'
+        rejectionReason:
+          type: [string, 'null']
+        deletionDate:
+          oneOf:
+            - $ref: '#/components/schemas/Date'
+            - type: 'null'
+        days:
+          description: The working days of the period, in order.
+          type: array
+          items:
+            $ref: '#/components/schemas/Day'
+        totals:
+          $ref: '#/components/schemas/Totals'
+
+    ClearResult:
+      type: object
+      required: [version, deletionDate]
+      properties:
+        version:
+          $ref: '#/components/schemas/Version'
+        deletionDate:
+          oneOf:
+            - $ref: '#/components/schemas/Date'
+            - type: 'null'
+    SaveDayRequest:
+      type: object
+      additionalProperties: false
+      required: [version, start, breakMinutes, finish]
+      properties:
+        version:
+          $ref: '#/components/schemas/Version'
+        start:
+          oneOf:
+            - $ref: '#/components/schemas/ClockTime'
+            - type: 'null'
+        breakMinutes:
+          $ref: '#/components/schemas/Minutes'
+        finish:
+          oneOf:
+            - $ref: '#/components/schemas/ClockTime'
+            - type: 'null'
+    SaveDayResult:
+      allOf:
+        - $ref: '#/components/schemas/SessionExpiry'
+        - type: object
+          required: [version, day, totals, deletionDate]
+          properties:
+            version:
+              $ref: '#/components/schemas/Version'
+            day:
+              $ref: '#/components/schemas/Day'
+            totals:
+              $ref: '#/components/schemas/Totals'
+            deletionDate:
+              oneOf:
+                - $ref: '#/components/schemas/Date'
+                - type: 'null'
+    SubmitRequest:
+      type: object
+      additionalProperties: false
+      required: [version, declaration, warningDayTicks]
+      properties:
+        version:
+          $ref: '#/components/schemas/Version'
+        declaration:
+          type: boolean
+          const: true
+        warningDayTicks:
+          description: The warning days the employee ticked as correct.
+          type: array
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/Date'
+
+    # Each error body is its own full schema: `code` is stable and the client maps it to a
+    # designed message; `message` is English text for logs and support.
+    ApiError:
+      description: Any error body, told apart by `code`.
+      oneOf:
+        - $ref: '#/components/schemas/BadRequestError'
+        - $ref: '#/components/schemas/ValidationError'
+        - $ref: '#/components/schemas/UnauthorizedError'
+        - $ref: '#/components/schemas/CsrfTokenInvalidError'
+        - $ref: '#/components/schemas/SignatureNotFoundError'
+        - $ref: '#/components/schemas/FortnightNotFoundError'
+        - $ref: '#/components/schemas/VersionConflictError'
+        - $ref: '#/components/schemas/TimesheetNotEditableError'
+        - $ref: '#/components/schemas/SignatureRequiredError'
+        - $ref: '#/components/schemas/NoHoursError'
+        - $ref: '#/components/schemas/WarningTicksMismatchError'
+        - $ref: '#/components/schemas/PayScheduleNotSetError'
+      discriminator:
+        propertyName: code
+        mapping:
+          BAD_REQUEST: '#/components/schemas/BadRequestError'
+          VALIDATION_FAILED: '#/components/schemas/ValidationError'
+          UNAUTHORIZED: '#/components/schemas/UnauthorizedError'
+          CSRF_TOKEN_INVALID: '#/components/schemas/CsrfTokenInvalidError'
+          SIGNATURE_NOT_FOUND: '#/components/schemas/SignatureNotFoundError'
+          FORTNIGHT_NOT_FOUND: '#/components/schemas/FortnightNotFoundError'
+          VERSION_CONFLICT: '#/components/schemas/VersionConflictError'
+          TIMESHEET_NOT_EDITABLE: '#/components/schemas/TimesheetNotEditableError'
+          SIGNATURE_REQUIRED: '#/components/schemas/SignatureRequiredError'
+          NO_HOURS: '#/components/schemas/NoHoursError'
+          WARNING_TICKS_MISMATCH: '#/components/schemas/WarningTicksMismatchError'
+          PAY_SCHEDULE_NOT_SET: '#/components/schemas/PayScheduleNotSetError'
+    BadRequestError:
+      type: object
+      additionalProperties: false
+      required: [code, message]
+      properties:
+        code: {type: string, enum: [BAD_REQUEST]}
+        message: {type: string}
+    ValidationError:
+      type: object
+      additionalProperties: false
+      required: [code, message, fieldErrors]
+      properties:
+        code: {type: string, enum: [VALIDATION_FAILED]}
+        message: {type: string}
+        fieldErrors:
+          type: array
+          items:
+            $ref: '#/components/schemas/FieldError'
+    UnauthorizedError:
+      type: object
+      additionalProperties: false
+      required: [code, message]
+      properties:
+        code: {type: string, enum: [UNAUTHORIZED]}
+        message: {type: string}
+    CsrfTokenInvalidError:
+      type: object
+      additionalProperties: false
+      required: [code, message]
+      properties:
+        code: {type: string, enum: [CSRF_TOKEN_INVALID]}
+        message: {type: string}
+    SignatureNotFoundError:
+      type: object
+      additionalProperties: false
+      required: [code, message]
+      properties:
+        code: {type: string, enum: [SIGNATURE_NOT_FOUND]}
+        message: {type: string}
+    FortnightNotFoundError:
+      type: object
+      additionalProperties: false
+      required: [code, message]
+      properties:
+        code: {type: string, enum: [FORTNIGHT_NOT_FOUND]}
+        message: {type: string}
+    VersionConflictError:
+      type: object
+      additionalProperties: false
+      required: [code, message]
+      properties:
+        code: {type: string, enum: [VERSION_CONFLICT]}
+        message: {type: string}
+    TimesheetNotEditableError:
+      type: object
+      additionalProperties: false
+      required: [code, message]
+      properties:
+        code: {type: string, enum: [TIMESHEET_NOT_EDITABLE]}
+        message: {type: string}
+    SignatureRequiredError:
+      type: object
+      additionalProperties: false
+      required: [code, message]
+      properties:
+        code: {type: string, enum: [SIGNATURE_REQUIRED]}
+        message: {type: string}
+    NoHoursError:
+      type: object
+      additionalProperties: false
+      required: [code, message]
+      properties:
+        code: {type: string, enum: [NO_HOURS]}
+        message: {type: string}
+    WarningTicksMismatchError:
+      type: object
+      additionalProperties: false
+      required: [code, message]
+      properties:
+        code: {type: string, enum: [WARNING_TICKS_MISMATCH]}
+        message: {type: string}
+    PayScheduleNotSetError:
+      type: object
+      additionalProperties: false
+      required: [code, message]
+      properties:
+        code: {type: string, enum: [PAY_SCHEDULE_NOT_SET]}
+        message: {type: string}
+    FieldError:
+      type: object
+      additionalProperties: false
+      required: [field, code]
+      properties:
+        field:
+          type: string
+          enum: [date, version, start, breakMinutes, finish]
+        code:
+          type: string
+          enum:
+            - FINISH_BEFORE_START
+            - BREAK_TOO_LONG
+            - FUTURE_DAY
+            - START_MISSING
+            - FINISH_MISSING
