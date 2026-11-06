@@ -3,7 +3,7 @@
 This project uses **Nuxt UI v4 in a plain Vue 3 + Vite app**, styled with **Tailwind CSS v4**. Nuxt UI is MIT-licensed and built on Reka UI. Tokens flow one way:
 
 ```
-DESIGN.md (decisions)  →  main.css @theme + :root (tokens)  →  Nuxt UI variables and Tailwind utilities  →  components
+DESIGN.md (decisions)  →  tokens.css (@theme + :root)  →  ui-theme.css (Nuxt UI mapping)  →  Nuxt UI variables and Tailwind utilities  →  components
 ```
 
 Components use only Tailwind utilities generated from tokens (`bg-paper`, `text-ink-muted`, `border-rule`) or Nuxt UI's semantic props (`color="primary"`). A hex value inside a `.vue` file means a token is missing: add the token, don't inline the colour.
@@ -42,7 +42,7 @@ export default defineConfig({
 
 ## 2. The token file
 
-Keep all tokens in `src/assets/css/main.css` (or a `tokens.css` it imports). It's the only place raw colour values may appear.
+In the real app the design values live in `src/assets/tokens.css` and the mapping onto Nuxt UI's variables in `src/assets/ui-theme.css`; `main.css` only imports them. `tokens.css` is the only place raw colour values may appear. The example below shows both files as one, for brevity.
 
 ```css
 @import "tailwindcss";
@@ -118,5 +118,5 @@ Nuxt UI components this app will likely use: `UInputTime` with `:hour-cycle="12"
 ## 5. Adding a token
 
 1. Add it to DESIGN.md with its role and the reason.
-2. Add it to the `@theme` block (or `:root` if it maps a Nuxt UI variable).
+2. Add it to the `@theme` block in `tokens.css` (a mapping onto a Nuxt UI variable goes in `ui-theme.css`).
 3. Use the generated utility. Run ui-audit: raw-colour findings should go down, not up.
