@@ -10,7 +10,7 @@
 |---|---|
 | F1 | Git repo at the project root, branch `main` (done 12/10/2026; no commits yet). |
 | F2 | Notion stays the master, because comments there are how feedback is given. A read-only copy goes in `docs/`, refreshed by one command, plus a one-page requirements index (one line per FR, decision and roadmap item) that plans cite by ID. |
-| F3 | The FE doc's open sections (section 3 sign-in, section 5 structure, section 7 API client, section 8 state, section 10 testing, section 11 build, package manager) are proposed once by the Plan step, decided by the user, logged in the FE doc's decision log, and settled before slice 1 code. |
+| F3 | The FE doc's open sections (section 3 sign-in, section 5 structure, section 7 API client, section 8 state, section 10 testing, section 11 build, package manager) are proposed once by the Plan step, decided by the user, logged in the FE doc's decision log, and settled before M1.1 code. |
 | D1 | Keep the code-first mock-up; no Figma MCP. Revisit only if a human designer joins or feedback needs to happen in Figma. |
 | D2 | Execute `upstream-ui-skills.md` as written (D1–D5 accepted). |
 | P3 | "Seams, not features": each plan lists the roadmap items its code affects and leaves room only where it's free (weekdays and period length from the API, validation in one module, access checked by role). Nothing built ahead of its milestone. |
@@ -49,4 +49,4 @@ Built on `ui-tooling`, 12/10/2026:
 Next, through `ui-e2e`:
 1. Round R7 for U3.
 2. Screen specs for the five pages.
-3. Slice 1's brief, which also settles the FE doc's open questions and brings the FE doc up to date with the mock-up decisions.
+3. M1.1's brief, which also settles the FE doc's open questions and brings the FE doc up to date with the mock-up decisions.

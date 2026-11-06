@@ -1,8 +1,9 @@
-# 002 Slice 1 front end: plan
+# 002 M1.1 front end: plan
 
 **Brief:** `./brief.md` (approved 03/11/2026)
 **Branch:** `feat/slice-1-front-end`
 **Status:** Approved 03/11/2026 (v2, reviewed by an Opus agent and revised). Round R9 (mock-up) gates the parts marked **R9**.
+**Parts of M1:** M1.1 to M1.4 are defined in [M1 (MVP) Delivery Plan](https://app.notion.com/p/40e771bd4d4381348afbc4f4257c51f4).
 
 ## Decisions this plan depends on
 
@@ -24,7 +25,7 @@
 
 ## API contract
 
-Source: `contract/openapi.yaml`, written in task 1 and agreed with the back-end ticket BE-09. Endpoints follow the slice 1 sketch in the BE design (section 4.1), plus the additions below.
+Source: `contract/openapi.yaml`, written in task 1 and agreed with the back-end ticket BE-09. Endpoints follow the M1.1 sketch in the BE design (section 4.1), plus the additions below.
 
 | Endpoint | Fields used | Notes |
 |---|---|---|
@@ -54,7 +55,7 @@ Each task is one agent's work (5 points at most). Every task's check includes th
 
 | # | Task | Agent | Owns files | Covers | Waits for | Status |
 |---|---|---|---|---|---|---|
-| 1 | Slice 1 OpenAPI contract | implementer, main session reviews | `contract/openapi.yaml` | AC-26, AC-29, AC-22 | — | Done (branch task/01-contract) |
+| 1 | M1.1 OpenAPI contract | implementer, main session reviews | `contract/openapi.yaml` | AC-26, AC-29, AC-22 | — | Done (branch task/01-contract) |
 | 2 | Scaffold `web/`, scripts, production-build check | implementer | `web/` config, `package.json`, lint and build config | D-3 | — | Todo |
 | 3 | Generate types, client and schemas; client wrapper | implementer, main session reviews | `web/orval.config.ts`, `web/src/shared/api/` | AC-26 | 1, 2 | Todo |
 | 4 | MSW mock API with seeded states | implementer | `web/src/mocks/` | AC-22, AC-23, AC-29, AC-11, AC-26 | 3 | Todo |
@@ -78,7 +79,7 @@ Routes: each feature exports its own routes; task 6 assembles them in `router.ts
 
 Parallel groups (no shared files): {1, 2}; then {3, 5, 7, 9, 15, 17}; then {4, 8}; then {6}; then {10, 16}; then {11, 12}; then {13, 18}; then {14}; then {19}. Tasks with an **R9** mark build their non-R9 parts first and wait for R9 on the rest.
 
-Every AC from 1 to 30 appears in at least one task. AC-20 has no slice 1 screen that shows a submitted timesheet's signature, so it is tested at the data layer: replacing a signature sends only the signature `PUT` and leaves the timesheet response unchanged; the full behaviour is covered by the back-end plan (FR-21).
+Every AC from 1 to 30 appears in at least one task. AC-20 has no M1.1 screen that shows a submitted timesheet's signature, so it is tested at the data layer: replacing a signature sends only the signature `PUT` and leaves the timesheet response unchanged; the full behaviour is covered by the back-end plan (FR-21).
 
 ## Practices (ponytail and pstack)
 
@@ -93,7 +94,7 @@ Rules in `.claude/skills/ui-e2e/references/engineering-practices.md`; `standards
 | Plan changes | `architect`, `principle-sequence-verifiable-units` | Opus `interrogate` on the plan |
 | Close-out | | `ponytail-debt`, `ponytail-audit`, `unslop`, `reflect` |
 
-### Task 1: Slice 1 OpenAPI contract
+### Task 1: M1.1 OpenAPI contract
 
 - **Read first:** `docs/notion/be-design.md` section 4.1, 5; `brief.md` C-1, C-4, C-7, AC-22, AC-29; `docs/notion/fe-design.md` section 7.1; the API contract table above.
 - **Do:** write `contract/openapi.yaml` (OpenAPI 3.1) with every endpoint in the table: request and response schemas, error bodies with `code` values, the CSRF header on writes, 24-hour `HH:mm` times and integer minutes. No backend code.
@@ -247,11 +248,11 @@ Rules in `.claude/skills/ui-e2e/references/engineering-practices.md`; `standards
 ### Task 17: Keycloak base theme, sign-in states, local Keycloak
 
 - **Read first:** `docs/screens/sign-in.md`; `mockup/approved/` `sign-in-state-*`; brief C-2, C-3.
-- **Do:** a Keycloak login theme in `keycloak/theme/` (the app's look; the approved screenshots show a business name, slice 1 shows "Timesheets", recorded in the spec's "Changes since approval"). States: sign in, wrong password (both fields red plus the box), signed out, deactivated. `keycloak/compose.yml` with a pinned Keycloak, a realm import with an employee and a manager test user, and a local mail catcher for reset emails. The login page returns to the app through the contract's `returnTo` flow.
+- **Do:** a Keycloak login theme in `keycloak/theme/` (the app's look; the approved screenshots show a business name, M1.1 shows "Timesheets", recorded in the spec's "Changes since approval"). States: sign in, wrong password (both fields red plus the box), signed out, deactivated. `keycloak/compose.yml` with a pinned Keycloak, a realm import with an employee and a manager test user, and a local mail catcher for reset emails. The login page returns to the app through the contract's `returnTo` flow.
 - **Tests first:** Playwright specs in `web/e2e/keycloak/` check each state at 375 px and 1280 px against the approved screenshots.
 - **Check:** `docker compose -f keycloak/compose.yml up -d` then `pnpm -C web test:e2e --project=keycloak`
 - **Done when:** every state renders at both widths.
-- **Don't:** add a logo or a stored business name (slice 3).
+- **Don't:** add a logo or a stored business name (M1.3).
 - **Review:** the main session reads the template form actions and hidden fields.
 
 ### Task 18: Keycloak password and reset pages (**R9**)
@@ -318,7 +319,7 @@ Manual, recorded at close-out: the iPhone time-input check (AC-28, done 03/11/20
 | Keycloak theme work beyond estimate | Ship the states that match the mock first; the breached-password message can follow BE-10 |
 | Android time input misbehaves (AC-28) | The typed-time variant with an AM/PM switch from mock-up R1 needs a new round |
 | Notion still says JWT bearer (AD-07) and "To be decided" (FE design section 3) | Decided 03/11/2026 (see Decisions); Notion edits pending before the back-end plan starts |
-| Older rejected timesheet opened from outside the two fortnights | Not in slice 1 (nothing can be rejected until slice 2); the brief lists it as open |
+| Older rejected timesheet opened from outside the two fortnights | Not in M1.1 (nothing can be rejected until M1.2); the brief lists it as open |
 | An edit typed after the session quietly expires | The idle warning (R9) and the session-ended dialog; only saved hours are safe |
 
 ## Notes for the back-end plan
