@@ -29,6 +29,19 @@ The higher one wins: **Tests → Readable → Defensive → Maintainable → Sho
 
 The ponytail and pstack skills sharpen these rules and never override them; where they differ, this ranking wins (`engineering-practices.md`).
 
+## Styling
+
+Agreed 06/11/2026, after checking the Vue style guide (Vue 3, plus the legacy Vue 2 guide, which says the same on scoping), the Tailwind and Nuxt UI docs, and GitLab's front-end style guide. Read this before editing or adding any `.vue` file or CSS.
+
+| Rule | What it means |
+|---|---|
+| Utility classes in the template are the default | A component has no `<style>` block and no `style=` attribute. Utility classes can't leak between components, which is what the Vue style guide's scoping rule is for. |
+| Tokens only | Colours, fonts, radius and motion come from `tokens.css` (`bg-sheet`, `text-ink-muted`). No raw hex and no arbitrary values such as `w-[13px]`, except a real one-off with a comment saying why. |
+| Extract a component for repeated structure | When the same group of elements appears on 2 or more screens, make a component. Shared ones go in `src/shared/ui/`; one used by a single feature stays in that feature's folder. Don't extract only to shorten a class list, and don't turn a repeated class list into an `@apply` class. |
+| Restyle Nuxt UI through its own API | Use `class` or `ui` on that one instance, or the `ui` option in `vite.config.ts` for the whole app. No `:deep()` on its internals and no `!important`. |
+| `<style>` and `@apply` only where utilities can't reach | Third-party or `v-html` content, complex parent-child state and keyframes. Use `<style scoped>`, `@reference` the main stylesheet, avoid element selectors, and comment why. The `<style>` block goes last. |
+| Names follow the Vue style guide | PascalCase file names, multi-word component names, one attribute per line. `eslint-plugin-vue` `flat/recommended` already enforces the layout ones. |
+
 ## Future milestones: seams, not features
 
 Build only the current milestone. Leave a seam only where it costs nothing today. Each plan lists the roadmap items its code touches (`docs/INDEX.md`, roadmap section) and the seams it leaves.
