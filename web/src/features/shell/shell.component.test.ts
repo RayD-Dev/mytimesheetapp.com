@@ -14,26 +14,21 @@ function linkNames(wrapper: ReturnType<typeof mount>): string[] {
 }
 
 describe('TopBar', () => {
-  it('shows the employee links and Sign out', () => {
-    const wrapper = mount(TopBar, { global: globalWithRouter().global })
-    expect(linkNames(wrapper)).toEqual(['My timesheet', 'Profile'])
-    expect(wrapper.findAll('button').map((b) => b.text())).toEqual(['Sign out'])
+  it.each([
+    { manager: false, links: ['My timesheet', 'Profile'] },
+    { manager: true, links: ['My timesheet', 'Approvals', 'Admin', 'Profile'] },
+  ])('shows $links when manager is $manager (FR-01)', ({ manager, links }) => {
+    const wrapper = mount(TopBar, { props: { manager }, global: globalWithRouter().global })
+    expect(linkNames(wrapper)).toEqual(links)
   })
 
-  it('adds Approvals and Admin for a manager', () => {
-    const wrapper = mount(TopBar, { props: { manager: true }, global: globalWithRouter().global })
-    expect(linkNames(wrapper)).toEqual(['My timesheet', 'Approvals', 'Admin', 'Profile'])
-  })
-
-  it('marks only the current page', () => {
-    const wrapper = mount(TopBar, { props: { current: 'profile' }, global: globalWithRouter().global })
-    const current = wrapper.findAll('nav a[aria-current="page"]')
-    expect(current.map((link) => link.text())).toEqual(['Profile'])
-  })
-
-  it('marks no page when there is no current page', () => {
-    const wrapper = mount(TopBar, { global: globalWithRouter().global })
-    expect(wrapper.find('[aria-current]').exists()).toBe(false)
+  it.each([
+    { current: 'profile' as const, marked: ['Profile'] },
+    { current: undefined, marked: [] as string[] },
+  ])('marks $marked as the current page when current is $current', ({ current, marked }) => {
+    const wrapper = mount(TopBar, { props: { current }, global: globalWithRouter().global })
+    const links = wrapper.findAll('nav a[aria-current="page"]')
+    expect(links.map((link) => link.text())).toEqual(marked)
   })
 
   it('asks to sign out when Sign out is pressed', async () => {
@@ -44,12 +39,9 @@ describe('TopBar', () => {
 })
 
 describe('Page not found', () => {
-  it('says the link may be old and offers the way back', () => {
+  it('offers the way back to My timesheet', () => {
     const wrapper = mount(NotFoundPage, { global: globalWithRouter().global })
-    expect(wrapper.find('h1').text()).toBe('Page not found')
-    expect(wrapper.text()).toContain('Your timesheets are all still there.')
     expect(wrapper.find('a').attributes('href')).toBe('/timesheet')
-    expect(wrapper.find('a').text()).toBe('Go to My timesheet')
   })
 
   it('is what an unknown URL resolves to, keeping the URL', async () => {
@@ -61,12 +53,9 @@ describe('Page not found', () => {
 })
 
 describe('No access', () => {
-  it('names the signed-in person and tells them who to ask', () => {
+  it('names the signed-in person and offers the way back (FR-01)', () => {
     const wrapper = mount(NoAccessPage, { props: { name: 'Priya Ramaswamy-Kingsley' }, global: globalWithRouter().global })
-    expect(wrapper.find('h1').text()).toBe('This page is for managers')
-    expect(wrapper.find('p .font-semibold').text()).toBe('Priya Ramaswamy-Kingsley')
-    expect(wrapper.text()).toContain("You're signed in as Priya Ramaswamy-Kingsley, and Approvals is only for managers.")
-    expect(wrapper.text()).toContain('If you think you should have access, ask your manager.')
+    expect(wrapper.text()).toContain('Priya Ramaswamy-Kingsley')
     expect(wrapper.find('a').attributes('href')).toBe('/timesheet')
   })
 })

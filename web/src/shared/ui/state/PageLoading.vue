@@ -4,20 +4,20 @@ import PageTitle from './PageTitle.vue'
 import type { PageWidth } from './pageWidth'
 import { useAfterDelay } from './useAfterDelay'
 
-// FE design 7.2: title and ruled placeholder lines, only if loading takes longer than about 300 ms.
+// FE design 7.2: the sheet and title show at once; the ruled placeholder lines only if loading takes longer than about 300 ms.
 defineProps<{ title: string; what: string; width?: PageWidth }>()
 const LOADING_DELAY_MS = 300
-const visible = useAfterDelay(LOADING_DELAY_MS)
+const showPlaceholders = useAfterDelay(LOADING_DELAY_MS)
 </script>
 
 <template>
   <PageSheet
-    v-if="visible"
     :width="width"
     busy
   >
     <PageTitle>{{ title }}</PageTitle>
     <div
+      v-if="showPlaceholders"
       class="mt-6"
       role="status"
     >
