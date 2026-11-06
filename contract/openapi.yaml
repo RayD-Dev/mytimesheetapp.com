@@ -1,9 +1,9 @@
 openapi: 3.1.0
 info:
-  title: Timesheet API, slice 1
+  title: Timesheet API, M1.1
   version: 1.0.0
   description: >-
-    Slice 1 contract: sign-in session, My timesheet, signature and submit.
+    M1.1 contract: sign-in session, My timesheet, signature and submit.
     Times of day are 24-hour `HH:mm` strings, durations are integer minutes,
     dates are `YYYY-MM-DD` in the business time zone. All `date-time` values are
     UTC with a `Z` suffix. The front end is built against a mock of this file and

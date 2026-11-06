@@ -24,7 +24,7 @@ The manager's page for the fortnight PDF, the employee list, the pay schedule, a
 | Password reset | Reset confirmed | Modal "New temporary password for {first name}": password once with *Copy*, *Done* | `admin--reset-password` |
 | Row actions menu (phone) | ⋯ pressed on an employee row | Menu with Reset password and Deactivate (danger) | none (source only) |
 | Copied (toast) | *Copy* pressed | Toast "Copied" | none (source only) |
-| Loading (R7-7) | Data takes longer than about 300 ms | Top bar, then the title "Admin" and ruled placeholder lines instead of the sections (shared `LoadState` part); nothing shown if loading is faster | `admin-state-loading` |
+| Loading (R7-7) | Data takes longer than about 300 ms | Top bar, then the title "Admin" and ruled placeholder lines instead of the sections (shared `LoadState` part); the sheet and title show at once and the lines only after about 300 ms, so fast loads do not flash | `admin-state-loading` |
 | Load failed (R7-7) | The page's data couldn't be fetched | Top bar, the title "Admin", then "Couldn't load the admin page" with the explanation and *Try again* (shared `LoadState` part) | `admin-state-load-failed` |
 | PDF failed (R8-4) | *Download PDF* pressed and the server couldn't make the PDF | As PDF: some not approved, with a red inline message under the button: "The PDF couldn't be made. Try again in a moment." (`role="alert"`) and a toast "PDF not downloaded"; the button stays enabled | `admin-state-pdf-failed` |
 | Business name | *Change business name* pressed (mock `business-name`: the name is "Harbour Street Bakery") | Last section "Business name and logo" shows, under Name, the field with the current name filled in, *Cancel* and *Save business name* | `admin-state-business-name` |
@@ -128,7 +128,7 @@ The manager's page for the fortnight PDF, the employee list, the pay schedule, a
 | Pay schedule once timesheets exist | Read-only text with a lock icon | FR-05 |
 | Manager row | No Reset or Deactivate offered (you can't deactivate yourself) | FR-25 |
 | Account changes, PDF download, pay schedule set | Logged server-side (no UI) | FR-26 |
-| Data slow to load | After about 300 ms the loading view replaces the page content | R7-7 |
+| Data slow to load | The sheet and title show at once. After about 300 ms the placeholder lines appear under the title | R7-7 |
 | Load fails | Load-failed view; *Try again* repeats the request (mock: button does nothing) | R7-7 |
 | *Change business name* | Replaces the name with a field holding it, with *Cancel* and *Save business name* | R7-8 |
 | *Save business name* with the field empty or only spaces | Field turns red with "Enter the business name.", focus moves to it, toast "Business name not saved". The button is never disabled; it checks on press | R7-8, R8-4 |
@@ -241,7 +241,7 @@ None specified for this page. Nuxt UI defaults apply to modals, the popover, the
 12. **Review link target.** The mock-up passes a mock state to the approvals URL; the real link is `/approvals/{fortnight}/{timesheet}`.
 13. **Manager's own deactivation and role:** the manager row has no actions; M1 has one manager whose role is set in Keycloak, not on this page (fe-design section 6.3).
 14. ~~Business name requirement.~~ Resolved: PRD FR-28 (business name and optional logo).
-15. **How the sign-in pages get the name and logo.** Open in the BE design (section 11): the Keycloak realm display name, or a public app endpoint that returns only the name and logo. The logo makes the public endpoint more likely. Decide before slice 3.
+15. **How the sign-in pages get the name and logo.** Open in the BE design (section 11): the Keycloak realm display name, or a public app endpoint that returns only the name and logo. The logo makes the public endpoint more likely. Decide before M1.3.
 16. **Business name, server failure.** An empty name now shows an error on press (R8-4). A failed save has no design. The name cannot be cleared once set, so the "Until you set it" note only appears before the first save. Any other rule (special characters, repeated spaces) is not defined.
 17. **Who can change it.** The manager only (Admin is manager-only); not stated in the R7 notes.
 18. **Logo storage and checks.** Proposed `PUT` and `DELETE /api/v1/business/logo`; where the file is kept, how a public URL is served to the sign-in pages, and the content check (PNG or JPG, 1 MB) are for the HLD. The mock-up checks size only (the real check also looks at the file type).

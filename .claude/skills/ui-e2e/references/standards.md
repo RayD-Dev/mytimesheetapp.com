@@ -29,6 +29,12 @@ The higher one wins: **Tests → Readable → Defensive → Maintainable → Sho
 
 The ponytail and pstack skills sharpen these rules and never override them; where they differ, this ranking wins (`engineering-practices.md`).
 
+## Styling
+
+The styling rules live in [`web/STYLING.md`](../../../../web/STYLING.md), so people and other tools read the same file. Read it before editing or adding any `.vue` file or stylesheet. Plans cite it and reviews check against it.
+
+In short: utility classes in the template with no `<style>` blocks by default, every value taken from the design tokens by role, a component only for structure repeated on 2 or more screens, library components customised through their own API, and global CSS only in `tokens.css`, `ui-theme.css` and `main.css`.
+
 ## Future milestones: seams, not features
 
 Build only the current milestone. Leave a seam only where it costs nothing today. Each plan lists the roadmap items its code touches (`docs/INDEX.md`, roadmap section) and the seams it leaves.

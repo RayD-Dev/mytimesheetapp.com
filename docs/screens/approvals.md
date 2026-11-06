@@ -17,7 +17,7 @@ Pick a fortnight, see who has submitted, and open a timesheet to approve or reje
 | None | Mock `none`: nothing submitted this fortnight | Picker and an empty-state heading and line; no groups | `approvals-state-none` |
 | After reject | Mock `after-reject`: arriving from rejecting Priya | "Timesheet rejected" toast; Priya's row has moved from To approve (2) to Rejected (2) | `approvals--after-reject` |
 | Manager menu | Phone only: tap Menu in the top bar | Dropdown: My timesheet, Approvals (current, highlighted), Admin, Profile, rule, Sign out with icon | `approvals--manager-menu` |
-| Loading (R7-7) | Data takes longer than about 300 ms | Top bar, then the title "Approvals" and ruled placeholder lines instead of the fortnight picker, the groups (shared `LoadState` part); nothing shown if loading is faster | `approvals-state-loading` |
+| Loading (R7-7) | Data takes longer than about 300 ms | Top bar, then the title "Approvals" and ruled placeholder lines instead of the fortnight picker, the groups (shared `LoadState` part); the sheet and title show at once and the lines only after about 300 ms, so fast loads do not flash | `approvals-state-loading` |
 | Load failed (R7-7) | The page's data couldn't be fetched | Top bar, the title "Approvals", then "Couldn't load approvals" with the explanation and *Try again* (shared `LoadState` part) | `approvals-state-load-failed` |
 
 Empty group: a group with no rows other than To approve shows "None" in muted text (source only; not in a screenshot, since every shown group has rows).
@@ -65,7 +65,7 @@ Exact text, in DESIGN.md's vocabulary.
 | Arrive from rejecting a timesheet | List shows "Timesheet rejected" toast, row moved to Rejected | FR-17 |
 | Tap Menu (phone) | Opens the dropdown; choosing an item navigates; Sign out signs out | DESIGN.md section 5 |
 | Tap a top-bar link (desktop) | Navigates to that page | DESIGN.md section 5 |
-| Data slow to load | After about 300 ms the loading view replaces the page content | R7-7 |
+| Data slow to load | The sheet and title show at once. After about 300 ms the placeholder lines appear under the title | R7-7 |
 | Load fails | Load-failed view; *Try again* repeats the request (mock: button does nothing) | R7-7 |
 
 ## Components
