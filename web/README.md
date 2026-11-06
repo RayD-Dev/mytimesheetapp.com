@@ -26,3 +26,7 @@ Corepack reads `packageManager` from the folder you run in. Run pnpm from `web/`
 ## Styling
 
 Components are styled with Tailwind utility classes and the design tokens, with no `<style>` blocks by default. The rules and examples are in [`STYLING.md`](STYLING.md). Read it before editing a `.vue` file or a stylesheet.
+
+## Testing
+
+Tests are few, concise and written at the lowest layer that can fail for the reason. The rules and examples are in [`TESTING.md`](TESTING.md). Read it before adding or changing a test.
