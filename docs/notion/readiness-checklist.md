@@ -1,9 +1,9 @@
 <!-- Read-only copy of M1 (MVP) Readiness Checklist and Build Tickets: https://app.notion.com/p/408771bd4d43817a9954e1bd945a95ac
      Notion is the master; comment and edit there, then run docs-sync.
-     Notion last edited: 2026-11-04T04:07:09.643Z · Synced: 04/11/2026 -->
+     Notion last edited: 2026-11-04T05:17:55.856Z · Synced: 04/11/2026 -->
 <content>
 <callout icon="✅" color="gray_bg">
-<b>Status:</b> Draft · <b>Last updated:</b> <date start="2026-11-03" /> · <b>Type:</b> Delivery plan. What is left before M1 (the MVP) can ship, cut into tickets of 5 points (about a week) or less. Companion to the Product Requirements (PRD), HL Design Doc, System Design and the two Detailed Design Docs in this project.
+<b>Status:</b> Draft · <b>Last updated:</b> <date start="2026-11-04" /> · <b>Type:</b> Delivery plan. What is left before M1 (the MVP) can ship, cut into tickets of 5 points (about a week) or less. Companion to the Product Requirements (PRD), HL Design Doc, System Design and the two Detailed Design Docs in this project.
 </callout>
 
 <table-of-contents />
@@ -12,7 +12,7 @@
 
 ## 1. Summary
 
-M1 is designed but not built. The repo holds the frozen mock-up, screen specs, docs and skills, and no front-end, back-end, Keycloak or deployment code yet. M1.1 is about 81 points of work (47 front end, 34 back end), all in tickets of 5 points or less. At 1 point a working day for one engineer, that is about 81 engineer-days.
+M1 is designed, and M1.1's front end is being built against a mock API. Its tasks are in review or waiting their turn, none is on <code>main</code> yet, and no back-end or deployment code exists. The <mention url="https://app.notion.com/p/40e771bd4d4381348afbc4f4257c51f4" /> has the live status. M1.1 is about 81 points of work (47 front end, 34 back end), all in tickets of 5 points or less. At 1 point a working day for one engineer, that is about 81 engineer-days.
 
 ---
 
@@ -20,9 +20,9 @@ M1 is designed but not built. The repo holds the frozen mock-up, screen specs, d
 
 - <b>Design:</b> rounds R1 to R8 are frozen, with 157 approved screenshots and a spec for every M1 page.
 - <b>Requirements:</b> the PRD has no open questions. M1 is built in four end-to-end slices: M1.1 Profile signature, My timesheet and submit, M1.2 Approvals, M1.3 Admin, M1.4 PDF.
-- <b>Plans:</b> work 001 (screen specs and round R7) is approved and done. Work 002 (M1.1 front end) has an approved brief (03/11/2026) with 29 acceptance criteria and the decisions below. The next step is the ui-e2e plan.
+- <b>Plans:</b> work 001 (screen specs and round R7) is approved and done. Work 002 (M1.1 front end) has an approved brief with 29 acceptance criteria and the decisions below, and an approved plan (both 03/11/2026), and is being built. Plan, brief and task status: <mention url="https://app.notion.com/p/40e771bd4d4381348afbc4f4257c51f4" />.
 - <b>Approach for M1.1:</b> contract first. Write the M1.1 OpenAPI contract, build the front end against a mock API generated from it, and have a separate back-end plan build the real API to the same contract.
-- <b>Other work in flight:</b> a session is discussing the browser sign-in approach, and a separate session is looking for the business's domain name and a brandable name.
+- <b>Other work in flight:</b> a session is looking for the business's domain name and a brandable name.
 
 ---
 
@@ -40,13 +40,13 @@ The browser sign-in approach was the biggest decision, because it shapes the API
 - [x] <b>Autosave debounce and retry.</b> Decided 03/11/2026: save a day 1 second after the last change and on leaving the field; one save queue for the whole timesheet, because the version belongs to the timesheet; 10-second request timeout. Retry only network failures, timeouts and 5xx errors, 10 times with waits of 2, 4, 8, 16, 32 and then 60 seconds, with jitter; the browser coming back online or the tab becoming visible brings the next attempt forward but adds none. After the 10th failure, saving stops: the timesheet becomes read-only, a message says what is safe (hours saved before the last saved time), why saving failed (no connection or a server error) and that a reload is needed, and a manual Try again stays. When the tab is hidden or closed, one last save is sent with fetch keepalive. New design state, so it needs mock-up round R9 (ticket R9).
 - [x] <b>UInputTime check on iPhone.</b> Done 03/11/2026 by the owner on the mock-up in Safari: the hour and minute segments show the number keypad, tapping AM/PM shows the letter keyboard and typing a or p switches it, a two-digit hour moves on to the minutes, then to AM/PM, and the segments are easy to hit with a thumb. The markup matches (hour and minute inputmode numeric, AM/PM text). Not yet tried: an Android phone, and whether a one-digit hour moves on by itself. Check Android when a device is at hand.
 - [x] <b>Larger text and zoom.</b> Checked 03/11/2026 with a script on the mock-up screens. Clean at 375 px, text 75%, desktop zoom up to 200% and zoom out to 50%. It scrolls sideways from text 125% and at phone widths under 336 px (iPhone page zoom above about 112%). The cause is the Start and Finish time fields, which are wider than the screen, plus the top bar, the approvals timesheet and the sign-in header at larger text. Approvals and Admin also cut off the fortnight label and emails with an ellipsis from text 125%. Decided 03/11/2026: fix My timesheet, Submit review and Profile in M1 through round R9 (320 px wide and text up to 150%, no sideways scroll); Approvals, Admin and the other screens follow with M2's WCAG work.
-- [x] <b>Approve the M1.1 brief</b> (work 002). Approved 03/11/2026 after review, which added AC-29 (CSRF header), assigned AC-20, 27 and 28 to tickets, and noted that older rejected timesheets are settled in M1.2. Next: the ui-e2e plan stage.
+- [x] <b>Approve the M1.1 brief</b> (work 002). Approved 03/11/2026 after review, which added AC-29 (CSRF header), assigned AC-20, 27 and 28 to tickets, and noted that older rejected timesheets are settled in M1.2. The plan is approved too: <mention url="https://app.notion.com/p/40e771bd4d4381348afbc4f4257c51f4" />.
 
 ---
 
 ## 4. Build work, in tickets
 
-Every ticket is 5 points or less, sized for a single engineer, so each one ends merged on main with its tests and check gates green. Stop, review or change direction after any ticket.<br /><b>Sizing (agreed 29/10/2026):</b> story points on the scale 1, 2, 3, 5. One point is about one working day of focused work for one engineer, so 5 is about a week. Anything bigger is split before it starts. Points measure size, not elapsed time with sub-agents helping. These are first-pass estimates; the ui-e2e plan stage will confirm them.<br /><b>Rules for every ticket:</b> its own branch; the diff and the tests are reviewed before it merges; the acceptance criteria (AC) it covers become tests inside the same ticket; the check gates in the ui-e2e standards pass.
+Every ticket is 5 points or less, sized for a single engineer, so each one ends merged on main with its tests and check gates green. Stop, review or change direction after any ticket.<br /><b>Sizing (agreed 29/10/2026):</b> story points on the scale 1, 2, 3, 5. One point is about one working day of focused work for one engineer, so 5 is about a week. Anything bigger is split before it starts. Points measure size, not elapsed time with sub-agents helping. These are first-pass estimates; for the front end, the approved plan has since replaced the tickets with tasks (section 4.2).<br /><b>Rules for every ticket:</b> its own branch; the diff and the tests are reviewed before it merges; the acceptance criteria (AC) it covers become tests inside the same ticket; the check gates in the ui-e2e standards pass.
 
 ### 4.1 Checkpoints
 
@@ -65,6 +65,8 @@ A checkpoint is a group of tickets that ends in something you can click through 
 | I Join up | BE-08 | Front end on the real API. <b>M1.1 works end to end</b> | 3 |
 
 ### 4.2 Front end tickets (work 002, against the mock API)
+
+The approved plan replaced FE-01 to FE-15 with tasks 1 to 19, tracked on the <mention url="https://app.notion.com/p/40e771bd4d4381348afbc4f4257c51f4" />. Mock-up round R9 stays a step of its own that several tasks wait for. This table stays as the first estimate.
 
 | ID | Ticket | ACs | Pts |
 | --- | --- | --- | --- |
@@ -99,7 +101,7 @@ A checkpoint is a group of tickets that ends in something you can click through 
 | BE-05 | Draft expiry job with database lock, Clear, 3-month deletion | 3 |
 | BE-06 | Signature endpoints (store, replace, keep a copy per submission); submit, with the audit log written in the same transaction | 4 |
 | BE-07 | Contract tests against the OpenAPI file: the generated spec must equal the committed one, plus an oasdiff breaking-change check in CI | 2 |
-| BE-08 | Switch the front end from the mock to the real API and fix the gaps | 3 |
+| BE-08 | Switch the front end from the mock to the real API and fix the gaps. Run at least one end-to-end pass against the real API. The mock API stays for development and tests, with its handlers kept in step with the contract, and the <code>check:build</code> check that keeps it out of the production build stays too | 3 |
 | BE-09 | Cookie sign-in: Spring Security login with Keycloak, JDBC sessions, CSRF protection, logout, and deleting a person's sessions when they are deactivated or their password is reset. Build right after BE-02. Rough estimate | 5 |
 | BE-10 | Breached-password check in Keycloak: a custom password policy provider that asks the Pwned Passwords range API (2 second timeout, accepts and logs a warning if unreachable), packaged into our Keycloak image, a pinned Keycloak version with a test that fails when an upgrade breaks it, and the realm's brute-force protection settings. Rough estimate | 3 |
 | Back end total: 34 points. |  |  |
@@ -163,4 +165,13 @@ From the PRD roadmap. Each milestone is planned when the one before it is done.
 - <mention url="https://app.notion.com/p/3f5771bd4d43819981e0f96e66fae263" />
 - <mention url="https://app.notion.com/p/3f5771bd4d43813e90c8e11492d92e2b" />
 - <mention url="https://app.notion.com/p/40d771bd4d438124b4fecedf6b8ebbfd" />
+- <mention url="https://app.notion.com/p/40e771bd4d4381348afbc4f4257c51f4" />
+
+---
+
+## 9. Revision history
+
+| Date | Change |
+| --- | --- |
+| <date start="2026-11-04" /> | Sections 1 and 2 and the brief item in section 3 now match the build, and point to the M1 (MVP) Delivery Plan for live status. Section 4.2 notes that the approved plan replaced the front-end tickets with tasks 1 to 19; the tickets themselves are unchanged. BE-08 now records that the mock API stays for development and tests after the switch, and adds an end-to-end pass against the real API. |
 </content>

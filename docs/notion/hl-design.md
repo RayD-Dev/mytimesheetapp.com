@@ -1,9 +1,9 @@
 <!-- Read-only copy of HL Design Doc: https://app.notion.com/p/3f4771bd4d4380e28d76d2038edbfac4
      Notion is the master; comment and edit there, then run docs-sync.
-     Notion last edited: 2026-11-04T03:53:51.561Z · Synced: 04/11/2026 -->
+     Notion last edited: 2026-11-04T04:23:41.138Z · Synced: 04/11/2026 -->
 <content>
 <callout icon="📄" color="gray_bg">
-<b>Status:</b> Draft · <b>Last updated:</b> <date start="2026-10-18" /> · <b>Type:</b> High-level solution design — <i>what</i> the system is, covering both the web front end and the backend. Why each decision was made, and how the system runs, are in the <mention url="https://app.notion.com/p/3f6771bd4d4381fbadd6f819e59e08fd" />. Requirements live in the <mention url="https://app.notion.com/p/3f5771bd4d438156a93ec42b3548821d" />; implementation detail lives in the <mention url="https://app.notion.com/p/3f5771bd4d43813e90c8e11492d92e2b" /> and the <mention url="https://app.notion.com/p/3f5771bd4d43819981e0f96e66fae263" />.
+<b>Status:</b> Draft · <b>Last updated:</b> <date start="2026-11-04" /> · <b>Type:</b> High-level solution design — <i>what</i> the system is, covering both the web front end and the backend. Why each decision was made, and how the system runs, are in the <mention url="https://app.notion.com/p/3f6771bd4d4381fbadd6f819e59e08fd" />. Requirements live in the <mention url="https://app.notion.com/p/3f5771bd4d438156a93ec42b3548821d" />; implementation detail lives in the <mention url="https://app.notion.com/p/3f5771bd4d43813e90c8e11492d92e2b" /> and the <mention url="https://app.notion.com/p/3f5771bd4d43819981e0f96e66fae263" />.
 </callout>
 
 <table-of-contents />
@@ -100,7 +100,7 @@ Target
   • M1: one self-hosted instance, recovered from a tested backup<br />  • M3: cloud target 99.9%.
 </td>
 <td>
-  • M1: automatic restarts, monitoring from the relay and a tested restore (AD-19, AD-21).<br />  • M3: stateless services, horizontal scaling, health / readiness probes, graceful shutdown (AD-07).
+  • M1: automatic restarts, monitoring from the relay and a tested restore (AD-19, AD-21).<br />  • M3: services that keep no state in memory, horizontal scaling, health / readiness probes, graceful shutdown (AD-07).
 </td>
 </tr>
 <tr>
@@ -271,7 +271,7 @@ flowchart LR
 | <b>PostgreSQL</b> | System of record for timesheets, signatures, the business logo and the log (and Keycloak's own data, in a separate database). Backed up as one unit (section 6). |
 | <b>Observability</b> | Collects logs, metrics and traces. Backend tools chosen in the Detailed Design. |
 
-How the browser signs in (tokens held in the browser vs a Backend-for-Frontend) is decided in the FE Detailed Design; the containers above hold either way.
+The browser signs in through the API: the Spring Boot app is Keycloak's client and keeps the tokens, and the browser holds only a session cookie (AD-15). Decision and threats: <mention url="https://app.notion.com/p/40d771bd4d438124b4fecedf6b8ebbfd" />.
 
 ### 4.2 API modules
 
@@ -300,13 +300,18 @@ sequenceDiagram
     participant K as Keycloak
     participant A as API
     U->>W: Open the app
-    W->>K: Redirect to sign in (OIDC)
+    W->>A: Who am I?
+    A-->>W: 401, not signed in
+    W->>A: Go to sign-in
+    A-->>U: Redirect to Keycloak (OIDC, PKCE)
     U->>K: Enter credentials (new password at first sign-in)
-    K-->>W: Authorisation code
-    W->>K: Exchange code for tokens
-    Note over W,K: Whether the browser or a BFF holds the tokens is decided in the FE Detailed Design
-    W->>A: API request with access token
-    A->>A: Verify token, resolve tenant and roles
+    K-->>A: Authorisation code, through the browser
+    A->>K: Exchange code for tokens
+    A->>A: Keep the tokens in a session in PostgreSQL
+    A-->>W: Session cookie (HttpOnly)
+    Note over W,A: The browser never sees a token
+    W->>A: API request with cookie and CSRF header
+    A->>A: Look up the session, resolve tenant and roles
     A-->>W: Response
 ```
 
@@ -415,7 +420,7 @@ Why each decision was made, with the options considered, is in the System Design
 | AD-04 | <b>External identity provider (Keycloak, OIDC)</b> |
 | AD-05 | <b>RBAC scoped per organisation</b>, enforced in the API; two roles in M1, Employee and Manager; checks on the role, not a count of managers |
 | AD-06 | <b>Log written in the same transaction</b> as the action |
-| AD-07 | <b>Stateless service</b>, JWT bearer tokens |
+| AD-07 | <b>No state in the service's memory</b>, server-side sessions for the browser, stored in PostgreSQL |
 | AD-08 | <b>Containers as the unit of deployment</b>: the same images on Docker Compose and on Kubernetes (Helm) |
 | AD-09 | <b>12-factor configuration</b>: all configuration and secrets from the environment |
 | AD-10 | <b>Single PostgreSQL database with versioned migrations</b> (Flyway) |
@@ -423,7 +428,7 @@ Why each decision was made, with the options considered, is in the System Design
 | AD-12 | <b>Web app in its own container, on the same domain as the API</b> (<code>/</code> → web app, <code>/api</code> → API) |
 | AD-13 | <b>OpenAPI spec is the front-end / backend contract</b>; the web app's client is generated from it |
 | AD-14 | <b>Monorepo</b> for web app, backend and deployment config |
-| AD-15 | <b>Browser sign-in approach decided in the FE Detailed Design</b> (tokens in the SPA vs Backend-for-Frontend) |
+| AD-15 | <b>Browser sign-in through a cookie session in the Spring Boot app</b>; tokens stay on the server (decided 03/11/2026) |
 | AD-16 | <b>Deliver in end-to-end slices</b>, each with its API and screens: M1.1 Profile signature, My timesheet and submit, M1.2 approvals, M1.3 admin page, M1.4 PDF |
 | AD-17 | <b>PDF generated on the server</b>, on request |
 | AD-18 | <b>Drafts are server-side, autosaved</b>; no timesheet data in browser storage |
@@ -536,7 +541,7 @@ Strategy only — tools, thresholds and environments are in the Detailed Design 
 | Dependency relicensing (projects moving to source-available) | Legal | CI licence scanning, review licences on every upgrade |
 | Keycloak operational complexity | Ops overhead | Official container image, standard OIDC integration so the IdP stays swappable |
 | Web app built against a changing API | Rework | End-to-end slices, so the screens shape the API; client generated from the OpenAPI spec; contract tests |
-| Login tokens stolen from the browser (XSS) | Security | Sign-in approach chosen deliberately in the FE Detailed Design (Backend-for-Frontend under consideration); Content Security Policy |
+| Login tokens stolen from the browser (XSS) | Security | Tokens never reach the browser, because sign-in is a cookie session in the app (AD-15); Content Security Policy |
 | Accessibility retrofit after M1 (WCAG 2.2 AA in M2) | Cost / rework | Semantic HTML and an accessible component library from the start (Nuxt UI, built on Reka UI) |
 | Smaller Vue enterprise ecosystem than React | Library choice / hiring | Stick to official Vue libraries and mature, actively maintained component libraries |
 | Exported files leave the system's access controls | Data protection | PDF download limited to managers (FR-03); every download logged; files generated on demand rather than stored |
@@ -557,7 +562,6 @@ Strategy only — tools, thresholds and environments are in the Detailed Design 
 
 Tracked in the detailed design docs:
 
-- Browser sign-in approach — <mention url="https://app.notion.com/p/3f5771bd4d43819981e0f96e66fae263" />
 - Tenant isolation strategy (needed by M3), a Java 25 check of OpenHTMLtoPDF — <mention url="https://app.notion.com/p/3f5771bd4d43813e90c8e11492d92e2b" />
 - Relay and backup storage providers, domain name, container registry, backup tooling and retention, PostgreSQL hosting for M3 — <mention url="https://app.notion.com/p/3f6771bd4d4381fbadd6f819e59e08fd" />
 
@@ -595,4 +599,5 @@ Tracked in the detailed design docs:
 | <date start="2026-10-18" /> | Followed mock-up round R8: an optional business logo joins the business name as a business setting, stored in PostgreSQL and shown on the sign-in pages (FR-28). |
 | <date start="2026-10-18" /> | Answered review comments: section 1 links to the System Design and the Auditability row to the PRD; the drivers table's third column is now "How the design meets it", with a line explaining the table; least privilege and the OWASP / ASVS baseline are explained in a line each; secret scanning before every commit and in CI is added to the drivers, technology choices and testing approach. |
 | <date start="2026-10-18" /> | Consistency fixes from the docs index: two-factor sign-in for the manager is in M2, as in the PRD roadmap (sections 4.1 and 6); the Auditability row now says the Clear action isn't logged but the later deletion of a cleared rejected timesheet is (FR-13). |
+| <date start="2026-11-04" /> | Recorded the browser sign-in decision of 03/11/2026: a cookie session in the Spring Boot app, with tokens kept on the server (AD-15). AD-07 now says no state in the service's memory, with server-side sessions for the browser in PostgreSQL. Updated section 4.1, the sign-in flow in section 5.1, the XSS risk in section 13, and section 14. |
 </content>

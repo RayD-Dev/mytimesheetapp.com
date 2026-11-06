@@ -1,9 +1,9 @@
 <!-- Read-only copy of Product Requirements (PRD): https://app.notion.com/p/3f5771bd4d438156a93ec42b3548821d
      Notion is the master; comment and edit there, then run docs-sync.
-     Notion last edited: 2026-11-04T03:53:55.375Z · Synced: 04/11/2026 -->
+     Notion last edited: 2026-11-04T04:23:47.354Z · Synced: 04/11/2026 -->
 <content>
 <callout icon="🎯" color="gray_bg">
-<b>Status:</b> Draft · <b>Last updated:</b> <date start="2026-10-18" /> · <b>Type:</b> Product requirements — <i>what</i> we're building and <i>why</i>. How it's built lives in the <mention url="https://app.notion.com/p/3f4771bd4d4380e28d76d2038edbfac4" />.
+<b>Status:</b> Draft · <b>Last updated:</b> <date start="2026-11-04" /> · <b>Type:</b> Product requirements — <i>what</i> we're building and <i>why</i>. How it's built lives in the <mention url="https://app.notion.com/p/3f4771bd4d4380e28d76d2038edbfac4" />.
 </callout>
 
 <table-of-contents />
@@ -68,7 +68,7 @@ Each person has their own login. The name on a timesheet comes from the login an
 - Weekend and overnight shifts → M2
 - More than one manager, reporting lines and approver overrides → M2
 - Notifications → M2
-- Two-factor sign-in → M2
+- Two-factor sign-in and passkeys → M2
 - Excel export → M2; CSV → Later
 - Audit history screen and reports → M2
 - Cloud hosting and multiple businesses → M3
@@ -212,7 +212,7 @@ Product promises to the business and its staff. Qualities that shape the archite
 | Milestone | Focus | Features |
 | --- | --- | --- |
 | <b>M1 — MVP</b> | One self-hosted business | Everything in section 4 |
-| <b>M2</b> | Usability & control | Recall; amendments to approved timesheets; weekend and overnight shifts; multiple managers, reporting lines and approver overrides; email notifications and reminders; Excel export; audit history screen; basic reports; more soft warnings (e.g. unusually long weeks); review of leavers' drafts; accessibility (WCAG 2.2 AA); two-factor sign-in |
+| <b>M2</b> | Usability & control | Recall; amendments to approved timesheets; weekend and overnight shifts; multiple managers, reporting lines and approver overrides; email notifications and reminders; Excel export; audit history screen; basic reports; more soft warnings (e.g. unusually long weeks); review of leavers' drafts; accessibility (WCAG 2.2 AA); two-factor sign-in and passkeys |
 | <b>M3</b> | Cloud & SaaS | Cloud hosting; multiple businesses (tenants) and onboarding; Platform Admin; per-tenant single sign-on; configurable periods (weekly, monthly); self-service data access and erasure (GDPR) |
 | <b>M4</b> | Business features | Dimensions (projects, clients, sites, work types); pay rates, including evening, weekend and holiday rates; employee levels; billing and invoicing; payroll and accounting integrations; public API and webhooks |
 | <b>Later</b> | Enterprise extras | Multi-level approvals; CSV export; leave tracking; advanced analytics; native mobile apps; multiple languages; data residency; tamper-evident log; configurable data retention |
@@ -253,6 +253,7 @@ Product promises to the business and its staff. Qualities that shape the archite
 | <date start="2026-10-18" /> | The manager sets the business name and an optional logo on the admin page; the sign-in pages show them (FR-28) | Owner's request during the mock-up review. The sign-in pages match the app's look, and the business's own name and logo tell staff they're in the right place |
 | <date start="2026-10-18" /> | M1 password rule: at least 8 characters, with letters and numbers (FR-01) | A simple rule staff can follow on a phone; it can be tightened later |
 | <date start="2026-10-18" /> | No two-factor sign-in in M1; it moves to M2 (FR-01) | Owner's decision during the mock-up review: keeps sign-in simple while the app replaces paper. Until then the manager account relies on its password and Keycloak's protection against password guessing |
+| <date start="2026-11-03" /> | Passkeys come in M2 with two-factor sign-in | Owner's decision. Passkeys are tied to the domain name, so the final domain must be settled before anyone registers one |
 
 ---
 
@@ -291,4 +292,5 @@ None. Q1–Q11 are resolved; their outcomes are in the FRs and the decision log.
 | <date start="2026-10-11" /> | Consistency fixes: FR-26 now lists the logged deletion of a cleared rejected timesheet; the decision-log and risk rows on rejected timesheets mention FR-13's exception for cleared ones. FR-13: the timesheet shows the date it will be deleted, as drafts already do. |
 | <date start="2026-10-18" /> | Added FR-28: business name and optional logo, set on the admin page and shown on the sign-in pages. FR-26 now logs changes to them; the screens table and M1 scope mention them. |
 | <date start="2026-10-18" /> | FR-01: the M1 password rule, and no two-factor sign-in in M1, which is added to the M2 roadmap and to Not in M1. FR-24 mentions the business name and logo. Section references are now written as words. |
+| <date start="2026-11-04" /> | Passkeys added to M2 with two-factor sign-in, in Not in M1, the roadmap and the decision log, following the decision of 03/11/2026. |
 </content>

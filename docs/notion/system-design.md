@@ -1,9 +1,9 @@
 <!-- Read-only copy of System Design: https://app.notion.com/p/3f6771bd4d4381fbadd6f819e59e08fd
      Notion is the master; comment and edit there, then run docs-sync.
-     Notion last edited: 2026-11-04T03:54:44.894Z · Synced: 04/11/2026 -->
+     Notion last edited: 2026-11-04T04:23:42.680Z · Synced: 04/11/2026 -->
 <content>
 <callout icon="🏗️" color="gray_bg">
-<b>Status:</b> Draft · <b>Last updated:</b> <date start="2026-10-18" /> · <b>Type:</b> System design — the detailed design of how the timesheet app runs, and <i>why</i> it is built the way it is. The <mention url="https://app.notion.com/p/3f4771bd4d4380e28d76d2038edbfac4" /> says <i>what</i> the system is; requirements live in the <mention url="https://app.notion.com/p/3f5771bd4d438156a93ec42b3548821d" />; code-level detail lives in the <mention url="https://app.notion.com/p/3f5771bd4d43813e90c8e11492d92e2b" /> and the <mention url="https://app.notion.com/p/3f5771bd4d43819981e0f96e66fae263" />.
+<b>Status:</b> Draft · <b>Last updated:</b> <date start="2026-11-04" /> · <b>Type:</b> System design — the detailed design of how the timesheet app runs, and <i>why</i> it is built the way it is. The <mention url="https://app.notion.com/p/3f4771bd4d4380e28d76d2038edbfac4" /> says <i>what</i> the system is; requirements live in the <mention url="https://app.notion.com/p/3f5771bd4d438156a93ec42b3548821d" />; code-level detail lives in the <mention url="https://app.notion.com/p/3f5771bd4d43813e90c8e11492d92e2b" /> and the <mention url="https://app.notion.com/p/3f5771bd4d43819981e0f96e66fae263" />.
 </callout>
 
 <table-of-contents />
@@ -73,16 +73,16 @@ flowchart LR
     C -- "4c /auth" --> K
     A -- "5 SQL" --> P
     K -- "5 SQL" --> P
-    A -. "(a) token signing keys, internal" .-> K
+    A -. "(a) sign-in code swap and signing keys, internal" .-> K
 ```
 
 1. <b>Name lookup.</b> The browser looks up the app's hostname (for example <code>timesheet.example.com</code>) and gets the relay's public IP address. The home machine's address never appears in DNS.
 2. <b>HTTPS to the relay.</b> The browser connects to the relay on port 443. Port 80 is open only so that plain <code>http://</code> links redirect to HTTPS and certificate checks work (section 4.2).
 3. <b>Through the tunnel, still encrypted.</b> The relay passes the encrypted connection, unopened, through a WireGuard tunnel that the home machine keeps open to it. It adds a PROXY protocol header so Caddy knows the browser's real IP address. The relay never holds a certificate and never sees timesheet data.
 4. <b>Caddy.</b> On the home machine, Caddy ends TLS, adds security headers, refuses blocked paths and routes by path: (4a) <code>/</code> to the web app, (4b) <code>/api</code> to the API, (4c) <code>/auth</code> to Keycloak (section 2.2).
-5. <b>Data.</b> The API checks the token, then reads or writes PostgreSQL. Keycloak keeps its own database on the same PostgreSQL server.
+5. <b>Data.</b> The API finds the session from its cookie and checks the role, then reads or writes PostgreSQL. Keycloak keeps its own database on the same PostgreSQL server.
 
-The response goes back the same way. (a) The API fetches Keycloak's token-signing keys over the internal network, never through Caddy (section 2.5).
+The response goes back the same way. (a) At sign-in, the API swaps the code for tokens and fetches Keycloak's signing keys over the internal network, never through Caddy (section 2.5).
 
 ### 2.2 One hostname, routed by path
 
@@ -125,8 +125,9 @@ The backup job runs on the host, not in a container (section 9.3).
 ### 2.5 Tokens and the issuer URL
 
 - Keycloak issues tokens whose issuer is its <b>public</b> URL (<code>https://timesheet.example.com/auth/realms/timesheet</code>), because that's where browsers sign in.
-- The API checks every token's issuer against that public URL, but fetches Keycloak's signing keys from its <b>internal</b> address (<code>http://keycloak:8080/auth/…</code>) and caches them. Token checks never leave the machine and don't depend on DNS, the relay or the certificate.
-- The catch: the API can't find the keys through OIDC discovery from the issuer URL alone, because that would go out through the relay. So the issuer and the keys URL are configured separately. A Backend-for-Frontend, if chosen (FE section 3), exchanges sign-in codes for tokens at the internal address in the same way. Configuration: BE section 5.
+- At sign-in, the app checks the ID token's issuer against that public URL, but swaps the code for tokens and fetches Keycloak's signing keys at its <b>internal</b> address (<code>http://keycloak:8080/auth/…</code>), and caches the keys. These calls never leave the machine and don't depend on DNS, the relay or the certificate.
+- The catch: the app can't find these addresses through OIDC discovery from the issuer URL alone, because that would go out through the relay. So the issuer, the token URL and the keys URL are configured separately. Configuration: BE section 5.
+- After sign-in, the app authorises each request from its session in PostgreSQL, so an API call needs neither a token nor Keycloak (AD-15). Bearer tokens remain possible later for non-browser clients (the M4 public API).
 - M3 uses the same split inside the cluster.
 
 ---
@@ -137,7 +138,7 @@ The backup job runs on the host, not in a container (section 9.3).
 
 Every request, sign-in included, enters through one reverse proxy (AD-20). That gives:
 
-- <b>One origin.</b> The web app, the API and the sign-in pages share one hostname. The browser needs no cross-origin (CORS) rules, and a session cookie, if a Backend-for-Frontend is chosen (FE section 3), can be host-only, <code>Secure</code>, <code>HttpOnly</code> and <code>SameSite</code>.
+- <b>One origin.</b> The web app, the API and the sign-in pages share one hostname. The browser needs no cross-origin (CORS) rules, and the session cookie (AD-15) can use the <code>__Host-</code> prefix: host-only, <code>Secure</code>, <code>HttpOnly</code> and <code>SameSite=Strict</code>.
 - <b>One place for TLS.</b> One certificate, renewed automatically in one place (section 4).
 - <b>Nothing else exposed.</b> Only the paths in section 2.2 can be reached. Keycloak's admin console, the health endpoints and the database can't, whatever their own settings.
 - <b>One place for headers and limits.</b> Security headers, request size limits and access logs are set once, not in every service.
@@ -443,7 +444,7 @@ M1 has no permanent staging server (SD-08). M3 adds a permanent staging environm
 
 These apply from M1, so M3 changes the deployment, not the code:
 
-- <b>No state in the API's memory</b> between requests (AD-07). If a Backend-for-Frontend is chosen (FE section 3), its sessions are stored in PostgreSQL.
+- <b>No state in the API's memory</b> between requests (AD-07). Browser sessions are stored in PostgreSQL.
 - <b>No files on local disk.</b> Signatures are in PostgreSQL; PDFs are generated and streamed, never stored.
 - <b>Scheduled jobs run once,</b> however many API replicas there are: the daily job that deletes expired drafts and cleared rejected timesheets takes a database lock first (SD-11).
 - <b>Migrations run once:</b> Flyway locks its history table, so only one replica migrates. In M3 a pre-deploy job can run them instead.
@@ -459,7 +460,7 @@ These apply from M1, so M3 changes the deployment, not the code:
 
 ### 7.4 Scaling path
 
-1. Stateless web and API scale out (M3).
+1. Web and API replicas scale out, because neither keeps state in memory (M3).
 2. Database read replicas for reports and exports, once data grows.
 3. Heavy work such as exports and reports moves to background workers (revisit AD-17 with M2's Excel export and reports).
 4. Modules are extracted into separate services only if a measured need appears (AD-01).
@@ -570,8 +571,8 @@ Not backed up: container images (pulled again by their pinned digests), PDFs (ge
 | Home machine's disk or hardware fails | The app is unreachable; up to a day's entries lost | The relay's monitor alerts | Restore onto a replacement or a temporary rented server (section 9.4) within one business day; staff re-enter lost days and the manager approves again |
 | Disk full | Saves fail; autosave shows "Not saved" | Alert at 80% disk use | The journal's 2 GB cap and image pruning prevent it. Free space, and saves resume |
 | Certificate renewal keeps failing | Nothing until it expires; then phones refuse the site | Alert when fewer than 14 days are left | Fix the cause (relay forwarding, DNS, an outage at the certificate authority); Caddy retries by itself |
-| Keycloak down | Nobody can sign in. People already signed in carry on until their session next needs Keycloak, within minutes | The health check restarts it; the monitor checks the sign-in page | Restart; restore its database if it's corrupted |
-| API down | Errors; autosave keeps changes in memory and retries | The health check restarts it; the monitor checks an API health route | Restart; read the logs; roll back the last upgrade if it caused it |
+| Keycloak down | Nobody can sign in or change a password, and sign-out can't reach Keycloak's signed-out page. People already signed in carry on, because the app authorises from its own session, until that session ends (30 minutes idle, 8 hours at most) | The health check restarts it; the monitor checks the sign-in page | Restart; restore its database if it's corrupted |
+| API down | Errors; autosave keeps changes in memory and retries, then stops and makes the timesheet read-only after the 10th failure (FE section 7.1) | The health check restarts it; the monitor checks an API health route | Restart; read the logs; roll back the last upgrade if it caused it |
 | Bad upgrade or migration | Errors or wrong data after an upgrade | The smoke test straight after the upgrade | The previous image digests plus the pre-upgrade backup (section 11.3) |
 | SMTP account stops working | Password-reset emails don't arrive | Staff report it; Keycloak's logs | Fix the SMTP settings. Meanwhile the manager resets passwords from the admin page, with a temporary password |
 | Backups failing silently | Nothing, until a restore is needed | The missing nightly heartbeat alerts by the next morning | Fix it, run a backup by hand, run <code>restic check</code> |
@@ -590,7 +591,7 @@ Not backed up: container images (pulled again by their pinned digests), PDFs (ge
 - WireGuard keys for the home machine and for each of the operator's devices.
 - An email (SMTP) account for the business, for Keycloak's password-reset emails (FR-01, PRD section 7) and the operator's alerts.
 - Off-site backup storage, and a restic repository password (section 9.3).
-- Keycloak set up from the realm configuration in the repo: admin events on, with no expiry (FR-26); brute-force protection on; a password policy of at least 8 characters with letters and numbers; no two-factor sign-in for app accounts in M1 (SD-03); the Account Console off; the initial admin account replaced by a named admin with two-factor sign-in.
+- Keycloak set up from the realm configuration in the repo: admin events on, with no expiry (FR-26); brute-force protection on; a password policy of at least 8 characters with letters and numbers; no two-factor sign-in for app accounts in M1 (SD-03); the Account Console off; a session idle of 30 minutes and a maximum of 8 hours, matching the app's session (AD-15); a check against known breached passwords (BE-10); the initial admin account replaced by a named admin with two-factor sign-in.
 - The business's time zone and, until M1.3, the pay schedule start date, in configuration.
 - A tested restore (section 9.4) before go-live, and the runbook (section 11.5).
 
@@ -746,15 +747,15 @@ Each record gives the context, the options considered, why the decision was made
 </toggle>
 
 <toggle>
-<b>AD-07 · Stateless service, JWT bearer tokens</b>
+<b>AD-07 · No state in the service's memory, server-side sessions for the browser</b>
 
 <b>Context:</b> M3 runs several API replicas and upgrades without downtime.
 
 <b>Options:</b> sessions in the API's memory (needs sticky routing); stateless, with signed tokens; sessions in a shared store.
 
-<b>Why:</b> If no instance keeps anything in memory between requests, any replica can serve any request, and replicas can be added or replaced freely; in M1 a restart loses nothing. Tokens are checked locally with Keycloak's cached keys, so a request needs no extra call (section 2.5).
+<b>Why:</b> If no instance keeps anything in memory between requests, any replica can serve any request, and replicas can be added or replaced freely; in M1 a restart loses nothing. A session is read from PostgreSQL, so a request needs no call to Keycloak (section 2.5).
 
-<b>Consequences:</b> If a Backend-for-Frontend is chosen (AD-15), its sessions go in PostgreSQL, not memory, so the instances stay stateless. Scheduled jobs need a lock to run only once (SD-11).
+<b>Consequences:</b> Browser sessions go in PostgreSQL (Spring Session, JDBC), not memory, so no instance holds state of its own (AD-15). This replaced "stateless, JWT bearer tokens" on 03/11/2026; bearer tokens remain possible for non-browser clients. Scheduled jobs need a lock to run only once (SD-11).
 </toggle>
 
 <toggle>
@@ -812,7 +813,7 @@ Each record gives the context, the options considered, why the decision was made
 
 <b>Options:</b> serve the web app from the Spring Boot app; its own container on the same domain; its own container with the API on a separate subdomain.
 
-<b>Why:</b> Its own container lets the web app and the API be released independently and keeps static file traffic off the JVM. The same domain avoids cross-origin (CORS) rules and keeps cookies first-party, which matters if a Backend-for-Frontend is chosen. A subdomain split would need CORS and cross-site cookie settings for no benefit.
+<b>Why:</b> Its own container lets the web app and the API be released independently and keeps static file traffic off the JVM. The same domain avoids cross-origin (CORS) rules and keeps cookies first-party, which the session cookie relies on (AD-15). A subdomain split would need CORS and cross-site cookie settings for no benefit.
 
 <b>Consequences:</b> Path routing at a single entry point (AD-20).
 </toggle>
@@ -842,15 +843,15 @@ Each record gives the context, the options considered, why the decision was made
 </toggle>
 
 <toggle>
-<b>AD-15 · Browser sign-in approach decided in the FE Detailed Design</b>
+<b>AD-15 · Browser sign-in: a cookie session in the Spring Boot app</b>
 
 <b>Context:</b> How the browser holds sign-in tokens is the most security-sensitive front-end decision.
 
-<b>Options:</b> tokens in the single-page app; a Backend-for-Frontend (recommended in FE section 3); a token-mediating backend. Full comparison: FE section 3.
+<b>Options:</b> tokens in the single-page app; a cookie session in the app, the IETF's Backend-for-Frontend pattern (chosen); a separate gateway container; a token-mediating backend. Full comparison: <mention url="https://app.notion.com/p/40d771bd4d438124b4fecedf6b8ebbfd" /> section 3.
 
-<b>Why it's decided there:</b> the choice doesn't change the containers. Either way, all sign-in traffic passes the single entry point (AD-20) on one origin (AD-12).
+<b>Why:</b> Decided by the owner on 03/11/2026. Tokens never reach the browser, so an injected script has no credential to steal. RFC 10017 ranks this pattern the most secure of the three it describes, and it's cheap here because the web app, the API and Keycloak share one hostname (AD-12, AD-20).
 
-<b>Consequences for the system:</b> a Backend-for-Frontend adds sessions stored in PostgreSQL (AD-07) and CSRF protection, and exchanges codes for tokens at Keycloak's internal address (section 2.5).
+<b>Consequences for the system:</b> The app is a confidential Keycloak client using the authorization code flow with PKCE, and swaps codes for tokens at Keycloak's internal address (section 2.5). Sessions are stored in PostgreSQL (AD-07), and the cookie has the <code>__Host-</code> prefix, <code>Secure</code>, <code>HttpOnly</code> and <code>SameSite=Strict</code>. Timeouts are 30 minutes idle and 8 hours absolute, autosaves count as activity, and Keycloak's own session idle and maximum match. CSRF protection is required. Deactivating a person or resetting their password deletes their sessions. Details: Browser Sign-In sections 5 and 6.
 </toggle>
 
 <toggle>
@@ -1168,4 +1169,5 @@ Why each technology in HLD section 9 was chosen.
 | <date start="2026-10-18" /> | Linked the new Database Options page (why PostgreSQL, and how the options scale) from AD-10 and the related documents. |
 | <date start="2026-10-18" /> | The app database's backup now lists the business name and logo (FR-28). Secret scanning (gitleaks) runs as a pre-commit hook and in CI, on the code and the images. |
 | <date start="2026-10-18" /> | Consistency fix from the docs index: two-factor sign-in for the manager is in M2, as in the PRD roadmap (SD-03, sections 11.4 and 12). |
+| <date start="2026-11-04" /> | Recorded the browser sign-in decision of 03/11/2026: AD-15 is a cookie session in the Spring Boot app, and AD-07 now says no state in the service's memory, with browser sessions in PostgreSQL. Updated the request path (section 2), the issuer URL notes (section 2.5), one origin (section 3.1), the scaling rules (sections 7.2 and 7.4), AD-12 and the Keycloak realm set-up. Failure modes (section 10) follow the session timeouts and the capped autosave retries. |
 </content>

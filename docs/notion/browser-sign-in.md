@@ -1,9 +1,9 @@
 <!-- Read-only copy of Browser Sign-In: Decision, Pros and Cons, and Security Threats: https://app.notion.com/p/40d771bd4d438124b4fecedf6b8ebbfd
      Notion is the master; comment and edit there, then run docs-sync.
-     Notion last edited: 2026-11-03T11:45:52.286Z · Synced: 04/11/2026 -->
+     Notion last edited: 2026-11-04T04:23:50.926Z · Synced: 04/11/2026 -->
 <content>
 <callout icon="🔐" color="gray_bg">
-<b>Status:</b> Decided by the owner on 03/11/2026, not yet reflected in the other design docs (see section 8) · <b>Last updated:</b> <date start="2026-11-03" /> · <b>Type:</b> Decision record for AD-15 (browser sign-in approach), with the threats we face and how we reduce them. Companion to the <mention url="https://app.notion.com/p/3f5771bd4d43819981e0f96e66fae263" /> (section 3 compares the options), the <mention url="https://app.notion.com/p/3f4771bd4d4380e28d76d2038edbfac4" /> and the <mention url="https://app.notion.com/p/3f6771bd4d4381fbadd6f819e59e08fd" />.
+<b>Status:</b> Decided by the owner on 03/11/2026 and reflected in the other design docs on 04/11/2026 (see section 8) · <b>Last updated:</b> <date start="2026-11-04" /> · <b>Type:</b> Decision record for AD-15 (browser sign-in approach), with the threats we face and how we reduce them. Companion to the <mention url="https://app.notion.com/p/3f5771bd4d43819981e0f96e66fae263" /> (section 3 compares the options), the <mention url="https://app.notion.com/p/3f4771bd4d4380e28d76d2038edbfac4" /> and the <mention url="https://app.notion.com/p/3f6771bd4d4381fbadd6f819e59e08fd" />.
 </callout>
 
 <table-of-contents />
@@ -87,14 +87,14 @@ No approach makes an app invulnerable. This table lists what could go wrong, wha
 | 7 | Cookie injected from a sibling subdomain | A hostile or taken-over subdomain sets a cookie | <code>__Host-</code> cookie prefix (Secure, Path=/, no Domain); HSTS without includeSubDomains is already set so other services are unaffected | Low |
 | 8 | Deactivated person keeps access (FR-25) | Their session outlives the account change | Admin deactivate and password reset delete that person's sessions in the store; Keycloak back-channel logout as a backstop (to be verified, see section 8); idle and absolute timeouts bound the worst case | Low once built; <b>this is a required ticket</b> |
 | 9 | Session table read by an attacker | Database access exposes live session IDs | Encrypted disk and encrypted backups (SD-04, SD-07); database not reachable from outside; short lifetimes; sessions deleted on logout and expiry | Medium-low. Hashing session IDs in the store is a possible hardening |
-| 10 | Password guessing or stuffing | Automated attempts at the Keycloak sign-in page | Keycloak brute-force protection (off by default, so the realm config must turn it on); password policy; Account Console off | Password rule and breached-password check as decided in section 7; two-factor sign-in or passkeys follow in M2 |
+| 10 | Password guessing or stuffing | Automated attempts at the Keycloak sign-in page | Keycloak brute-force protection (off by default, so the realm config must turn it on); password policy; Account Console off | Password rule and breached-password check as decided in section 7; two-factor sign-in and passkeys follow in M2 |
 | 11 | Login redirect abuse | Tricking the app into sending a person to a hostile site after login | Exact redirect URI matching in Keycloak; PKCE with S256 and a state value; the return-to address must be a relative path on our own site | Low |
 | 12 | Authorization code stolen or replayed | Code intercepted in the redirect | PKCE, one-time codes, exchange done server-side over the internal address | Low |
 | 13 | Clickjacking | The app loaded inside a hostile page's frame | Frame-blocking policy in the Content Security Policy and headers at the entry point | Low |
 | 14 | Tokens leaked through logs or URLs | Tokens written to logs or sent in query strings | Tokens never in URLs; logs scrubbed; correlation IDs instead | Low |
 | 15 | Lost or shared phone | Someone else uses an open session | Idle timeout; Sign out button; Keycloak session ends with it | <b>Accepted</b> for M1 |
 | 16 | Keycloak admin console attacked | Exposed admin interface | Admin paths never public, reachable only over WireGuard (SD-03); named admin with two-factor sign-in | Low |
-| <b>Accepted residual risks in M1:</b> a script already running on the page can act as the user (threat 2); a stolen unlocked phone can be used until the idle timeout; sign-in is password-only until M2 adds two-factor sign-in or passkeys. |  |  |  |  |
+| <b>Accepted residual risks in M1:</b> a script already running on the page can act as the user (threat 2); a stolen unlocked phone can be used until the idle timeout; sign-in is password-only until M2 adds two-factor sign-in and passkeys. |  |  |  |  |
 
 ---
 
@@ -125,7 +125,7 @@ No approach makes an app invulnerable. This table lists what could go wrong, wha
 
 ## 8. What changes elsewhere
 
-<b>Plan:</b> the contract gains login, logout and "who am I" endpoints and the CSRF header rule; a 401 shows the "You've been signed out" dialog (AC-22). The mock API must behave the same way (a signed-in flag and the same 401). Back end gains one ticket for cookie sign-in and session revocation (BE-09, roughly 5 points) and one for the breached-password check (BE-10, roughly 3 points). The front end has no token code.<br /><b>Docs the doc session owns (not edited here):</b>
+<b>Plan:</b> the contract gains login, logout and "who am I" endpoints and the CSRF header rule; a 401 shows the "You've been signed out" dialog (AC-22). The mock API must behave the same way (a signed-in flag and the same 401). Back end gains one ticket for cookie sign-in and session revocation (BE-09, roughly 5 points) and one for the breached-password check (BE-10, roughly 3 points). The front end has no token code.<br /><b>Changes made to the other design docs on 04/11/2026:</b>
 
 - HL Design Doc: AD-15 status becomes decided; AD-07 "JWT bearer tokens" wording changes to "server-side sessions for the browser"; the sign-in diagram note.
 - System Design: the AD-15 decision record; the session cookie and its attributes; session store in PostgreSQL.
@@ -148,4 +148,12 @@ No approach makes an app invulnerable. This table lists what could go wrong, wha
 - [NIST SP 800-63B-4, Authenticators](https://pages.nist.gov/800-63-4/sp800-63b/authenticators/)
 - [Keycloak passkeys support](https://www.keycloak.org/2025/09/passkeys-support-26-4)
 - [Keycloak Server Administration Guide](https://www.keycloak.org/docs/latest/server_admin/index.html)
+
+---
+
+## 10. Revision history
+
+| Date | Change |
+| --- | --- |
+| <date start="2026-11-04" /> | The other design docs now reflect this decision (sections 8 and the status line). Two-factor sign-in and passkeys both come in M2, matching the PRD roadmap. |
 </content>

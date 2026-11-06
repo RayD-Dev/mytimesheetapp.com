@@ -1,9 +1,9 @@
 <!-- Read-only copy of Detailed Design Doc — FE: https://app.notion.com/p/3f5771bd4d43819981e0f96e66fae263
      Notion is the master; comment and edit there, then run docs-sync.
-     Notion last edited: 2026-11-04T03:53:56.375Z · Synced: 04/11/2026 -->
+     Notion last edited: 2026-11-04T04:23:44.120Z · Synced: 04/11/2026 -->
 <content>
 <callout icon="🎨" color="gray_bg">
-<b>Status:</b> Draft · <b>Last updated:</b> <date start="2026-10-18" /> · <b>Type:</b> Detailed design for the web front end. Companion to <mention url="https://app.notion.com/p/3f4771bd4d4380e28d76d2038edbfac4" /> (architecture), the <mention url="https://app.notion.com/p/3f5771bd4d438156a93ec42b3548821d" /> (requirements) and <mention url="https://app.notion.com/p/3f5771bd4d43813e90c8e11492d92e2b" />.
+<b>Status:</b> Draft · <b>Last updated:</b> <date start="2026-11-04" /> · <b>Type:</b> Detailed design for the web front end. Companion to <mention url="https://app.notion.com/p/3f4771bd4d4380e28d76d2038edbfac4" /> (architecture), the <mention url="https://app.notion.com/p/3f5771bd4d438156a93ec42b3548821d" /> (requirements) and <mention url="https://app.notion.com/p/3f5771bd4d43813e90c8e11492d92e2b" />.
 </callout>
 
 <table-of-contents />
@@ -26,7 +26,7 @@ The HL design chose a client-rendered <b>single-page app (SPA)</b>. Alternatives
 | <b>SSR — server-side rendering</b> (Nuxt) | A Node server renders HTML per request, then the browser takes over ("hydration") | Faster first paint; SEO for public pages; the Nuxt server can double as a Backend-for-Frontend for login (see section 3) | Another runtime (Node) to run, scale, secure and patch; code runs on both server and client, so more complex (hydration bugs); higher infra cost |
 | <b>SSG — static site generation</b> | Pages rendered to HTML at build time | Fastest possible load, great SEO | Only suits content that's the same for everyone — not a logged-in app |
 
-<b>Why SPA:</b> every screen is behind a login, so SSR's main benefits (SEO, first paint for anonymous visitors) don't apply, while its costs (a Node server tier) do. <b>Revisit if:</b> we need public pages (a marketing site would be a separate SSG site), or we choose a BFF and want Nuxt to host it.
+<b>Why SPA:</b> every screen is behind a login, so SSR's main benefits (SEO, first paint for anonymous visitors) don't apply, while its costs (a Node server tier) do. <b>Revisit if:</b> we need public pages (a marketing site would be a separate SSG site).
 
 ---
 
@@ -58,7 +58,7 @@ The Vue app redirects to Keycloak, receives tokens, and sends the access token a
 
 ### Option B — Backend-for-Frontend (BFF)
 
-A server-side component logs in to Keycloak as a confidential client and keeps the tokens. The browser only holds a secure, HttpOnly session cookie; the BFF attaches the access token when forwarding API calls.
+A server-side component logs in to Keycloak as a confidential client and keeps the tokens. The browser only holds a secure, HttpOnly session cookie. Inside one app, as chosen here, the server authorises each request from its own session and relays no tokens. A separate gateway would attach the access token when forwarding API calls.
 
 <columns>
 <column>
@@ -100,11 +100,11 @@ A backend performs the login and keeps the refresh token, but hands the short-li
 </column>
 </columns>
 
-### Recommendation
+### Decision
 
-<b>Option B (BFF)</b> for an enterprise app holding employee data, hosted inside the Spring Boot app with sessions in PostgreSQL. <i>To be decided.</i>
+<b>Option B, inside the Spring Boot app, with sessions in PostgreSQL. Decided 03/11/2026 (AD-15).</b> The front end has no token code: it sends the cookie and a CSRF header, and a 401 shows the "You've been signed out" dialog. Pros, cons, threats and settings: <mention url="https://app.notion.com/p/40d771bd4d438124b4fecedf6b8ebbfd" />.
 
-<i>M1 note:</i> M1 serves one small self-hosted business, but staff sign in from their phones over the internet and the app holds the record of what they're owed, so the recommendation stands. Swagger UI is only a developer tool and there's no public API until M4, so Option B's "two auth paths" cost is small in M1.
+<i>M1 note:</i> M1 serves one small self-hosted business, but staff sign in from their phones over the internet and the app holds the record of what they're owed, so this holds even in M1. Swagger UI is only a developer tool and there's no public API until M4, so Option B's "two auth paths" cost is small in M1.
 
 ---
 
@@ -114,9 +114,10 @@ A backend performs the login and keeps the refresh token, but hands the short-li
 | --- | --- | --- |
 | Framework | Vue 3 + TypeScript | MIT / Apache 2.0 |
 | Build tooling | Vite | MIT |
+| Package manager | pnpm, version pinned through Corepack. The throwaway mock-up stays on npm | MIT |
 | Routing / state | Vue Router, Pinia (official Vue libraries) | MIT |
 | Component library | Nuxt UI (v4), built on Reka UI and Tailwind CSS v4. Used in the plain Vue + Vite app through its Vite plugin (<code>@nuxt/ui/vite</code>); it doesn't need the Nuxt framework, so the SPA decision (section 2) stands | MIT |
-| Signature drawing | <i>TBD</i> — candidate: signature\_pad | MIT |
+| Signature drawing | signature\_pad, used only inside our own small wrapper component with a fixed 2.5 px stroke; no third-party Vue wrapper | MIT |
 | Typed-signature font | Three bundled script fonts the person picks from: La Belle Aurore (the default), Herr Von Muellerhoff and Mrs Saint Delafield (mock-up round R3) | SIL OFL 1.1 (allowed, HL section 11) |
 | 12-hour time input | Nuxt UI <code>UInputTime</code> with <code>:hour-cycle="12"</code> and <code>granularity="minute"</code>; its value is a <code>Time</code> from <code>@internationalized/date</code> | MIT / Apache 2.0 |
 | Unit / component tests | Vitest, Vue Test Utils | MIT |
@@ -183,10 +184,12 @@ Routes and layouts for the screens listed in the PRD (section 5). <i>Proposed.</
 
 ### 7.1 Autosave
 
-- Each day saves on its own, after the user stops typing (short debounce) and when they leave a field. The request carries the timesheet's version (AD-18).
+- Each day saves 1 second after the last change and when the user leaves the field. The whole timesheet shares one save queue, because the version belongs to the timesheet. Each request carries that version (AD-18) and times out after 10 seconds.
 - The response carries the server's calculated hours, which replace the on-screen preview, and the timesheet's deletion date if it has one (FR-12, FR-13). Entering hours in a cleared rejected timesheet removes its deletion date.
 - A version conflict (the timesheet changed on another device) reloads the timesheet and tells the user with an inline notice at the top of the timesheet, not a toast (mock-up round R7).
-- If a save fails (e.g. no signal on a phone), the change stays in memory, the status shows "Not saved", the app retries, and it warns before the page is left. No timesheet data in browser storage.
+- If a save fails (e.g. no signal on a phone), the change stays in memory, the status shows "Not saved", and the app warns before the page is left. Only network failures, timeouts and 5xx errors are retried: 10 times, with waits of 2, 4, 8, 16, 32 and then 60 seconds, with jitter. The browser coming back online, or the tab becoming visible, brings the next attempt forward but adds none. No timesheet data in browser storage.
+- After the 10th failure, saving stops and the timesheet becomes read-only. A message says what is safe (hours saved before the last saved time), why saving failed (no connection or a server error) and that a reload is needed, and a manual Try again stays. Designed in mock-up round R9.
+- When the tab is hidden or closed, one last save is sent with fetch keepalive.
 
 ### 7.2 Loading and errors
 
@@ -229,12 +232,13 @@ Routes and layouts for the screens listed in the PRD (section 5). <i>Proposed.</
 
 ## 12. Open questions
 
-- [ ] Browser authentication approach (section 3)
+- [x] Browser authentication approach — <b>Decided 03/11/2026:</b> a cookie session in the Spring Boot app (section 3, AD-15)
 - [x] Component library — <b>Decided:</b> Nuxt UI (section 4)
-- [ ] Package manager (npm or pnpm)
-- [ ] Signature drawing library (candidate: signature\_pad). The typed-signature fonts are decided (section 4)
-- [ ] Autosave debounce, and how long to retry when offline
-- [ ] Check Nuxt UI's <code>UInputTime</code> on iOS and Android at 375 px: AM/PM always shown with <code>hour-cycle</code> 12, and typing works with the phone keyboard
+- [x] Package manager — <b>Decided 03/11/2026:</b> pnpm (section 4)
+- [x] Signature drawing library — <b>Decided 03/11/2026:</b> signature\_pad. The typed-signature fonts are decided too (section 4)
+- [x] Autosave debounce, and how long to retry when offline — <b>Decided 03/11/2026:</b> section 7.1
+- [x] Check Nuxt UI's <code>UInputTime</code> on an iPhone, typing with the phone keyboard — <b>Done 03/11/2026</b> (Readiness Checklist section 3)
+- [ ] Check <code>UInputTime</code> on an Android phone at 375 px: AM/PM always shown with <code>hour-cycle</code> 12, and typing works with the phone keyboard. Also check whether a one-digit hour moves on by itself
 - [x] Show the deletion date on a cleared rejected timesheet, like the draft expiry date? — <b>Decided:</b> yes; both show their deletion date (FR-12, FR-13)
 - [x] Form of the employee's confirmation in the submit review — <b>Resolved (FR-14):</b> one declaration plus a tick for each day with a warning
 
@@ -268,6 +272,10 @@ Routes and layouts for the screens listed in the PRD (section 5). <i>Proposed.</
 | <date start="2026-10-18" /> | Optional business logo (PNG or JPG, up to 1 MB) set on Admin and shown beside the business name on the sign-in pages (FR-28) |
 | <date start="2026-10-18" /> | Errors: the field turns red with a message plus a toast; failed actions get an inline message plus a toast; never a toast alone (the owner's call in round R8) |
 | <date start="2026-10-18" /> | Typed signatures offer three bundled OFL script fonts: La Belle Aurore (the default), Herr Von Muellerhoff and Mrs Saint Delafield (mock-up round R3) |
+| <date start="2026-11-03" /> | Browser sign-in: a cookie session in the Spring Boot app, with no token code in the front end (section 3, AD-15) |
+| <date start="2026-11-03" /> | Package manager: pnpm, version pinned through Corepack |
+| <date start="2026-11-03" /> | Signature drawing: signature\_pad inside our own wrapper component |
+| <date start="2026-11-03" /> | Autosave: 1 second after the last change, one save queue, capped retries, then read-only (section 7.1) |
 
 ---
 
@@ -284,4 +292,5 @@ Routes and layouts for the screens listed in the PRD (section 5). <i>Proposed.</
 | <date start="2026-10-18" /> | Followed mock-up round R7: Keycloak pages in the app's look, headed by the business name; business name on Admin (FR-28); version conflicts shown as an inline notice. Section references are now written as words. |
 | <date start="2026-10-18" /> | Followed mock-up round R8: optional business logo on Admin, shown beside the name on the sign-in pages (FR-28); new section 7.2 on loading, failed loads, session end and failed actions; how errors are shown on forms (section 9). |
 | <date start="2026-10-18" /> | Recorded the typed-signature fonts chosen in mock-up round R3 (section 4); the signature drawing library stays open. |
+| <date start="2026-11-04" /> | Recorded the decisions of 03/11/2026: browser sign-in (section 3), pnpm and signature\_pad (section 4), and the autosave timing and retry rules (section 7.1). Closed those open questions in section 12. The <code>UInputTime</code> check is split: iPhone done, Android still open. |
 </content>

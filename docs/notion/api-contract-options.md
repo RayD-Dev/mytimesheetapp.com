@@ -1,16 +1,16 @@
 <!-- Read-only copy of API Contract Options: OpenAPI vs Protobuf: https://app.notion.com/p/408771bd4d4381e08220dc1d7848ac68
      Notion is the master; comment and edit there, then run docs-sync.
-     Notion last edited: 2026-11-04T03:54:16.754Z · Synced: 04/11/2026 -->
+     Notion last edited: 2026-11-04T04:23:49.890Z · Synced: 04/11/2026 -->
 <content>
 <callout icon="🔌" color="gray_bg">
-<b>Status:</b> Draft · <b>Last updated:</b> <date start="2026-10-29" /> · <b>Type:</b> Research, like Database Options. It informs AD-02 and AD-13 in the <mention url="https://app.notion.com/p/3f4771bd4d4380e28d76d2038edbfac4" />.
+<b>Status:</b> Decided 03/11/2026 · <b>Last updated:</b> <date start="2026-11-04" /> · <b>Type:</b> Research, like Database Options. It informs AD-02 and AD-13 in the <mention url="https://app.notion.com/p/3f4771bd4d4380e28d76d2038edbfac4" />.
 </callout>
 
-## Decision and recommendation
+## Decision
 
-<b>Recommendation: keep REST with OpenAPI 3 for M1 to M3, and add a breaking-change check in CI.</b> It already gives a typed contract with generated code and runtime checks on both sides, and nothing between the browser and Spring has to change.
+<b>Decision (03/11/2026): keep REST with OpenAPI 3 for M1 to M3, and add a breaking-change check in CI.</b> It already gives a typed contract with generated code and runtime checks on both sides, and nothing between the browser and Spring has to change.
 
-The question is how the web app and the API agree on their messages: an OpenAPI spec over JSON (decided as AD-02 and AD-13), or Protocol Buffers (protobuf) definitions with generated code. It has to be settled before M1.1's contract is written (brief 002, C-1).
+The question is how the web app and the API agree on their messages: an OpenAPI spec over JSON (decided as AD-02 and AD-13), or Protocol Buffers (protobuf) definitions with generated code. It had to be settled before M1.1's contract is written (brief 002, C-1).
 
 What would change the answer:
 
@@ -100,13 +100,13 @@ Protobuf is the stronger contract language. OpenAPI can match most of that with 
 
 | If you choose | Next steps |
 | --- | --- |
-| A. Keep OpenAPI | Nothing in the design docs changes. Add oasdiff and a spec contract test to the M1.1 plan. Then write the M1.1 contract and continue brief 002. |
+| A. Keep OpenAPI (chosen) | Nothing in the design docs changes. Add oasdiff and a spec contract test to the M1.1 plan. Then write the M1.1 contract and continue brief 002. |
 | B. Connect | Rewrite AD-02, AD-13 and BE section 4.1. A spike runs the community Java Connect server on Spring Boot 4 and Java 25 before M1.1. Brief 002's C-1 and AC-26 move to <code>.proto</code> files and the router transport. |
 | C. gRPC + gRPC-Web | As B, plus AD-20: choose Envoy or an in-process filter, and prove it behind Caddy with a spike. Plain HTTP routes for files and the PDF are designed alongside. |
 
 ## Open questions
 
-- [ ] Are M4's payroll integrations ordinary partner APIs, or high-volume service-to-service traffic? The recommendation assumes the first.
+- [ ] Are M4's payroll integrations ordinary partner APIs, or high-volume service-to-service traffic? The decision assumes the first. Revisit when M4 is planned; this doesn't affect M1 to M3.
 
 ## Sources
 
@@ -121,4 +121,10 @@ Searched on 29/10/2026. Some facts came from search results, not opened pages, s
 - [hey-api openapi-ts Zod plugin](https://hey-api-docs-2nfo9card-hey-api.vercel.app/openapi-ts/plugins/zod)
 - [oasdiff](https://github.com/oasdiff/oasdiff), OpenAPI breaking-change checks
 - [Caddy community: gRPC proxying, TLS and h2c](https://caddy.community/t/issues-with-grpc-proxying-through-caddy-tls-and-h2c-problems/29551)
+
+## Revision history
+
+| Date | Change |
+| --- | --- |
+| <date start="2026-11-04" /> | Marked as decided: keep REST with OpenAPI 3, as recorded on 03/11/2026 in the M1 (MVP) Readiness Checklist. The M4 payroll question stays open for when M4 is planned. |
 </content>

@@ -1,9 +1,9 @@
 <!-- Read-only copy of Detailed Design Doc — BE: https://app.notion.com/p/3f5771bd4d43813e90c8e11492d92e2b
      Notion is the master; comment and edit there, then run docs-sync.
-     Notion last edited: 2026-11-04T03:54:10.194Z · Synced: 04/11/2026 -->
+     Notion last edited: 2026-11-04T04:23:45.758Z · Synced: 04/11/2026 -->
 <content>
 <callout icon="🛠️" color="gray_bg">
-<b>Status:</b> Draft · <b>Last updated:</b> <date start="2026-10-18" /> · <b>Type:</b> Detailed design — system logic and implementation decisions. Companion to <mention url="https://app.notion.com/p/3f4771bd4d4380e28d76d2038edbfac4" />, which owns the architecture, and the <mention url="https://app.notion.com/p/3f6771bd4d4381fbadd6f819e59e08fd" />, which owns how the system runs and why. Requirements live in the <mention url="https://app.notion.com/p/3f5771bd4d438156a93ec42b3548821d" />.
+<b>Status:</b> Draft · <b>Last updated:</b> <date start="2026-11-04" /> · <b>Type:</b> Detailed design — system logic and implementation decisions. Companion to <mention url="https://app.notion.com/p/3f4771bd4d4380e28d76d2038edbfac4" />, which owns the architecture, and the <mention url="https://app.notion.com/p/3f6771bd4d4381fbadd6f819e59e08fd" />, which owns how the system runs and why. Requirements live in the <mention url="https://app.notion.com/p/3f5771bd4d438156a93ec42b3548821d" />.
 </callout>
 
 <table-of-contents />
@@ -128,7 +128,7 @@ Each slice delivers its endpoints with its screens (AD-16), so these firm up sli
 
 | Part | Endpoints |
 | --- | --- |
-| <b>M1.1 Profile signature, My timesheet and submit</b> | <code>GET /api/v1/me</code> (name, roles, today, whether the pay schedule is set, whether a signature is set) · <code>GET</code> and <code>PUT /api/v1/me/signature</code> · <code>GET /api/v1/me/timesheets/{fortnightStart}</code> (with calculated hours, warnings and the deletion date, if any) · <code>PUT /api/v1/me/timesheets/{fortnightStart}/days/{date}</code> (autosave one day, with the version; returns the new deletion date, if any) · <code>DELETE /api/v1/me/timesheets/{fortnightStart}</code> (Clear; for a rejected timesheet, returns its deletion date) · <code>POST /api/v1/me/timesheets/{fortnightStart}/submit</code> (with the declaration and the ticked warning days; refused without a signature) |
+| <b>M1.1 Profile signature, My timesheet and submit</b> | The sign-in session operations (login, logout, keepalive, change password), with exact paths in <code>contract/openapi.yaml</code> · <code>GET /api/v1/me</code> (name, roles, today, whether the pay schedule is set, whether a signature is set, the session's expiry times; also sets the CSRF cookie) · <code>GET</code> and <code>PUT /api/v1/me/signature</code> · <code>GET /api/v1/me/timesheets/{fortnightStart}</code> (with calculated hours, warnings and the deletion date, if any) · <code>PUT /api/v1/me/timesheets/{fortnightStart}/days/{date}</code> (autosave one day, with the version; returns the new deletion date, if any) · <code>DELETE /api/v1/me/timesheets/{fortnightStart}</code> (Clear; for a rejected timesheet, returns its deletion date) · <code>POST /api/v1/me/timesheets/{fortnightStart}/submit</code> (with the declaration and the ticked warning days; refused without a signature) |
 | <b>M1.2 Approvals</b> | <code>GET /api/v1/fortnights/{start}/timesheets</code> (with status and warnings) · <code>GET /api/v1/timesheets/{id}</code> · <code>POST /api/v1/timesheets/{id}/approve</code> (refused without a signature) · <code>POST /api/v1/timesheets/{id}/reject</code> (reason) |
 | <b>M1.3 Admin page</b> | <code>GET</code> and <code>PUT /api/v1/pay-schedule</code> (start date must be a Monday) · <code>GET</code> and <code>PUT /api/v1/business</code> (business name, FR-28) · <code>PUT</code> and <code>DELETE /api/v1/business/logo</code> (PNG or JPG, up to 1 MB; the server checks the type from the file's content, not its name, and refuses anything else, including SVG, which can carry scripts) · <code>GET</code> and <code>POST /api/v1/employees</code> · <code>POST /api/v1/employees/{id}/deactivate</code> · <code>POST /api/v1/employees/{id}/reset-password</code> |
 | <b>M1.4 PDF</b> | <code>GET /api/v1/fortnights/{start}/pdf</code>. The not-yet-approved list (FR-23) comes from M1.2's fortnight query and leaves out empty timesheets. |
@@ -139,17 +139,17 @@ Before M1.3, the pay schedule start date comes from configuration and people are
 
 ## 5. Security
 
-<i>TBD — authentication flow, secrets.</i>
+<b>Authentication flow (AD-15).</b> The Spring Boot app is a confidential Keycloak client: authorization code flow with PKCE S256, an exact redirect URI, and its secret from the environment (AD-09). After sign-in it keeps the tokens in a session in PostgreSQL (Spring Session, JDBC), and the browser holds only a cookie. The API authorises each call from the session, and every state change needs a CSRF token and a custom header. A new session ID is issued at sign-in and after a password change. Timeouts are 30 minutes idle and 8 hours absolute. Deactivating a person or resetting their password deletes their sessions. Built in ticket BE-09. Cookie and CSRF settings: <mention url="https://app.notion.com/p/40d771bd4d438124b4fecedf6b8ebbfd" /> section 6.
 
 M1 roles and accounts (PRD section 3, FR-01 – FR-03, FR-24, FR-25):
 
 - Two Keycloak realm roles, <code>employee</code> and <code>manager</code>. M1 has exactly one manager, who is also an employee and the admin. Authorisation checks the <code>manager</code> role, never a count, so M2 can add more managers without rework.
 - The manager role is set in Keycloak, not from the admin page (FR-24). If the only manager is away, whoever runs the server gives a second person the role in the Keycloak admin console (PRD section 12), following the runbook (System Design section 11.5).
-- Accounts are created with a temporary password and Keycloak's <i>Update Password</i> required action (FR-01). Keycloak's password policy requires at least 8 characters, with letters and numbers (FR-01). No two-factor sign-in in M1. Password reset uses Keycloak's own emails, so the install needs an email (SMTP) account (PRD section 7).
+- Accounts are created with a temporary password and Keycloak's <i>Update Password</i> required action (FR-01). Keycloak's password policy requires at least 8 characters, with letters and numbers (FR-01). A custom Keycloak password policy provider also refuses known breached passwords (ticket BE-10; Browser Sign-In section 7). No two-factor sign-in in M1. Password reset uses Keycloak's own emails, so the install needs an email (SMTP) account (PRD section 7).
 - <i>Change password</i> on the Profile page sends the user to Keycloak's own password page (an application-initiated action, <code>kc_action=UPDATE_PASSWORD</code>) and back, so the app never handles passwords.
-- The admin page (M1.3) manages employee accounts (add, deactivate, reset password) through the Keycloak Admin API, using a service account limited to user management (the business name and logo may need more; see the open question in section 11). It can't grant the manager role. Deactivate disables the Keycloak user (FR-25). Each change is also written to the app's log (FR-26).
+- The admin page (M1.3) manages employee accounts (add, deactivate, reset password) through the Keycloak Admin API, using a service account limited to user management (the business name and logo may need more; see the open question in section 11). It can't grant the manager role. Deactivate disables the Keycloak user and deletes their sessions (FR-25). Password reset deletes them too. Each change is also written to the app's log (FR-26).
 - Account changes made directly in Keycloak (at install, before M1.3, or in an emergency) are recorded by Keycloak's admin events, turned on with no expiry and covered by the Keycloak database backup (FR-26).
-- <b>Token validation:</b> the API checks each token's issuer against Keycloak's public URL but fetches the signing keys from Keycloak's internal address, so the issuer and the keys URL are configured separately rather than found by discovery (System Design section 2.5). Keycloak runs under <code>/auth</code>, trusts forwarded headers from Caddy only, and has its Account Console turned off (System Design SD-02).
+- <b>Token validation:</b> at sign-in the app checks the ID token's issuer against Keycloak's public URL, but swaps the code for tokens and fetches the signing keys at Keycloak's internal address, so the issuer, the token URL and the keys URL are configured separately rather than found by discovery (System Design section 2.5). API calls carry a session cookie, not a token. Keycloak runs under <code>/auth</code>, trusts forwarded headers from Caddy only, and has its Account Console turned off (System Design SD-02).
 
 ---
 
@@ -254,6 +254,9 @@ Environments, install prerequisites, and backup and restore moved to the <mentio
 | <date start="2026-10-18" /> | M1 password policy: at least 8 characters, with letters and numbers; no two-factor sign-in in M1 (FR-01) |
 | <date start="2026-10-18" /> | The business name is stored on the Business record and set from the admin page (FR-28) |
 | <date start="2026-10-18" /> | An optional business logo (PNG or JPG, up to 1 MB, no SVG) is stored on the Business record in PostgreSQL and set from the admin page (FR-28) |
+| <date start="2026-11-03" /> | Browser sign-in is a cookie session in the app, with sessions in PostgreSQL (AD-15, section 5). The 11/10/2026 token check now applies at sign-in only |
+| <date start="2026-11-03" /> | Sessions end after 30 minutes idle or 8 hours, and when a person is deactivated or their password is reset (ticket BE-09) |
+| <date start="2026-11-03" /> | Known breached passwords are refused by a Keycloak password policy provider (ticket BE-10) |
 
 ---
 
@@ -271,4 +274,5 @@ Environments, install prerequisites, and backup and restore moved to the <mentio
 | <date start="2026-10-18" /> | Followed mock-up round R7: business name on the Business record with a slice 3 endpoint, and an open question on how the sign-in pages get it (FR-28); M1 password policy and no two-factor sign-in (FR-01). Marked the old future-dated entries decision as superseded. Section references are now written as words. |
 | <date start="2026-10-18" /> | Followed mock-up round R8: an optional business logo on the Business record, with slice 3 endpoints to upload and remove it (PNG or JPG, up to 1 MB, no SVG); the open question on how the sign-in pages get the name now covers the logo too (FR-28). |
 | <date start="2026-10-18" /> | Consistency fixes from the docs index: section 5 points to the open question on the service account's rights for the business name and logo; two old decision-log rows marked superseded (time-zone aware entries) and decided (OpenHTMLtoPDF). |
+| <date start="2026-11-04" /> | Recorded the browser sign-in decision of 03/11/2026: section 5 now has the authentication flow, sessions and revocation, and token validation applies at sign-in. M1.1 endpoints list the sign-in session operations, with exact paths in the contract. Added the breached-password check (BE-10). |
 </content>
