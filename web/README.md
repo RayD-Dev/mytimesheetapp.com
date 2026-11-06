@@ -15,7 +15,7 @@ Corepack reads `packageManager` from the folder you run in. Run pnpm from `web/`
 |---|---|
 | `pnpm dev`, `pnpm build` | Vite dev server, production build |
 | `pnpm typecheck` | `vue-tsc --noEmit` |
-| `pnpm lint` | ESLint (Vue and TypeScript rules) |
+| `pnpm lint` | ESLint (Vue and TypeScript rules) and Stylelint (CSS variables that are not defined) |
 | `pnpm test` | Vitest, all unit and component tests |
 | `pnpm test:components` | Vitest on `*.component.test.ts` only |
 | `pnpm codegen`, `pnpm codegen:check` | Placeholders until task 3 |

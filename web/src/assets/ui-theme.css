@@ -1,0 +1,33 @@
+/* Maps the design tokens in tokens.css onto the variables Nuxt UI reads. */
+:root {
+  /* Semantic colours */
+  --ui-primary: var(--color-accent);
+  --ui-warning: var(--color-caution);
+  --ui-error: var(--color-danger);
+  --ui-success: var(--color-approved);
+  --ui-info: var(--color-info);
+
+  /* Text */
+  --ui-text-highlighted: var(--color-ink);
+  --ui-text: var(--color-ink);
+  --ui-text-toned: var(--color-ink-muted);
+  --ui-text-muted: var(--color-ink-muted);
+  --ui-text-dimmed: var(--color-ink-muted);
+  --ui-text-inverted: var(--color-sheet);
+
+  /* Surfaces */
+  --ui-bg: var(--color-sheet);
+  --ui-bg-muted: var(--color-paper);
+  --ui-bg-elevated: color-mix(in oklab, var(--color-ink) 5%, var(--color-sheet));   /* hover fills */
+  --ui-bg-accented: color-mix(in oklab, var(--color-ink) 10%, var(--color-sheet));
+  --ui-bg-inverted: var(--color-ink);       /* selected toggles, neutral solid buttons */
+
+  /* Borders and shape */
+  --ui-border: var(--color-rule);
+  --ui-border-muted: var(--color-rule);
+  --ui-border-accented: var(--color-control-border);
+  --ui-border-inverted: var(--color-ink);
+  --ui-radius: 0.125rem;
+}
+
+body { background: var(--color-paper); color: var(--color-ink); }
