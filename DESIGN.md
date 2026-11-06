@@ -45,7 +45,7 @@ Read by the `ui-craft`, `ui-motion`, `ui-audit` and `ui-visual-check` skills in 
 
 ## 4. Tokens
 
-Implemented in `mockup/src/assets/main.css` (`@theme` and `:root`). The file moves to the real app unchanged.
+Implemented in `web/src/assets/tokens.css` (the values) and `ui-theme.css` (the Nuxt UI mapping), ported from the mock-up's `mockup/src/assets/main.css`. This section wins if they ever differ.
 
 - **Type:**
   - UI: IBM Plex Sans 400 / 600. Figures (times, hours, totals): IBM Plex Mono 400 / 500, `tabular-nums`.

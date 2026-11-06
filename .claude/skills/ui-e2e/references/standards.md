@@ -36,11 +36,26 @@ Agreed 06/11/2026, after checking the Vue style guide (Vue 3, plus the legacy Vu
 | Rule | What it means |
 |---|---|
 | Utility classes in the template are the default | A component has no `<style>` block and no `style=` attribute. Utility classes can't leak between components, which is what the Vue style guide's scoping rule is for. |
-| Tokens only | Colours, fonts, radius and motion come from `tokens.css` (`bg-sheet`, `text-ink-muted`). No raw hex and no arbitrary values such as `w-[13px]`, except a real one-off with a comment saying why. |
+| Tokens only, by role | Colours, fonts, radius and motion come from the design tokens (`tokens.css`, mapped by `ui-theme.css`), used as role utilities (`bg-sheet`, `text-ink-muted`) or Nuxt UI's `color` props. Never Tailwind's default palette (`bg-blue-500`). No raw hex and no arbitrary values such as `w-[13px]`, except a real one-off with a comment saying why. |
 | Extract a component for repeated structure | When the same group of elements appears on 2 or more screens, make a component. Shared ones go in `src/shared/ui/`; one used by a single feature stays in that feature's folder. Don't extract only to shorten a class list, and don't turn a repeated class list into an `@apply` class. |
-| Restyle Nuxt UI through its own API | Use `class` or `ui` on that one instance, or the `ui` option in `vite.config.ts` for the whole app. No `:deep()` on its internals and no `!important`. |
+| Restyle Nuxt UI through its own API | Global first, through the `ui` option in `vite.config.ts`. Per instance only when the meaning differs, through `class` or `ui` (`tokens.md` section 4 has the order). No `:deep()` on its internals and no `!important`. |
 | `<style>` and `@apply` only where utilities can't reach | Third-party or `v-html` content, complex parent-child state and keyframes. Use `<style scoped>`, `@reference` the main stylesheet, avoid element selectors, and comment why. The `<style>` block goes last. |
 | Names follow the Vue style guide | PascalCase file names, multi-word component names, one attribute per line. `eslint-plugin-vue` `flat/recommended` already enforces the layout ones. |
+
+### CSS files
+
+Checked against the design systems of GitHub Primer, Atlassian, Adobe Spectrum, Google Material, GOV.UK and Tailwind v4. Steps for adding a token are in `.claude/skills/ui-craft/references/tokens.md`, section 5.
+
+| Rule | What it means |
+|---|---|
+| 3 global stylesheets in the web app, no others | `src/assets/tokens.css` holds the design values (`@theme`, durations, motion). `ui-theme.css` maps them onto Nuxt UI's `--ui-*` variables. `main.css` only imports. New global CSS goes into one of them. |
+| `DESIGN.md` owns the values | Raw hex appears only in `tokens.css`. Add or change a token in `DESIGN.md` section 4 and its decision log first, then copy it across. |
+| Role names, no component tokens yet | Name a colour token for its job (`--color-ink-muted`), not its value. Add a component-level token only when one component must be themed apart from the rest. |
+| Comment a token whose job isn't clear from its name | A short note, as in `tokens.css`. Contrast ratios live in one place, `DESIGN.md` section 4. |
+| Reduced motion is handled once | `tokens.css` sets the motion offsets to 0 under `prefers-reduced-motion: reduce`. New motion uses the `--duration-*` and `--motion-*` variables, never literal values. |
+| Light only | No dark mode and no `prefers-color-scheme` rules (`colorMode: false`). |
+| Rename a token in one change | Change every use in the same PR. Search for the class name too, because Stylelint only sees CSS. |
+| What checks it | `pnpm lint` runs Stylelint, which fails on a `var(--x)` with no definition. A token used only in components isn't covered. |
 
 ## Future milestones: seams, not features
 
