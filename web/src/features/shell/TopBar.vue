@@ -70,7 +70,6 @@ const menuItems = computed(() => [
           variant="outline"
           icon="i-lucide-menu"
           size="xl"
-          class="h-11"
         >
           Menu
         </UButton>

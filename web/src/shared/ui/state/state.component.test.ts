@@ -3,7 +3,7 @@ import ui from '@nuxt/ui/vue-plugin'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import { defineComponent, h, ref } from 'vue'
-import { PageFailed, PageLoading } from '.'
+import { PageFailed, PageLoading, PageSheet } from '.'
 
 const router = createRouter({ history: createMemoryHistory(), routes: [] })
 const global = { plugins: [router, ui] }
@@ -59,5 +59,20 @@ describe('PageFailed', () => {
 
     await vi.waitFor(() => expect(wrapper.text()).toBe('Loaded'))
     expect(attempts).toBe(2)
+  })
+})
+
+describe('PageSheet', () => {
+  it('is wide unless told it is narrow', () => {
+    expect(mount(PageSheet).find('main').classes()).toContain('max-w-5xl')
+    expect(mount(PageSheet, { props: { width: 'narrow' } }).find('main').classes()).toContain('max-w-3xl')
+  })
+})
+
+describe('Large buttons', () => {
+  it('are 44px tall on phones and 36px on desktop, from the global theme', () => {
+    const wrapper = mount(PageFailed, { props: { title: 'Approvals', what: 'approvals' }, global })
+    const button = wrapper.findAll('button').find((b) => b.text() === 'Try again')
+    expect(button?.classes()).toEqual(expect.arrayContaining(['h-11', 'md:h-9', 'justify-center']))
   })
 })

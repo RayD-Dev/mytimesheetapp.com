@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import PageSheet from './PageSheet.vue'
+import PageTitle from './PageTitle.vue'
+import type { PageWidth } from './pageWidth'
 
 // FE design 7.2: says what didn't load; Try again asks the page to run its load again.
-defineProps<{ title: string; what: string; width?: 'max-w-5xl' | 'max-w-3xl' }>()
+defineProps<{ title: string; what: string; width?: PageWidth }>()
 defineEmits<{ retry: [] }>()
 </script>
 
 <template>
   <PageSheet :width="width">
-    <h1 class="text-2xl font-semibold">
-      {{ title }}
-    </h1>
+    <PageTitle>{{ title }}</PageTitle>
     <section
       class="mt-10 border-t border-rule pt-8 pb-6"
       role="alert"
@@ -29,7 +29,7 @@ defineEmits<{ retry: [] }>()
       <UButton
         size="xl"
         icon="i-lucide-rotate-cw"
-        class="mt-6 h-11 justify-center md:h-9"
+        class="mt-6"
         @click="$emit('retry')"
       >
         Try again
