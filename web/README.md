@@ -22,3 +22,7 @@ Corepack reads `packageManager` from the folder you run in. Run pnpm from `web/`
 | `pnpm contract:lint` | Redocly lint of `../contract/openapi.yaml` |
 | `pnpm test:e2e` | Playwright |
 | `pnpm run audit` | ui-audit scanner with `--strict` on `src`. Run it as `pnpm run audit`: bare `pnpm audit` is pnpm's own security audit |
+
+## Styling
+
+Components are styled with Tailwind utility classes and the design tokens, with no `<style>` blocks by default. The rules and examples are in [`STYLING.md`](STYLING.md). Read it before editing a `.vue` file or a stylesheet.
