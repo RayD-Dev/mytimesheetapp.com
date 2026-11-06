@@ -19,7 +19,7 @@ Shows the signed-in person's name, lets them set up or replace the signature use
 | Replacing | *Replace signature* pressed | Signature set-up open in place of the current signature, on the current style if typed; action *Save new signature*, with *Cancel* | `profile-state-replacing` |
 | Password changed | Back from the sign-in page after changing password | Page as in "Typed signature", plus a success toast "Password changed" | `profile--password-changed` |
 | Signature saved (toast only) | After *Save signature* or *Save new signature* | Page returns to the signature display; toast "Signature saved" (first time) or "Signature replaced"; saved date updates | none (source only) |
-| Loading (R7-7) | Data takes longer than about 300 ms | Top bar, then the title "Profile" and ruled placeholder lines instead of the signature and the password (shared `LoadState` part); nothing shown if loading is faster | `profile-state-loading` |
+| Loading (R7-7) | Data takes longer than about 300 ms | Top bar, then the title "Profile" and ruled placeholder lines instead of the signature and the password (shared `LoadState` part); the sheet and title show at once and the lines only after about 300 ms, so fast loads do not flash | `profile-state-loading` |
 | Load failed (R7-7) | The page's data couldn't be fetched | Top bar, the title "Profile", then "Couldn't load your profile" with the explanation and *Try again* (shared `LoadState` part) | `profile-state-load-failed` |
 
 ## Layout
@@ -77,7 +77,7 @@ Shows the signed-in person's name, lets them set up or replace the signature use
 | Save action with a blank name (type) or nothing drawn (draw) | Nothing is saved; the field shows its message and has `aria-invalid`, focus moves to it, and the toast "Signature not saved" appears. Typing in the field removes the message; drawing removes the other one | FR-20, R8-4 |
 | Errors (app-wide rule, R8-4) | Form errors on button press: the field turns red with a message under it, focus moves to the first bad field, and a toast says what didn't happen. Failed actions: an inline message by the button plus a toast, never a toast alone. Live typing errors: red field and message, no toast. Keycloak pages: red field plus the alert box, no toasts | R8-4 |
 | *Change password* | Goes to the sign-in (Keycloak) page and returns here; the app never handles a password. On return, shows the "Password changed" toast | FR-01 |
-| Data slow to load | After about 300 ms the loading view replaces the page content | R7-7 |
+| Data slow to load | The sheet and title show at once. After about 300 ms the placeholder lines appear under the title | R7-7 |
 | Load fails | Load-failed view; *Try again* repeats the request (mock: button does nothing) | R7-7 |
 
 ## Components
