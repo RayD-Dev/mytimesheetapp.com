@@ -7,12 +7,14 @@ import {
   getMe,
   getTimesheet,
   keepAlive,
-  logout,
   putSignature,
   saveDay,
   submitTimesheet,
 } from './generated/api'
 import { bodySchemas, onUnauthorised, request, RequestContractError, ResponseContractError } from './client'
+
+// No generated operation answers 204 any more, so the no-schema path is exercised through request.
+const postWithoutSchema = () => request('/api/v1/example', { method: 'POST' })
 
 const expiry = {
   idleExpiresAt: '2026-11-04T01:30:00Z',
@@ -130,7 +132,7 @@ describe('responses', () => {
 
   it('accepts 204 with no body', async () => {
     fetchMock.mockResolvedValue(new Response(null, { status: 204 }))
-    expect(await logout()).toMatchObject({ status: 204 })
+    expect(await postWithoutSchema()).toMatchObject({ status: 204 })
   })
 })
 
@@ -211,9 +213,10 @@ describe('request bodies', () => {
   it('has a schema for every operation in the contract that takes a body', () => {
     const spec = parse(readFileSync(resolve(import.meta.dirname, '../../../../contract/openapi.yaml'), 'utf8'))
     const missing: string[] = []
-    for (const [path, item] of Object.entries<Record<string, { requestBody?: unknown }>>(spec.paths)) {
+    for (const [path, item] of Object.entries<Record<string, { requestBody?: unknown; tags?: string[] }>>(spec.paths)) {
       for (const [method, operation] of Object.entries(item)) {
         if (typeof operation !== 'object' || operation.requestBody === undefined) continue
+        if (operation.tags?.includes('navigation')) continue // a browser form, not a fetch call
         const sample = path.replace(/\{[^}]+\}/g, 'x')
         const registered = bodySchemas.some((entry) => entry.method === method.toUpperCase() && entry.path.test(sample))
         if (!registered) missing.push(`${method.toUpperCase()} ${path}`)
@@ -271,11 +274,11 @@ describe('success status', () => {
 
   it('requires 204 and an empty body when there is no schema', async () => {
     fetchMock.mockResolvedValueOnce(json(200, {}))
-    await expect(logout()).rejects.toMatchObject({ name: 'ResponseContractError', status: 200 })
+    await expect(postWithoutSchema()).rejects.toMatchObject({ name: 'ResponseContractError', status: 200 })
     const withBody = new Response('{}', { status: 200 })
     Object.defineProperty(withBody, 'status', { value: 204 })
     fetchMock.mockResolvedValueOnce(withBody)
-    await expect(logout()).rejects.toMatchObject({ name: 'ResponseContractError', status: 204 })
+    await expect(postWithoutSchema()).rejects.toMatchObject({ name: 'ResponseContractError', status: 204 })
   })
 })
 

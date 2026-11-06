@@ -30,7 +30,7 @@ Source: `contract/openapi.yaml`, written in task 1 and agreed with the back-end 
 |---|---|---|
 | `GET /api/v1/me` | name, roles, today (business time zone), `payScheduleSet`, `signatureSet`, `currentFortnightStart`, `previousFortnightStart`, `periodLengthDays`, `idleExpiresAt`, `absoluteExpiresAt`, `serverNow` | Sets the CSRF cookie before the first write. 401 when signed out. Does not reset the idle timer |
 | `GET /api/v1/session/login?returnTo=` | `returnTo` | `navigation` operation: the front end sets `location`, it is not a fetch call. The server sanitises `returnTo` (relative path, no `//`, no backslash); anything else goes to `/timesheet`. Never answers 400 or 401 |
-| `POST /api/v1/session/logout` | none | Needs the CSRF header. Idempotent: 204 even with no session. Clears the session here and at Keycloak |
+| `POST /api/v1/session/logout` | none | A `navigation` operation: a real form POST with a hidden `_csrf` (the XSRF-TOKEN cookie value), not fetch. Answers 303 to Keycloak's end-session URL with `id_token_hint`. Idempotent: with no session it is 303 to sign-in |
 | `POST /api/v1/session/keepalive` | none | *Stay signed in* from the idle warning. Needs the CSRF header. Returns the three expiry fields; never extends past `absoluteExpiresAt` |
 | `GET /api/v1/session/change-password` | none | `navigation` operation. Redirects to Keycloak's password page (`kc_action=UPDATE_PASSWORD`); with no session it redirects to sign-in with `returnTo=/profile`. On success returns to `/profile?passwordChanged=1`; on cancel or error to `/profile` |
 | `GET`, `PUT /api/v1/me/signature` | image (PNG, at most 300000 characters), kind (`typed` or `drawn`), text, style, `savedAt` | `PUT` takes image, kind, text and style together and returns the saved signature (200). `typed` needs text and style |
@@ -143,7 +143,7 @@ Rules in `.claude/skills/ui-e2e/references/engineering-practices.md`; `standards
 ### Task 6: Session store, route guards, idle warning, session-ended dialog
 
 - **Read first:** `docs/screens/not-found.md`, `docs/screens/timesheet.md` (session ended), `docs/screens/sign-in.md`; brief C-4, AC-1, AC-2, AC-22; the contract's session endpoints.
-- **Do:** a Pinia session store from `GET /me`; guards that send a signed-out visitor to `GET /session/login?returnTo=<relative path>` and back (AC-1) and show "This page is for managers" to employees (AC-2); sign out as a `POST` with the CSRF header; the session-ended dialog (cannot be dismissed, *Sign in again*) opened by task 3's unauthorised event (AC-22); the idle warning two minutes before `idleExpiresAt`, with *Stay signed in* calling `/session/keepalive` (design from R9). Assembles every feature's routes in `router.ts`.
+- **Do:** a Pinia session store from `GET /me`; guards that send a signed-out visitor to `GET /session/login?returnTo=<relative path>` and back (AC-1) and show "This page is for managers" to employees (AC-2); sign out as a real `<form method=post action=/api/v1/session/logout>` with a hidden `_csrf` input read from the XSRF-TOKEN cookie, submitted by the Sign out button (not fetch), landing on Keycloak's signed-out page; the session-ended dialog (cannot be dismissed, *Sign in again*) opened by task 3's unauthorised event (AC-22); the idle warning two minutes before `idleExpiresAt`, with *Stay signed in* calling `/session/keepalive` (design from R9). Assembles every feature's routes in `router.ts`.
 - **Tests first:** guard tests (signed out, employee on a manager page, unknown URL); a `returnTo` that is not a relative path is never sent; the dialog opens on a 401; the idle warning shows at the right time and *Stay signed in* resets it.
 - **Check:** `pnpm -C web typecheck && pnpm -C web lint && pnpm -C web test && pnpm -C web test:components`
 - **Done when:** the tests pass against the mock API.
@@ -252,6 +252,7 @@ Rules in `.claude/skills/ui-e2e/references/engineering-practices.md`; `standards
 - **Check:** `docker compose -f keycloak/compose.yml up -d` then `pnpm -C web test:e2e --project=keycloak`
 - **Done when:** every state renders at both widths.
 - **Don't:** add a logo or a stored business name (slice 3).
+- **Note:** the sign-out e2e path must use the `id_token_hint` redirect once BE-09 implements it.
 - **Review:** the main session reads the template form actions and hidden fields.
 
 ### Task 18: Keycloak password and reset pages (**R9**)

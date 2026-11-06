@@ -4,7 +4,7 @@
  * Timesheet API, slice 1
  * Slice 1 contract: sign-in session, My timesheet, signature and submit. Times of day are 24-hour `HH:mm` strings, durations are integer minutes, dates are `YYYY-MM-DD` in the business time zone. All `date-time` values are UTC with a `Z` suffix. The front end is built against a mock of this file and the back end is built to it, so a change here comes first.
  *
- * **Errors.** `/api/**` never redirects, except the two `navigation` operations below. An invalid or expired session returns 401 before any CSRF check. A bad or missing CSRF token returns 403 with the JSON body code `CSRF_TOKEN_INVALID`. A body that cannot be parsed returns 400 with the code `BAD_REQUEST`.
+ * **Errors.** `/api/**` never redirects, except the `navigation` operations below. An invalid or expired session returns 401 before any CSRF check. A bad or missing CSRF token returns 403 with the JSON body code `CSRF_TOKEN_INVALID`. A body that cannot be parsed returns 400 with the code `BAD_REQUEST`.
  *
  * **Session timing.** Every authenticated call counts as activity and resets the idle timer, except `GET /api/v1/me`. The autosave `PUT` counts. Keepalive also resets the idle timer, but never extends it past `absoluteExpiresAt`. Me, keepalive and a saved day all return `idleExpiresAt`, `absoluteExpiresAt` and `serverNow`, so the client counts down against the server's clock.
  * OpenAPI spec version: 1.0.0
@@ -91,55 +91,6 @@ export const getMe = async ( options?: Parameters<typeof request>[1]): Promise<g
 
     ,
     schema: Me
-  }
-);}
-
-
-
-export type logoutResponse204 = {
-  data: void
-  status: 204
-}
-
-export type logoutResponse403 = {
-  data: CsrfTokenInvalidResponse
-  status: 403
-}
-
-export type logoutResponseDefault = {
-  data: UnexpectedErrorResponse
-  status: Exclude<HTTPStatusCodes, 204 | 403>
-}
-
-export type logoutResponseSuccess = (logoutResponse204) & {
-  headers: Headers;
-};
-export type logoutResponseError = (logoutResponse403 | logoutResponseDefault) & {
-  headers: Headers;
-};
-
-export type logoutResponse = (logoutResponseSuccess | logoutResponseError)
-
-export const getLogoutUrl = () => {
-
-
-
-
-  return `/api/v1/session/logout`
-}
-
-/**
- * Idempotent: answers 204 even when there is no session. Ends the session here and at Keycloak, and the person ends on the Keycloak signed-out page.
- * @summary Sign out
- */
-export const logout = async ( options?: Parameters<typeof request>[1]): Promise<logoutResponse> => {
-
-  return request<logoutResponse>(getLogoutUrl(),
-  {
-    ...options,
-    method: 'POST'
-
-
   }
 );}
 

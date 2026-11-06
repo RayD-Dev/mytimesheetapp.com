@@ -10,7 +10,7 @@ info:
     the back end is built to it, so a change here comes first.
 
 
-    **Errors.** `/api/**` never redirects, except the two `navigation` operations
+    **Errors.** `/api/**` never redirects, except the `navigation` operations
     below. An invalid or expired session returns 401 before any CSRF check. A bad
     or missing CSRF token returns 403 with the JSON body code `CSRF_TOKEN_INVALID`.
     A body that cannot be parsed returns 400 with the code `BAD_REQUEST`.
@@ -89,20 +89,39 @@ paths:
   /api/v1/session/logout:
     post:
       operationId: logout
+      tags: [navigation]
       summary: Sign out
       description: >-
-        Idempotent: answers 204 even when there is no session. Ends the session here and at
-        Keycloak, and the person ends on the Keycloak signed-out page.
-      security:
-        - cookieAuth: []
-          csrfHeader: []
+        Not a fetch call: the front end submits a real HTML form (`method=post`) so the browser
+        can follow the redirect to Keycloak. Idempotent: with no session it answers 303 to the
+        sign-in page, not 401. Ends the session here, then redirects to Keycloak's end-session
+        URL with `id_token_hint` and no `post_logout_redirect_uri`, so Keycloak skips its
+        confirm page and shows its signed-out page.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [_csrf]
+              properties:
+                _csrf:
+                  type: string
+                  description: >-
+                    The value of the `XSRF-TOKEN` cookie, put in a hidden input because a form
+                    cannot set a header. The server accepts it as the CSRF token for this
+                    operation.
       responses:
-        '204':
-          description: Signed out.
+        '303':
+          description: >-
+            Redirect to Keycloak's end-session URL with `id_token_hint`, or to the sign-in page
+            when there is no session.
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
         '403':
           $ref: '#/components/responses/CsrfTokenInvalid'
-        default:
-          $ref: '#/components/responses/UnexpectedError'
 
   /api/v1/session/keepalive:
     post:
@@ -393,7 +412,7 @@ components:
           schema:
             $ref: '#/components/schemas/UnauthorizedError'
     CsrfTokenInvalid:
-      description: The CSRF header is missing or wrong.
+      description: The CSRF token is missing or wrong (the header, or the `_csrf` field on a navigation form).
       content:
         application/json:
           schema:
