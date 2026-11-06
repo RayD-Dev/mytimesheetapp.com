@@ -1,6 +1,6 @@
 ---
 name: ui-e2e
-description: The end-to-end loop for building the real front end, from intent to shipped code. Brief, then design (mock-up), then plan, then build with sub-agents, then the check gates, then sign-off, with the user approving the brief, the mock-up, the plan and the finished work. Use this whenever engineering work on the timesheet app's front end starts or continues, such as a slice, a screen, a feature, or any fix bigger than a few lines, even if the request is just "let's build slice 1", "engineer the approvals screen", "plan the timesheet code" or "write the code for the profile page". Also use it to turn an approved mock-up into screen specs. For visual exploration alone use ui-mockup; for styling rules use ui-craft.
+description: The end-to-end loop for building the real front end, from intent to shipped code. Brief, then design (mock-up), then plan, then build with sub-agents, then the check gates, then sign-off, with the user approving the brief, the mock-up, the plan and the finished work. Use this whenever engineering work on the timesheet app's front end starts or continues, such as a slice, a screen, a feature, or any fix bigger than a few lines, even if the request is just "let's build M1.1", "engineer the approvals screen", "plan the timesheet code" or "write the code for the profile page". Also use it to turn an approved mock-up into screen specs. For visual exploration alone use ui-mockup; for styling rules use ui-craft.
 ---
 
 # UI end to end

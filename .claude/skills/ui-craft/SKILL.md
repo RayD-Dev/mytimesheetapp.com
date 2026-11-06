@@ -74,6 +74,8 @@ Submit-type buttons stay enabled until the request starts. Pressing one early sa
 
 Use the component library for behaviour and accessibility (dialogs, popovers, date and time fields, focus traps) and theme it through tokens. Don't restyle a component by fighting its CSS with `!important`; use its theming API or pass-through slots.
 
+Vue styling conventions (utility classes in the template, tokens only, when to extract a component, how to restyle Nuxt UI) are in `web/STYLING.md`. Read it before editing a component.
+
 ### Copy
 - Write from the user's side, in their words. Use DESIGN.md's vocabulary so the same action has the same name everywhere ("Submit" on the button, the review, the toast and the log).
 - Buttons name the outcome ("Submit timesheet", "Approve and sign") unless the domain's own term is better and agreed in DESIGN.md.

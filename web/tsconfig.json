@@ -14,5 +14,5 @@
     "noEmit": true,
     "paths": { "@/*": ["./src/*"] }
   },
-  "include": ["src/**/*", "src/**/*.vue", "scripts/**/*", "*.ts"]
+  "include": ["src/**/*", "src/**/*.vue", "*.ts"]
 }

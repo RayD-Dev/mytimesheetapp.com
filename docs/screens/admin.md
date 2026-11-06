@@ -241,7 +241,7 @@ None specified for this page. Nuxt UI defaults apply to modals, the popover, the
 12. **Review link target.** The mock-up passes a mock state to the approvals URL; the real link is `/approvals/{fortnight}/{timesheet}`.
 13. **Manager's own deactivation and role:** the manager row has no actions; M1 has one manager whose role is set in Keycloak, not on this page (fe-design section 6.3).
 14. ~~Business name requirement.~~ Resolved: PRD FR-28 (business name and optional logo).
-15. **How the sign-in pages get the name and logo.** Open in the BE design (section 11): the Keycloak realm display name, or a public app endpoint that returns only the name and logo. The logo makes the public endpoint more likely. Decide before slice 3.
+15. **How the sign-in pages get the name and logo.** Open in the BE design (section 11): the Keycloak realm display name, or a public app endpoint that returns only the name and logo. The logo makes the public endpoint more likely. Decide before M1.3.
 16. **Business name, server failure.** An empty name now shows an error on press (R8-4). A failed save has no design. The name cannot be cleared once set, so the "Until you set it" note only appears before the first save. Any other rule (special characters, repeated spaces) is not defined.
 17. **Who can change it.** The manager only (Admin is manager-only); not stated in the R7 notes.
 18. **Logo storage and checks.** Proposed `PUT` and `DELETE /api/v1/business/logo`; where the file is kept, how a public URL is served to the sign-in pages, and the content check (PNG or JPG, 1 MB) are for the HLD. The mock-up checks size only (the real check also looks at the file type).
