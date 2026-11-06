@@ -35,6 +35,12 @@ The styling rules live in [`web/STYLING.md`](../../../../web/STYLING.md), so peo
 
 In short: utility classes in the template with no `<style>` blocks by default, every value taken from the design tokens by role, a component only for structure repeated on 2 or more screens, library components customised through their own API, and global CSS only in `tokens.css`, `ui-theme.css` and `main.css`.
 
+## Testing
+
+The testing rules live in [`web/TESTING.md`](../../../../web/TESTING.md), so people and other tools read the same file. Read it before adding or changing a test. Plans cite it and reviews check against it.
+
+In short: test at the lowest layer that can fail for the reason, one behaviour per test, parameterise when only the data changes, assert what comes out and not how it works, mock only at the network boundary, and no tests for static copy, library behaviour or whole-component snapshots. It never overrides the ranking above, and the "Tests" rows there stand.
+
 ## Future milestones: seams, not features
 
 Build only the current milestone. Leave a seam only where it costs nothing today. Each plan lists the roadmap items its code touches (`docs/INDEX.md`, roadmap section) and the seams it leaves.
