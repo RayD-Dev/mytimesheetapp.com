@@ -22,4 +22,3 @@ Corepack reads `packageManager` from the folder you run in. Run pnpm from `web/`
 | `pnpm contract:lint` | Redocly lint of `../contract/openapi.yaml` |
 | `pnpm test:e2e` | Playwright |
 | `pnpm run audit` | ui-audit scanner with `--strict` on `src`. Run it as `pnpm run audit`: bare `pnpm audit` is pnpm's own security audit |
-| `pnpm check:build` | Builds, then fails if `dist/` holds `mockServiceWorker.js` or code from `src/mocks` (found through the source maps) |

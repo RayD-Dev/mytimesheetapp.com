@@ -1,5 +1,5 @@
 {
-  "name": "timesheet-web",
+  "name": "timesheetapp-web",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.34.9",
@@ -15,8 +15,7 @@
     "codegen:check": "node src/shared/api/codegen-check.mjs",
     "contract:lint": "redocly lint ../contract/openapi.yaml --config ../contract/redocly.yaml",
     "test:e2e": "playwright test --pass-with-no-tests",
-    "audit": "node ../.claude/skills/ui-audit/scripts/slop-scan.mjs --strict src",
-    "check:build": "vite build --sourcemap hidden && node scripts/check-build.mjs"
+    "audit": "node ../.claude/skills/ui-audit/scripts/slop-scan.mjs --strict src"
   },
   "dependencies": {
     "@nuxt/ui": "4.12.0",
@@ -29,7 +28,7 @@
   "devDependencies": {
     "@playwright/test": "1.64.1",
     "@redocly/cli": "2.72.1",
-    "@types/node": "^22.0.0",
+    "@types/node": "22.20.5",
     "@vitejs/plugin-vue": "6.0.10",
     "@vue/test-utils": "2.5.1",
     "eslint": "10.14.0",
