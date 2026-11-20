@@ -1,12 +1,16 @@
 import { mount } from '@vue/test-utils'
 import ui from '@nuxt/ui/vue-plugin'
 import { describe, expect, it } from 'vitest'
+import { createPinia } from 'pinia'
 import { createRouter, createMemoryHistory } from 'vue-router'
+import { useSessionStore, type Role } from '@/features/auth/sessionStore'
 import { NotFoundPage, TopBar, shellRoutes } from '.'
 
-function globalWithRouter() {
+function globalWithRouter(roles: Role[] = ['employee']) {
+  const pinia = createPinia()
+  useSessionStore(pinia).me = { roles }
   const router = createRouter({ history: createMemoryHistory(), routes: [...shellRoutes] })
-  return { router, global: { plugins: [router, ui] } }
+  return { router, global: { plugins: [router, ui, pinia] } }
 }
 
 function linkNames(wrapper: ReturnType<typeof mount>): string[] {
@@ -15,10 +19,10 @@ function linkNames(wrapper: ReturnType<typeof mount>): string[] {
 
 describe('TopBar', () => {
   it.each([
-    { manager: false, links: ['My timesheet', 'Profile'] },
-    { manager: true, links: ['My timesheet', 'Approvals', 'Admin', 'Profile'] },
-  ])('shows $links when manager is $manager (FR-03)', ({ manager, links }) => {
-    const wrapper = mount(TopBar, { props: { manager }, global: globalWithRouter().global })
+    { roles: ['employee'] as Role[], links: ['My timesheet', 'Profile'] },
+    { roles: ['manager'] as Role[], links: ['My timesheet', 'Approvals', 'Admin', 'Profile'] },
+  ])('shows $links for roles $roles (FR-03)', ({ roles, links }) => {
+    const wrapper = mount(TopBar, { global: globalWithRouter(roles).global })
     expect(linkNames(wrapper)).toEqual(links)
   })
 

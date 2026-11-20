@@ -2,12 +2,14 @@
 // Top bar: employees see My timesheet, Profile, Sign out. Managers also see Approvals and Admin (FR-03), which
 // collapse into a Menu on phones. `current` is left out on pages that aren't in the bar (not found).
 import { computed } from 'vue'
+import { useAccess } from '@/features/auth/useAccess'
 
 type PageKey = 'timesheet' | 'profile' | 'approvals' | 'admin'
 
-const props = defineProps<{ current?: PageKey; manager?: boolean }>()
+const props = defineProps<{ current?: PageKey }>()
 // Signing out is a POST, so it is a button; the session store listens for this.
 const emit = defineEmits<{ signOut: [] }>()
+const { isManager } = useAccess()
 
 const navItems = [
   { key: 'timesheet', label: 'My timesheet', to: '/timesheet', managerOnly: false },
@@ -16,7 +18,7 @@ const navItems = [
   { key: 'profile', label: 'Profile', to: '/profile', managerOnly: false },
 ] as const
 
-const visibleNavItems = computed(() => navItems.filter((item) => props.manager || !item.managerOnly))
+const visibleNavItems = computed(() => navItems.filter((item) => isManager.value || !item.managerOnly))
 const currentLabel = computed(() => navItems.find((item) => item.key === props.current)?.label)
 const menuItems = computed(() => [
   visibleNavItems.value.map((item) => ({ label: item.label, to: item.to })),
@@ -42,25 +44,25 @@ const menuItems = computed(() => [
           :aria-current="current === item.key ? 'page' : undefined"
           :class="[
             'h-11 shrink-0 items-center',
-            manager ? 'hidden md:flex' : 'flex',
+            isManager ? 'hidden md:flex' : 'flex',
             current === item.key ? 'border-b-2 border-accent font-semibold' : 'text-ink-muted hover:text-ink',
           ]"
           @click="navigate"
         >{{ item.label }}</a>
       </RouterLink>
       <span
-        v-if="manager && currentLabel"
+        v-if="isManager && currentLabel"
         class="flex h-11 items-center border-b-2 border-accent font-semibold md:hidden"
       >{{ currentLabel }}</span>
       <button
         type="button"
-        :class="['ml-auto h-11 shrink-0 items-center text-ink-muted hover:text-ink', manager ? 'hidden md:flex' : 'flex']"
+        :class="['ml-auto h-11 shrink-0 items-center text-ink-muted hover:text-ink', isManager ? 'hidden md:flex' : 'flex']"
         @click="emit('signOut')"
       >
         Sign out
       </button>
       <UDropdownMenu
-        v-if="manager"
+        v-if="isManager"
         :items="menuItems"
         :content="{ align: 'end' }"
         class="ml-auto md:hidden"
