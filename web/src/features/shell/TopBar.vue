@@ -1,6 +1,6 @@
 <script setup lang="ts">
-// Top bar: employees see My timesheet, Profile, Sign out. Managers also see Approvals and Admin (FR-01), which
-// collapse into a Menu on phones. `current` is left out on pages that aren't in the bar (not found, no access).
+// Top bar: employees see My timesheet, Profile, Sign out. Managers also see Approvals and Admin (FR-03), which
+// collapse into a Menu on phones. `current` is left out on pages that aren't in the bar (not found).
 import { computed } from 'vue'
 
 type PageKey = 'timesheet' | 'profile' | 'approvals' | 'admin'
