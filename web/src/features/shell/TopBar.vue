@@ -9,17 +9,17 @@ const props = defineProps<{ current?: PageKey; manager?: boolean }>()
 // Signing out is a POST, so it is a button; the session store listens for this.
 const emit = defineEmits<{ signOut: [] }>()
 
-const links = [
+const navItems = [
   { key: 'timesheet', label: 'My timesheet', to: '/timesheet', managerOnly: false },
   { key: 'approvals', label: 'Approvals', to: '/approvals', managerOnly: true },
   { key: 'admin', label: 'Admin', to: '/admin', managerOnly: true },
   { key: 'profile', label: 'Profile', to: '/profile', managerOnly: false },
 ] as const
 
-const visible = computed(() => links.filter((link) => props.manager || !link.managerOnly))
-const currentLabel = computed(() => links.find((link) => link.key === props.current)?.label)
+const visibleNavItems = computed(() => navItems.filter((item) => props.manager || !item.managerOnly))
+const currentLabel = computed(() => navItems.find((item) => item.key === props.current)?.label)
 const menuItems = computed(() => [
-  visible.value.map((link) => ({ label: link.label, to: link.to })),
+  visibleNavItems.value.map((item) => ({ label: item.label, to: item.to })),
   [{ label: 'Sign out', icon: 'i-lucide-log-out', onSelect: () => emit('signOut') }],
 ])
 </script>
@@ -31,22 +31,22 @@ const menuItems = computed(() => [
       class="mx-auto flex h-14 max-w-5xl items-center gap-6 px-4"
     >
       <RouterLink
-        v-for="link in visible"
-        :key="link.key"
+        v-for="item in visibleNavItems"
+        :key="item.key"
         v-slot="{ href, navigate }"
-        :to="link.to"
+        :to="item.to"
         custom
       >
         <a
           :href="href"
-          :aria-current="current === link.key ? 'page' : undefined"
+          :aria-current="current === item.key ? 'page' : undefined"
           :class="[
             'h-11 shrink-0 items-center',
             manager ? 'hidden md:flex' : 'flex',
-            current === link.key ? 'border-b-2 border-accent font-semibold' : 'text-ink-muted hover:text-ink',
+            current === item.key ? 'border-b-2 border-accent font-semibold' : 'text-ink-muted hover:text-ink',
           ]"
           @click="navigate"
-        >{{ link.label }}</a>
+        >{{ item.label }}</a>
       </RouterLink>
       <span
         v-if="manager && currentLabel"
