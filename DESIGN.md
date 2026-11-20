@@ -93,7 +93,7 @@ Implemented in `web/src/assets/tokens.css` (the values) and `ui-theme.css` (the 
   - Failed actions (submit, approve, PDF, save): a red inline message by the button plus a toast.
   - While typing (FR-09 on a day): red field and message, no toast.
   - Keycloak's pages have no toasts: red field plus the tinted box above the form.
-- **Not found and no access** keep the top bar with nothing underlined, and offer *Go to My timesheet*.
+- **Not found** keeps the top bar with nothing underlined and offers *Go to My timesheet*. An employee who opens a manager page sees the same page, so a page they may not use reveals nothing about itself.
 
 ## 6. Vocabulary
 
@@ -140,6 +140,7 @@ Implemented in `web/src/assets/tokens.css` (the values) and `ui-theme.css` (the 
 | 2026-10-18 | A version conflict shows as an inline notice, not a toast | The owner's choice: a toast is easy to miss. |
 | 2026-10-18 | Round R8 approved: optional business logo, shown beside the business name on the sign-in pages; basic error messages | The owner: "Lets have the business name configured by the admin, with an optional logo"; "Beside name thanks". |
 | 2026-10-18 | Errors: red field with a message plus a toast; failed actions get an inline message plus a toast; never a toast alone | The owner: "I don't like toast only notification, it would be good to have field highlight + toast". |
+| 2026-11-20 | An employee who opens a manager page sees the Not found page. The separate "This page is for managers" page (R7-4) is dropped | Need to know: a person without permission gets no more information than they need, and that page named the page and the role it needs. |
 
 ## Open questions
 

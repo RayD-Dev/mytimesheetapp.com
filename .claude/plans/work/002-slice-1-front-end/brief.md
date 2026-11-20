@@ -28,7 +28,7 @@ Staff need to record a fortnight of shifts on their phones and submit them, sign
 | FR-21 | Replacing a signature doesn't change submitted timesheets | PRD section 6 |
 | FR-27 | Warn on 1 hour or less, or more than 12 hours, worked; never block | PRD section 6 |
 | D-1 | Screens match the approved screenshots (as updated by R9, C-10) page for page and state for state; differences are bugs unless recorded in the spec | `mockup/approved/README.md`; ui-e2e skill |
-| D-2 | Shared states from R7–R8: loading, failed to load, session ended, not found, no access, Not saved, changed on another device, and the error rule (red field plus a toast; never a toast alone) | `docs/screens/*.md`; DESIGN.md section 5 |
+| D-2 | Shared states from R7–R8: loading, failed to load, session ended, not found, Not saved, changed on another device, and the error rule (red field plus a toast; never a toast alone) | `docs/screens/*.md`; DESIGN.md section 5 |
 | D-3 | Coding standards and check gates | `.claude/skills/ui-e2e/references/standards.md` (agreed 12/10/2026) |
 | C-1 | Contract first: write the M1.1 OpenAPI contract, then build and test the front end against a mock API generated from it; the real back end follows the same contract in its own plan | Conversation 18/10/2026: chose "Contract first, mock API" |
 | C-2 | The Keycloak sign-in pages (R7–R8 design: sign in, wrong password, signed out, deactivated, choose a new password, reset, link expired) are themed in this slice, with a local Keycloak for development | Conversation 18/10/2026: chose "Yes, in M1.1" |
@@ -48,7 +48,7 @@ Staff need to record a fortnight of shifts on their phones and submit them, sign
 | Page | Spec | Screenshots |
 |---|---|---|
 | Sign-in pages (Keycloak theme) | `docs/screens/sign-in.md` | `sign-in-state-*` (no-logo states) |
-| App shell: top bar (employee and manager), not found, no access, session ended | `docs/screens/not-found.md`, `timesheet.md` | `not-found-state-*`, `timesheet--session-ended` |
+| App shell: top bar (employee and manager), not found, session ended | `docs/screens/not-found.md`, `timesheet.md` | `not-found-state-*`, `timesheet--session-ended` |
 | My timesheet (`/timesheet`) | `docs/screens/timesheet.md` | `timesheet-state-*`, `timesheet--after-submit` |
 | Submit review (`/timesheet/review`, a full-screen step) | `docs/screens/timesheet-review.md` | `timesheet-review--*` |
 | Profile (`/profile`) | `docs/screens/profile.md` | `profile-state-*`, `profile--password-changed` |
@@ -60,7 +60,7 @@ Each one becomes at least one test.
 | AC | Given, when, then | Covers |
 |---|---|---|
 | AC-1 | Given a signed-out visitor, when they open any app URL, then they're sent to sign in and come back to that URL afterwards | FR-01, C-4 |
-| AC-2 | Given an employee, when they open `/approvals` or `/admin`, then they see "This page is for managers" with *Go to My timesheet*; an unknown URL shows "Page not found" | FR-02, D-2 |
+| AC-2 | Given an employee, when they open `/approvals` or `/admin`, then they see "Page not found" with *Go to My timesheet*, the same as for an unknown URL, so the page reveals nothing about itself (changed 20/11/2026, need to know) | FR-03, D-2 |
 | AC-3 | Given no pay schedule, when an employee opens My timesheet, then they see the FR-06 message and no fields | FR-06 |
 | AC-4 | Given the current fortnight, when the employee switches to Previous fortnight, then the pay period and the days change; no other fortnight can be chosen | FR-07 |
 | AC-5 | Given a day, when the employee types times, then the day, week and fortnight hours preview at once in `{h}h {mm}m (decimal)` form, and the server's figures replace them after the save | FR-10, FR-11 |
