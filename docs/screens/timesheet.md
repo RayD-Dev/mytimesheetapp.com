@@ -28,7 +28,7 @@ The mock-up's `?state=` values exist only in the mock-up. In the real app each s
 | Not saved (R7-6, R8-4) | Autosave is failing, e.g. no signal; the app keeps retrying (FE design section 7.1). Mock: editable draft | Header status turns red: cloud-off icon and "Not saved" (replaces "Saving…" / "Saved"); a red-tinted box under the header: "Your latest changes aren't saved yet" with an explanation and *Try now*; fields stay editable; a toast "Changes not saved" with "We'll keep trying. Leave this page open." when the failure first happens | `timesheet-state-not-saved` |
 | Changed on another device (R7-6) | The server reports a newer version than the one being edited; the app reloaded the latest (version conflict). Mock: `conflict` | Editable draft with a dismissible blue-tinted notice at the top: "This timesheet was changed on another device"; header shows "Saved" | `timesheet-state-conflict` |
 | Session ended (R7-2) | The session expired while the page was open. Mock: `session-ended` | The editable draft stays visible behind a modal "You've been signed out" that can't be dismissed (no X, no Escape, no click outside); one button, *Sign in again* | `timesheet--session-ended` |
-| Loading (R7-7) | Data takes longer than about 300 ms | Top bar, then the title "{name} Timesheet" and ruled placeholder lines (shared `LoadState` part); nothing shown if loading is faster | `timesheet-state-loading` |
+| Loading (R7-7) | Data takes longer than about 300 ms | Top bar, then the title "{name} Timesheet" and ruled placeholder lines (shared `LoadState` part); the sheet and title show at once and the lines only after about 300 ms, so fast loads do not flash | `timesheet-state-loading` |
 | Load failed (R7-7) | The timesheet couldn't be fetched | Top bar, the title, then "Couldn't load your timesheet" with the explanation and *Try again* (shared `LoadState` part) | `timesheet-state-load-failed` |
 
 ## Layout
@@ -132,7 +132,7 @@ Hours format: `8h 30m (8.50)`. Times: `7:30 AM`. Dates: `05/10/2026`, weekday se
 | Server reports a newer version | Page reloads the latest timesheet and shows the conflict notice at the top | FE design section 7.1 |
 | Press "Dismiss" on the conflict notice | Notice closes; it comes back only if the state changes (mock) | n/a |
 | Session ends | Modal opens over the page; *Sign in again* goes to the sign-in page (`sign-in.md`), and signing in brings the person back here (modal text: "carry on where you left off") | R7-2 |
-| Data slow to load | After about 300 ms the loading view replaces the sheet | R7-7 |
+| Data slow to load | The sheet and title show at once. After about 300 ms the placeholder lines appear under the title | R7-7 |
 | Load fails | Load-failed view; *Try again* repeats the request (mock: button does nothing) | R7-7 |
 | Press "Sign out" / "Profile" / "My timesheet" | Top-bar navigation | n/a |
 | Errors (app-wide rule, R8-4) | Form errors on button press: the field turns red with a message under it, focus moves to the first bad field, and a toast says what didn't happen. Failed actions: an inline message by the button plus a toast, never a toast alone. Live typing errors: red field and message, no toast. Keycloak pages: red field plus the alert box, no toasts | R8-4 |

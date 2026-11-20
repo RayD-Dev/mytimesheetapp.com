@@ -22,7 +22,7 @@ Read one person's submitted timesheet, then approve and sign it, or reject it wi
 | First approval | Mock `first-approval`: manager has no signature (FR-20) | Approver column holds the signature set-up (Type it / Draw it, name, three styles, Use this signature); Approve disabled with "Set up your signature to approve." | `approvals-2026-10-05-priya-state-first-approval` |
 | Own timesheet | Mock `own`: manager's own (Sam Okafor), FR-19 | Info notice about Self-approved; Approver label "Approver (self-approved)"; Approve and Reject | `approvals-2026-10-05-priya-state-own` |
 | Rejected | Mock `rejected`: Lee Wong, waiting for the employee | Status Rejected (red); rejection panel with time and reason; read-only sheet; Approver "Not approved"; no Approve or Reject | `approvals-2026-10-05-lee-state-rejected` |
-| Loading (R7-7) | Data takes longer than about 300 ms | Top bar, then the title "Timesheet" and ruled placeholder lines instead of the back link, the sheet, the signatures (shared `LoadState` part); nothing shown if loading is faster | `approvals-2026-10-05-priya-state-loading` |
+| Loading (R7-7) | Data takes longer than about 300 ms | Top bar, then the title "Timesheet" and ruled placeholder lines instead of the back link, the sheet, the signatures (shared `LoadState` part); the sheet and title show at once and the lines only after about 300 ms, so fast loads do not flash | `approvals-2026-10-05-priya-state-loading` |
 | Load failed (R7-7) | The page's data couldn't be fetched | Top bar, the title "Timesheet", then "Couldn't load this timesheet" with the explanation and *Try again* (shared `LoadState` part) | `approvals-2026-10-05-priya-state-load-failed` |
 
 Source only, no screenshot: after approving the manager's own timesheet the status reads `Self-approved`, the toast reads `Timesheet self-approved`, and the confirmation modal is titled `Approve your own timesheet?` with "It's marked Self-approved on screen and in the PDF." (Approving Priya's toasts `Timesheet approved`; the toast is in the source but not in the screenshots.)
@@ -91,7 +91,7 @@ Source only, no screenshot: after approving the manager's own timesheet the stat
 | Use this signature (first approval) | Approver line fills; Approve becomes enabled; signature saved to profile | FR-20 |
 | Next to approve: {name} | Opens the next Submitted timesheet in the list (the manager's own one opens the `own` state) | FR-15 |
 | Edit any entry | Not possible; sheet is read-only | FR-18 |
-| Data slow to load | After about 300 ms the loading view replaces the page content | R7-7 |
+| Data slow to load | The sheet and title show at once. After about 300 ms the placeholder lines appear under the title | R7-7 |
 | Load fails | Load-failed view; *Try again* repeats the request (mock: button does nothing) | R7-7 |
 
 ## Components

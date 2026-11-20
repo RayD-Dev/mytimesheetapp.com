@@ -24,7 +24,7 @@ The manager's page for the fortnight PDF, the employee list, the pay schedule, a
 | Password reset | Reset confirmed | Modal "New temporary password for {first name}": password once with *Copy*, *Done* | `admin--reset-password` |
 | Row actions menu (phone) | ⋯ pressed on an employee row | Menu with Reset password and Deactivate (danger) | none (source only) |
 | Copied (toast) | *Copy* pressed | Toast "Copied" | none (source only) |
-| Loading (R7-7) | Data takes longer than about 300 ms | Top bar, then the title "Admin" and ruled placeholder lines instead of the sections (shared `LoadState` part); nothing shown if loading is faster | `admin-state-loading` |
+| Loading (R7-7) | Data takes longer than about 300 ms | Top bar, then the title "Admin" and ruled placeholder lines instead of the sections (shared `LoadState` part); the sheet and title show at once and the lines only after about 300 ms, so fast loads do not flash | `admin-state-loading` |
 | Load failed (R7-7) | The page's data couldn't be fetched | Top bar, the title "Admin", then "Couldn't load the admin page" with the explanation and *Try again* (shared `LoadState` part) | `admin-state-load-failed` |
 | PDF failed (R8-4) | *Download PDF* pressed and the server couldn't make the PDF | As PDF: some not approved, with a red inline message under the button: "The PDF couldn't be made. Try again in a moment." (`role="alert"`) and a toast "PDF not downloaded"; the button stays enabled | `admin-state-pdf-failed` |
 | Business name | *Change business name* pressed (mock `business-name`: the name is "Harbour Street Bakery") | Last section "Business name and logo" shows, under Name, the field with the current name filled in, *Cancel* and *Save business name* | `admin-state-business-name` |
@@ -128,7 +128,7 @@ The manager's page for the fortnight PDF, the employee list, the pay schedule, a
 | Pay schedule once timesheets exist | Read-only text with a lock icon | FR-05 |
 | Manager row | No Reset or Deactivate offered (you can't deactivate yourself) | FR-25 |
 | Account changes, PDF download, pay schedule set | Logged server-side (no UI) | FR-26 |
-| Data slow to load | After about 300 ms the loading view replaces the page content | R7-7 |
+| Data slow to load | The sheet and title show at once. After about 300 ms the placeholder lines appear under the title | R7-7 |
 | Load fails | Load-failed view; *Try again* repeats the request (mock: button does nothing) | R7-7 |
 | *Change business name* | Replaces the name with a field holding it, with *Cancel* and *Save business name* | R7-8 |
 | *Save business name* with the field empty or only spaces | Field turns red with "Enter the business name.", focus moves to it, toast "Business name not saved". The button is never disabled; it checks on press | R7-8, R8-4 |
