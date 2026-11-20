@@ -61,7 +61,7 @@ Each task is one agent's work (5 points at most). Every task's check includes th
 | 4 | MSW mock API with seeded states | implementer | `web/src/mocks/` | AC-22, AC-23, AC-29, AC-11, AC-26 | 3 | Todo |
 | 5 | Shared time, hours and validation modules | implementer (tests first) | `web/src/shared/time/`, `web/src/shared/validation/`, `contract/fixtures/hours-cases.json` | AC-5, AC-6, AC-7, AC-8 | 2 | Todo |
 | 6 | Session store, route guards, idle warning, session-ended dialog | implementer, main session reviews | `web/src/features/auth/`, `web/src/app/router.ts` | AC-1, AC-2, AC-22, AC-30 | 3, 4, **R9** (idle warning) | Todo |
-| 7 | Top bar, not found, no access, loading and failed states | implementer | `web/src/features/shell/`, `web/src/shared/ui/state/` | AC-2, AC-23 | 2 | Todo |
+| 7 | Top bar, not found, loading and failed states | implementer | `web/src/features/shell/`, `web/src/shared/ui/state/` | AC-2, AC-23 | 2 | Todo |
 | 8 | Save queue (plain module) | implementer (tests first), main session reviews | `web/src/features/timesheet/save-queue/` | AC-9, AC-10, AC-11, AC-27 | 3 | Todo |
 | 9 | 12-hour time input wrapper | implementer | `web/src/shared/ui/time-input/` | AC-28 | 2 | Todo |
 | 10 | My timesheet: load, header and read-only states | implementer | `web/src/features/timesheet/page/` | AC-3, AC-4, AC-12, AC-18 | 4, 5, 6, 7, **R9** (320 px) | Todo |
@@ -144,17 +144,17 @@ Rules in `.claude/skills/ui-e2e/references/engineering-practices.md`; `standards
 ### Task 6: Session store, route guards, idle warning, session-ended dialog
 
 - **Read first:** `docs/screens/not-found.md`, `docs/screens/timesheet.md` (session ended), `docs/screens/sign-in.md`; brief C-4, AC-1, AC-2, AC-22; the contract's session endpoints.
-- **Do:** a Pinia session store from `GET /me`; guards that send a signed-out visitor to `GET /session/login?returnTo=<relative path>` and back (AC-1) and show "This page is for managers" to employees (AC-2); sign out as a `POST` with the CSRF header; the session-ended dialog (cannot be dismissed, *Sign in again*) opened by task 3's unauthorised event (AC-22); the idle warning two minutes before `idleExpiresAt`, with *Stay signed in* calling `/session/keepalive` (design from R9). Assembles every feature's routes in `router.ts`.
+- **Do:** a Pinia session store from `GET /me`; guards that send a signed-out visitor to `GET /session/login?returnTo=<relative path>` and back (AC-1) and show "Page not found" to employees on a manager route (AC-2, FR-03); sign out as a `POST` with the CSRF header; the session-ended dialog (cannot be dismissed, *Sign in again*) opened by task 3's unauthorised event (AC-22); the idle warning two minutes before `idleExpiresAt`, with *Stay signed in* calling `/session/keepalive` (design from R9). Assembles every feature's routes in `router.ts`.
 - **Tests first:** guard tests (signed out, employee on a manager page, unknown URL); a `returnTo` that is not a relative path is never sent; the dialog opens on a 401; the idle warning shows at the right time and *Stay signed in* resets it.
 - **Check:** `pnpm -C web typecheck && pnpm -C web lint && pnpm -C web test && pnpm -C web test:components`
 - **Done when:** the tests pass against the mock API.
 - **Don't:** store a token, session or any user data in browser storage; the only cookie read is the CSRF token; no sign-in form (sign-in is Keycloak's).
 - **Review:** the main session reads the guards, the `returnTo` handling and the sign-out request line by line.
 
-### Task 7: Top bar, not found, no access, loading and failed states
+### Task 7: Top bar, not found, loading and failed states
 
 - **Read first:** `docs/screens/not-found.md`; `docs/notion/fe-design.md` section 7.2; `mockup/approved/` `not-found-state-*`.
-- **Do:** the top bar (employee and manager variants), "Page not found", "This page is for managers", and the shared loading (after about 300 ms) and "Couldn't load {what}" states with *Try again*.
+- **Do:** the top bar (employee and manager variants), "Page not found", and the shared loading (after about 300 ms) and "Couldn't load {what}" states with *Try again*.
 - **Tests first:** the loading lines appear only after 300 ms; *Try again* re-runs the load; each page renders its variant.
 - **Check:** `pnpm -C web typecheck && pnpm -C web lint && pnpm -C web test:components && pnpm -C web audit`
 - **Done when:** component tests pass for each state.
